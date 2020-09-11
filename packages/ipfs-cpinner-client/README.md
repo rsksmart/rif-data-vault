@@ -1,0 +1,1 @@
+# IPFS centralized pinner client

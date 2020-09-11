@@ -1,0 +1,23 @@
+version: 2.1
+orbs:
+  node: circleci/node@4.0.0
+
+jobs:
+  build-test-lint:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - run: npm i
+      - run: npm run setup
+      - run: npm run lint
+      - run: npm run test
+      - store_test_results:
+        path: ./reports/
+      - store_ artifacts:
+        path: ./reports/
+
+workflows:
+  build-test-lint:
+    jobs:
+      - build-test-lint

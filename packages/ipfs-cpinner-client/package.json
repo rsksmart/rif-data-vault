@@ -1,0 +1,27 @@
+{
+  "name": "@rsksmart/rif-cpinner-client",
+  "version": "0.0.1",
+  "description": "RIF Data Vault - IPFS centralized pinner client",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsksmart/rif-data-vault.git"
+  },
+  "keywords": [
+    "rsk",
+    "rif",
+    "storage",
+    "ipfs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rsksmart/rif-data-vault/issues"
+  },
+  "homepage": "https://github.com/rsksmart/rif-data-vault#readme"
+}
