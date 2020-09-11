@@ -23,5 +23,10 @@
   "bugs": {
     "url": "https://github.com/rsksmart/rif-data-vault/issues"
   },
-  "homepage": "https://github.com/rsksmart/rif-data-vault#readme"
+  "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
+  "dependencies": {
+    "@rsksmart/rif-storage": "^0.1.0",
+    "axios": "^0.20.0",
+    "daf-core": "^6.3.0"
+  }
 }
