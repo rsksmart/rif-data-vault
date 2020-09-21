@@ -4,7 +4,7 @@ import RIFStorage, { Provider } from '@rsksmart/rif-storage'
 
 interface ICentralizedIPFSPinnerClient {
   put: (key: string, content: string) => Promise<string>
-  get: (key: string) => Promise<Buffer[] | string[]>
+  get: (key: string) => Promise<{ cid: string, content: Buffer }[] | { cid: string }[]>
   delete: (key: string, cid: string) => Promise<string>
 }
 
@@ -63,8 +63,10 @@ const loginAndSendClaimWithToken = (claims: any[], url: string) => login()
     { claimType: 'key', claimValue: key }
   ], _urls.get).then((cids: string[]) => new Promise(
     resolve => ipfsGet ? Promise.all(cids.map(cid => ipfsGet(cid)
-      .then(content => secretBox.decrypt(content.toString('utf-8')))))
-      .then(resolve) : resolve(cids)
+      .then(cypher => secretBox.decrypt(cypher.toString('utf-8'))
+        .then(content => ({ cid, content }))
+      )))
+      .then(resolve) : resolve(cids.map(cid => ({ cid })))
   ))
 
   this.delete = (key: string, cid: string) => loginAndSendClaimWithToken([
