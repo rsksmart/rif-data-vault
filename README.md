@@ -11,6 +11,43 @@
     </a>
 </p>
 
-The Data Vault is a user centric cloud storage system.
-
 _This project is a work in progress_
+
+The Data Vault is a user centric cloud storage system. This repo currently exposes a Javascript implementation for interacting with [this centralized IPFS pinner service](https://github.com/rsksmart/rif-identity-services/tree/develop/services/data-vault).
+
+## Getting started
+
+Use the Data Vault client to store and retrieve files
+
+> View the data-vault service README for a quick-start
+
+```typescript
+import { SecretBox } from 'daf-libsodium'
+
+// holderAgent is a uPort agent
+
+const secretKey = await SecretBox.createSecretKey()
+const secretBox = new SecretBox(secretKey)
+const dataVault = CentralizedIPFSPinnerClient.fromAgent((await holderAgent.getIdentities())[0], holderAgent, secretBox, 'http://localhost:5102', { ipfsDefault: true })
+
+const cid1 = await dataVault.put('some key', 'some value')
+const cid2 = await dataVault.put('some key', 'some other value')
+
+const result = await dataVault.get('some key')
+
+await dataVault.delete('some key', cid1)
+await dataVault.delete('some key', cid2)
+```
+
+## Setup
+
+Install dependencies
+
+```
+npm i
+npm run setup
+```
+
+## Run tests
+
+_Currently no tests_
