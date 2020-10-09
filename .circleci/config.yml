@@ -44,7 +44,7 @@ jobs:
             - run: npm install
             - run: npm run setup
             - run: npm run build
-            # - run: npm run lint
+            - run: npm run lint
             - run: npm run test
             - store_test_results:
                 path: ./reports/
