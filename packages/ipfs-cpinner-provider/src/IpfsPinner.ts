@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm'
 import { IpfsPinner } from './types'
-import { IpfsPinnedCid } from './entities'
 import { IpfsHttpClient } from 'ipfs-http-client'
+import IpfsPinnedCid from './entities/ipfs-pinned-cid'
 
 export default class implements IpfsPinner {
   constructor (
@@ -9,15 +9,29 @@ export default class implements IpfsPinner {
     private repository: Repository<IpfsPinnedCid>
   ) {}
 
-  pin (cid: string): Promise<boolean> {
+  async pin (cid: string): Promise<boolean> {
+    const pinned = await this.repository.findOne({ where: { cid } })
+
+    if (pinned && pinned.count) {
+      pinned.count++
+      return this.repository.save(pinned).then(() => true)
+    }
+
     return this.ipfsHttpClient.pin.add(cid)
       .then(() => this.repository.save(new IpfsPinnedCid(cid)))
       .then(() => true)
   }
 
-  unpin (cid: string): Promise<boolean> {
-    return this.ipfsHttpClient.pin.rm(cid)
-      .then(() => this.repository.delete({ cid }))
-      .then(() => true)
+  async unpin (cid: string): Promise<boolean> {
+    const pinned = await this.repository.findOne({ where: { cid } })
+
+    if (pinned.count === 1) {
+      return this.ipfsHttpClient.pin.rm(cid)
+        .then(() => this.repository.delete({ cid }))
+        .then(() => true)
+    }
+
+    pinned.count--
+    return this.repository.save(pinned).then(() => true)
   }
 }

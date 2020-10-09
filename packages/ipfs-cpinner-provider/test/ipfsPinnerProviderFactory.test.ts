@@ -16,11 +16,11 @@ describe('ipfs pinner provider', () => {
 
   afterAll(() => fs.unlinkSync(database))
 
-  test('put content', async () => {
+  test('create content', async () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    const cid = await centralizedPinnerProvider.put(did, key, content)
+    const cid = await centralizedPinnerProvider.create(did, key, content)
 
     const expectedCid = await ipfsHash.of(Buffer.from(content))
 
@@ -31,25 +31,25 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.put(did, key, content)
+    await centralizedPinnerProvider.create(did, key, content)
 
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
 
     expect(retrievedContent).toEqual([content])
   })
 
-  test('swap content', async () => {
+  test('update content', async () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.put(did, key, content)
+    await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([content])
 
     const anotherContent = 'another'
-    await centralizedPinnerProvider.swap(did, key, anotherContent)
+    await centralizedPinnerProvider.update(did, key, anotherContent)
 
     // should get proper content
     const retrievedNewContent = await centralizedPinnerProvider.get(did, key)
@@ -60,7 +60,7 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.put(did, key, content)
+    await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     const retrievedContent = await centralizedPinnerProvider.get(did, key)

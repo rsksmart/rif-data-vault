@@ -1,8 +1,10 @@
 import { Connection } from 'typeorm'
 import IpfsHttpClient from 'ipfs-http-client'
-import IpfsPinnerProvider, { IpfsClient, IpfsPinner, MetadataManager } from '../src'
+import IpfsPinnerProvider, {
+  IpfsClient, IpfsMetadata, IpfsPinnedCid,
+  IpfsPinner, MetadataManager
+} from '../src'
 import { createSqliteConnection, resetDatabase, deleteDatabase } from './util'
-import { IpfsMetadata, IpfsPinnedCid } from '../src/entities'
 import ipfsHash from 'ipfs-only-hash'
 
 const database = './ipfs-pinner-provider.ipfsPinnerProvider.test.sqlite'
@@ -37,8 +39,8 @@ describe('ipfs pinner provider', () => {
     deleteDatabase(await dbConnection, database)
   })
 
-  test('put content', async () => {
-    const cid = await centralizedPinnerProvider.put(did, key, content)
+  test('create content', async () => {
+    const cid = await centralizedPinnerProvider.create(did, key, content)
 
     const expectedCid = await ipfsHash.of(Buffer.from(content))
 
@@ -46,7 +48,7 @@ describe('ipfs pinner provider', () => {
   })
 
   test('get one content', async () => {
-    await centralizedPinnerProvider.put(did, key, content)
+    await centralizedPinnerProvider.create(did, key, content)
 
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
 
@@ -56,8 +58,8 @@ describe('ipfs pinner provider', () => {
   test('get two contents', async () => {
     const anotherContent = 'another content'
 
-    await centralizedPinnerProvider.put(did, key, content)
-    await centralizedPinnerProvider.put(did, key, anotherContent)
+    await centralizedPinnerProvider.create(did, key, content)
+    await centralizedPinnerProvider.create(did, key, anotherContent)
 
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
 
@@ -76,30 +78,30 @@ describe('ipfs pinner provider', () => {
     expect(retrievedContent).toEqual([])
   })
 
-  test('swap content without specifying cid', async () => {
-    await centralizedPinnerProvider.put(did, key, content)
+  test('update content without specifying cid', async () => {
+    await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([content])
 
     const newContent = 'the new one'
-    await centralizedPinnerProvider.swap(did, key, newContent)
+    await centralizedPinnerProvider.update(did, key, newContent)
 
     // should get new content
     retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([newContent])
   })
 
-  test('swap unexisting content should add the new one', async () => {
-    await centralizedPinnerProvider.put(did, key, content)
+  test('update unexisting content should add the new one', async () => {
+    await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([content])
 
     const newContent = 'new content'
-    await centralizedPinnerProvider.swap(did, 'no exists', newContent)
+    await centralizedPinnerProvider.update(did, 'no exists', newContent)
 
     // should get new content and also old one, because was not deleted
     retrievedContent = await centralizedPinnerProvider.get(did, 'no exists')
@@ -109,15 +111,15 @@ describe('ipfs pinner provider', () => {
     expect(retrievedContent).toEqual([content])
   })
 
-  test('swap unexisting content specifyng cid should add the new one', async () => {
-    const cid = await centralizedPinnerProvider.put(did, key, content)
+  test('update unexisting content specifyng cid should add the new one', async () => {
+    const cid = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([content])
 
     const newContent = 'new content'
-    await centralizedPinnerProvider.swap(did, 'no exists', newContent, cid)
+    await centralizedPinnerProvider.update(did, 'no exists', newContent, cid)
 
     // should get new content and also old one, because was not deleted
     retrievedContent = await centralizedPinnerProvider.get(did, 'no exists')
@@ -127,27 +129,27 @@ describe('ipfs pinner provider', () => {
     expect(retrievedContent).toEqual([content])
   })
 
-  test('swap content specifying cid, should delete only one content', async () => {
-    const remainContent = 'this content will not be swapped'
-    const cidToSwap = await centralizedPinnerProvider.put(did, key, content)
-    await centralizedPinnerProvider.put(did, key, remainContent)
+  test('update content specifying cid, should delete only one content', async () => {
+    const remainContent = 'this content will not be updateped'
+    const cidToupdate = await centralizedPinnerProvider.create(did, key, content)
+    await centralizedPinnerProvider.create(did, key, remainContent)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([content, remainContent])
 
     const newContent = 'the new one'
-    await centralizedPinnerProvider.swap(did, key, newContent, cidToSwap)
+    await centralizedPinnerProvider.update(did, key, newContent, cidToupdate)
 
     // should get new content
     retrievedContent = await centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([remainContent, newContent])
   })
 
-  test('swap content specifying cid, should delete only one content', async () => {
-    const remainContent = 'this content will not be swapped'
-    const cidToDelete = await centralizedPinnerProvider.put(did, key, content)
-    await centralizedPinnerProvider.put(did, key, remainContent)
+  test('update content specifying cid, should delete only one content', async () => {
+    const remainContent = 'this content will not be updateped'
+    const cidToDelete = await centralizedPinnerProvider.create(did, key, content)
+    await centralizedPinnerProvider.create(did, key, remainContent)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
@@ -175,7 +177,7 @@ describe('ipfs pinner provider', () => {
   })
 
   test('delete content without specifying cid', async () => {
-    await centralizedPinnerProvider.put(did, key, content)
+    await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     const retrievedContent = await centralizedPinnerProvider.get(did, key)

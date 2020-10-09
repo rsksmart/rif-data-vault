@@ -27,6 +27,7 @@ declare module 'ipfs-http-client' {
     add (data: Buffer | File | Readable): Promise<IpfsResult>
     get (path: CidAddress): AsyncGenerator<IpfsObject>
     pin: {
+      ls (cid: CidAddress): Promise<IpfsPinResult[]>
       add (cid: CidAddress): Promise<IpfsPinResult>
       rm (cid: CidAddress): Promise<IpfsPinResult>
     }

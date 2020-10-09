@@ -1,6 +1,5 @@
 import { Connection } from 'typeorm'
-import { IpfsMetadata } from '../src/entities'
-import { MetadataManager } from '../src'
+import { IpfsMetadata, MetadataManager } from '../src'
 import { createSqliteConnection, resetDatabase, deleteDatabase } from './util'
 
 const database = './ipfs-pinner-provider.metadataManager.test.sqlite'

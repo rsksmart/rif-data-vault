@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 @Entity()
-export class IpfsMetadata {
+export default class IpfsMetadata {
   constructor (did: string, key: string, cid: string) {
     this.did = did
     this.key = key
@@ -20,18 +20,3 @@ export class IpfsMetadata {
   @Column('text')
   cid!: string;
 }
-
-@Entity()
-export class IpfsPinnedCid {
-  constructor (cid: string) {
-    this.cid = cid
-  }
-
-  @PrimaryGeneratedColumn()
-  id!: number;
-
-  @Column('text')
-  cid!: string;
-}
-
-export const Entities = [IpfsPinnedCid, IpfsMetadata]

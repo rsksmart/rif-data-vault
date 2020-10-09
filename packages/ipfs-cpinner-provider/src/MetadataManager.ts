@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm'
+import IpfsMetadata from './entities/ipfs-metadata'
 import { CID, MetadataManager, DID, Key } from './types'
-import { IpfsMetadata } from './entities'
 
 export default class implements MetadataManager {
   constructor (private repository: Repository<IpfsMetadata>) {}

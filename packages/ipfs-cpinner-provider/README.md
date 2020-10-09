@@ -11,7 +11,7 @@
 npm i @rsksmart/ipfs-pinner-provider
 ```
 
-A Centralized Data Vault provider pluggable to `@rsksmart/rif-data-vault`. It stores content in an IPFS node associated to a given did and key.
+A Centralized Data Vault provider compatible with RIF Data Vault standard interface (work in progress). It stores content in an IPFS node associated to a given did and key.
 It is strongly recommend to encrypt the content saved in IPFS through this package.
 
 Main capabilities:
@@ -46,7 +46,7 @@ First of all you need to have access to an IPFS node API. To run it locally:
 Plug and play configuration
 
 ```typescript=
-import IpfsPinnerProvider, { ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
+import { ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
 
 const ipfsApi = 'http://localhost:5001'
 const database = 'my-ipfs-pinner-provider.sqlite'

@@ -1,11 +1,13 @@
 import IpfsPinnerProvider from './IpfsPinnerProvider'
 import IpfsHttpClient from 'ipfs-http-client'
-import { Entities, IpfsMetadata, IpfsPinnedCid } from '../src/entities'
 import { createConnection } from 'typeorm'
 import IpfsClient from './IpfsClient'
 import IpfsPinner from './IpfsPinner'
 import MetadataManager from './MetadataManager'
+import IpfsPinnedCid from './entities/ipfs-pinned-cid'
+import IpfsMetadata from './entities/ipfs-metadata'
 
+const Entities = [IpfsPinnedCid, IpfsMetadata]
 export const createSqliteConnection = (database: string) => createConnection({
   type: 'sqlite',
   database,
