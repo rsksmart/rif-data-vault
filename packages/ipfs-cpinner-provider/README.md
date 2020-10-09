@@ -60,7 +60,7 @@ const ipfsPinnerProvider = await ipfsPinnerProviderFactory(ipfsApi, database)
 This allows to configure the `ipfs-http-client` and set the DB connection with the desired configuration
 
 ```typescript=
-import { Connection } from 'typeorm'
+import { createConnection } from 'typeorm'
 import IpfsHttpClient from 'ipfs-http-client'
 import IpfsPinnerProvider, { IpfsClient, IpfsPinner, MetadataManager, Entities, IpfsMetadata, IpfsPinnedCid } from '@rsksmart/ipfs-cpinner-provider'
 
