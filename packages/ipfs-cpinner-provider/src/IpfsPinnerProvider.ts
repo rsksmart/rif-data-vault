@@ -2,7 +2,7 @@ import {
   Content, CID, DID, IpfsPinner, Key, MetadataManager, IpfsClient
 } from './types'
 
-export default class CentralizedPinnerProvider {
+export default class IpfsPinnerProvider {
   constructor (
     private ipfsClient: IpfsClient,
     private metadataManager: MetadataManager,

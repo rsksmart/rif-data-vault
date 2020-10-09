@@ -1,15 +1,15 @@
 import { Connection } from 'typeorm'
 import IpfsHttpClient from 'ipfs-http-client'
-import CentralizedPinnerProvider, { IpfsClient, IpfsPinner, MetadataManager } from '../src'
+import IpfsPinnerProvider, { IpfsClient, IpfsPinner, MetadataManager } from '../src'
 import { createSqliteConnection, resetDatabase, deleteDatabase } from './util'
 import { IpfsMetadata, IpfsPinnedCid } from '../src/entities'
 import ipfsHash from 'ipfs-only-hash'
 
-const database = './ipfs-pinner-provider.centralizedPinnerProvider.test.sqlite'
+const database = './ipfs-pinner-provider.ipfsPinnerProvider.test.sqlite'
 
-describe('centralized pinner provider', () => {
+describe('ipfs pinner provider', () => {
   let dbConnection: Promise<Connection>
-  let centralizedPinnerProvider: CentralizedPinnerProvider
+  let centralizedPinnerProvider: IpfsPinnerProvider
 
   const did = 'did:ethr:rsk:12345678'
   const key = 'the key'
@@ -30,7 +30,7 @@ describe('centralized pinner provider', () => {
     const ipfsPinner = new IpfsPinner(ipfsHttpClient, pinnedCidsRepository)
     const metadataManager = new MetadataManager(metadataRepository)
 
-    centralizedPinnerProvider = new CentralizedPinnerProvider(ipfsClient, metadataManager, ipfsPinner)
+    centralizedPinnerProvider = new IpfsPinnerProvider(ipfsClient, metadataManager, ipfsPinner)
   })
 
   afterAll(async () => {

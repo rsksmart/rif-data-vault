@@ -1,15 +1,7 @@
-import { createConnection, Connection } from 'typeorm'
+import { Connection } from 'typeorm'
 import fs from 'fs'
-import { Entities } from '../src/entities'
 
-export const createSqliteConnection = (database: string) => createConnection({
-  type: 'sqlite',
-  database,
-  entities: Entities,
-  logging: false,
-  dropSchema: true,
-  synchronize: true
-})
+export { createSqliteConnection } from '../src'
 
 export const resetDatabase = async (dbConnection: Promise<Connection>) => {
   await (await dbConnection).dropDatabase()
