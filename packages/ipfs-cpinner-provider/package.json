@@ -4,8 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "test": "jest --coverage",
-    "build": "npx tsc"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",

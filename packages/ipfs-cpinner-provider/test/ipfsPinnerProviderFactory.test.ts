@@ -1,4 +1,4 @@
-import IpfsPinnerProvider, { ipfsPinnerProviderFactory } from '../src'
+import IpfsPinnerProvider, { createSqliteConnection, ipfsPinnerProviderFactory } from '../src'
 import ipfsHash from 'ipfs-only-hash'
 import fs from 'fs'
 import { getRandomString } from './util'
@@ -11,7 +11,8 @@ describe('ipfs pinner provider', () => {
   const did = 'did:ethr:rsk:12345678'
 
   beforeAll(async () => {
-    centralizedPinnerProvider = await ipfsPinnerProviderFactory('http://localhost:5001', database)
+    const connection = await createSqliteConnection(database)
+    centralizedPinnerProvider = await ipfsPinnerProviderFactory(connection, 'http://localhost:5001')
   })
 
   afterAll(() => fs.unlinkSync(database))

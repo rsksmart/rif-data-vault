@@ -1,6 +1,6 @@
 import IpfsPinnerProvider from './IpfsPinnerProvider'
 import IpfsHttpClient from 'ipfs-http-client'
-import { createConnection } from 'typeorm'
+import { Connection, createConnection } from 'typeorm'
 import IpfsClient from './IpfsClient'
 import IpfsPinner from './IpfsPinner'
 import MetadataManager from './MetadataManager'
@@ -17,9 +17,8 @@ export const createSqliteConnection = (database: string) => createConnection({
   synchronize: true
 })
 
-export const ipfsPinnerProviderFactory = async (ipfsApiUrl = 'http://localhost:5001', dbName = 'ipfsPinnerProvider.sqlite') => {
+export const ipfsPinnerProviderFactory = async (dbConnection: Connection, ipfsApiUrl = 'http://localhost:5001') => {
   const ipfsHttpClient = IpfsHttpClient({ url: ipfsApiUrl })
-  const dbConnection = await createSqliteConnection(dbName)
   const pinnedCidsRepository = dbConnection.getRepository(IpfsPinnedCid)
   const metadataRepository = dbConnection.getRepository(IpfsMetadata)
 
