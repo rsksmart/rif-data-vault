@@ -1,6 +1,7 @@
 import { Connection } from 'typeorm'
 import IpfsHttpClient from 'ipfs-http-client'
-import IpfsPinnerProvider, {
+import {
+  IpfsPinnerProvider,
   IpfsClient, IpfsMetadata, IpfsPinnedCid,
   IpfsPinner, MetadataManager
 } from '../src'
@@ -29,7 +30,7 @@ describe('ipfs pinner provider', () => {
     const metadataRepository = (await dbConnection).getRepository(IpfsMetadata)
 
     const ipfsClient = new IpfsClient(ipfsHttpClient)
-    const ipfsPinner = new IpfsPinner(ipfsHttpClient, pinnedCidsRepository)
+      const ipfsPinner = new IpfsPinner(ipfsHttpClient, pinnedCidsRepository)
     const metadataManager = new MetadataManager(metadataRepository)
 
     centralizedPinnerProvider = new IpfsPinnerProvider(ipfsClient, metadataManager, ipfsPinner)

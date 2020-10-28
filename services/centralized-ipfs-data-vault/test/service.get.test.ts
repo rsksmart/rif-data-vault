@@ -1,8 +1,11 @@
-import { ipfsPinnerProviderFactory, Entities } from '@rsksmart/ipfs-pinner-provider'
+import { Express } from 'express'
+import { ipfsPinnerProviderFactory, IpfsPinnerProvider, Entities } from '@rsksmart/ipfs-pinner-provider'
 import { setupDataVault } from '../src/data-vault'
 import request from 'supertest'
 import { deleteDatabase } from '../../../packages/ipfs-cpinner-provider/test/util'
-import { createConnection } from 'typeorm'
+import { Connection, createConnection } from 'typeorm'
+
+const ipfsEndpoint = 'http://localhost:5001'
 
 const createSqliteConnection = (database: string) => createConnection({
   type: 'sqlite',
@@ -13,108 +16,121 @@ const createSqliteConnection = (database: string) => createConnection({
   synchronize: true
 })
 
-describe('GET', () => {
-  test('should return content associated to an existing key', async () => {
-    const key = 'ExistingKey'
-    const content = 'This is the content'
-    const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
+async function testContentIsAccessible(
+  database: string,
+  { did, key }: { did: string, key: string },
+  arrange: (ipfsPinnerProvider: IpfsPinnerProvider) => Promise<any>,
+  expectedContent: string[]
+) {
+  // setup
+  const dbConnection = await createSqliteConnection(database)
+  const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
+  const app = setupDataVault(ipfsPinnerProvider)
 
-    const ipfsApi = 'http://localhost:5001'
-    const database = 'my-tdd.sqlite'
-    const connection = await createSqliteConnection(database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(connection, ipfsApi)
+  // arrange
+  await arrange(ipfsPinnerProvider)
 
-    await ipfsPinnerProvider.create(did, key, content)
+  // act
+  const { body } = await request(app).get(`/${did}/${key}`).expect(200)
 
-    const app = setupDataVault(ipfsPinnerProvider)
+  // assert
+  expect(body.content).toEqual(expectedContent)
 
-    const { body } = await request(app).get(`/${did}/${key}`).expect(200)
+  return dbConnection
+}
 
-    expect(body.content).toEqual([content])
+const testSingleContentIsAccessible = (
+  database: string,
+  { did, key, content }: { did: string, key: string, content: string }
+) => testContentIsAccessible(
+  database,
+  { did, key },
+  (ipfsPinnerProvider: IpfsPinnerProvider) => ipfsPinnerProvider.create(did, key, content),
+  [content]
+)
 
-    await deleteDatabase(connection, database)
+describe('GET', function (this: {
+  database: string,
+  dbConnection: Connection,
+  ipfsPinnerProvider: IpfsPinnerProvider,
+  app: Express
+}) {
+  afterEach(() => deleteDatabase(this.dbConnection, this.database))
+
+  describe('tdd', () => {
+
+    test('get content from given did and key', async () => {
+      this.database = 'test-1.service.get.sqlite'
+
+      this.dbConnection = await testSingleContentIsAccessible(this.database, {
+        did: 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70',
+        key: 'ExistingKey',
+        content: 'This is the content'
+      })
+    })
+
+    test('get a different content from given did and key', async () => {
+      this.database = 'test-2.service.get.sqlite'
+
+      this.dbConnection = await testSingleContentIsAccessible(this.database, {
+        did: 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70',
+        key: 'ExistingKey',
+        content: 'This is another content'
+      })
+    })
+
+    test('get content from a different did', async () => {
+      this.database = 'test-3.service.get.sqlite'
+
+      this.dbConnection = await testSingleContentIsAccessible(this.database, {
+        did: 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79',
+        key: 'ExistingKey',
+        content: 'This is another content for another did'
+      })
+    })
+
+    test('get content from a different key', async () => {
+      this.database = 'test-4.service.get.sqlite'
+
+      this.dbConnection = await testSingleContentIsAccessible(this.database, {
+        did: 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79',
+        key: 'AnotherKey',
+        content: 'This is a content for another key'
+      })
+    })
   })
 
-  test('2', async () => {
-    const key = 'ExistingKey'
-    const content = 'This is another content'
-    const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
+  describe('other cases', () => {
+    test('get with no content uploaded', async () => {
+      this.database = 'test-5.service.get.sqlite'
 
-    const ipfsApi = 'http://localhost:5001'
-    const database = 'my-tdd2.sqlite'
-    const connection = await createSqliteConnection(database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(connection, ipfsApi)
+      const did = 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79'
+      const key = 'AnotherKey'
 
-    await ipfsPinnerProvider.create(did, key, content)
+      this.dbConnection = await testContentIsAccessible(
+        this.database,
+        { did, key },
+        async () => { }, // no op
+        []
+      )
+    })
 
-    const app = setupDataVault(ipfsPinnerProvider)
+    test('get with multiple content uploaded in the same key', async () => {
+      this.database = 'test-6.service.get.sqlite'
 
-    const { body } = await request(app).get(`/${did}/${key}`).expect(200)
+      const did = 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79'
+      const key = 'AnotherKey'
+      const content1 = 'This is the content'
+      const content2 = 'This is another content'
 
-    expect(body.content).toEqual([content])
-
-    await deleteDatabase(connection, database)
-  })
-
-  test('3', async () => {
-    const key = 'ExistingKey'
-    const content = 'This is another content for another did'
-    const did = 'did:ethr:rsk:testnet:0x1234567890abcdef'
-
-    const ipfsApi = 'http://localhost:5001'
-    const database = 'my-tdd3.sqlite'
-    const connection = await createSqliteConnection(database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(connection, ipfsApi)
-
-    await ipfsPinnerProvider.create(did, key, content)
-
-    const app = setupDataVault(ipfsPinnerProvider)
-
-    const { body } = await request(app).get(`/${did}/${key}`).expect(200)
-
-    expect(body.content).toEqual([content])
-
-    await deleteDatabase(connection, database)
-  })
-
-  test('4', async () => {
-    const key = 'ExistingKey'
-    const content1 = 'This is content one'
-    const content2 = 'This is content two'
-    const did = 'did:ethr:rsk:testnet:0x1234567890abcdef'
-
-    const ipfsApi = 'http://localhost:5001'
-    const database = 'my-tdd4.sqlite'
-    const connection = await createSqliteConnection(database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(connection, ipfsApi)
-
-    await ipfsPinnerProvider.create(did, key, content1)
-    await ipfsPinnerProvider.create(did, key, content2)
-
-    const app = setupDataVault(ipfsPinnerProvider)
-
-    const { body } = await request(app).get(`/${did}/${key}`).expect(200)
-
-    expect(body.content).toEqual([content1, content2])
-
-    await deleteDatabase(connection, database)
-  })
-
-  test('5', async () => {
-    const key = 'ExistingKey'
-    const did = 'did:ethr:rsk:testnet:0x1234567890abcdef'
-
-    const ipfsApi = 'http://localhost:5001'
-    const database = 'my-tdd4.sqlite'
-    const connection = await createSqliteConnection(database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(connection, ipfsApi)
-
-    const app = setupDataVault(ipfsPinnerProvider)
-
-    const { body } = await request(app).get(`/${did}/${key}`).expect(200)
-
-    expect(body.content).toEqual([])
-
-    await deleteDatabase(connection, database)
+      this.dbConnection = await testContentIsAccessible(
+        this.database,
+        { did, key },
+        async (ipfsPinnerProvider: IpfsPinnerProvider) => {
+          await ipfsPinnerProvider.create(did, key, content1)
+          await ipfsPinnerProvider.create(did, key, content2)}, // no op
+        [content1, content2]
+      )
+    })
   })
 })

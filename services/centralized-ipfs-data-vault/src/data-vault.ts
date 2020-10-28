@@ -1,4 +1,4 @@
-import IpfsPinnerProvider from '@rsksmart/ipfs-pinner-provider'
+import { IpfsPinnerProvider } from '@rsksmart/ipfs-pinner-provider'
 import express from 'express'
 
 export function setupDataVault (provider: IpfsPinnerProvider) {

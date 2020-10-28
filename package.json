@@ -6,7 +6,8 @@
     "bootstrap": "npx lerna bootstrap",
     "setup": "npm run bootstrap && npm run link",
     "build": "npx lerna run build",
-    "test": "npx jest packages/*/test --verbose --coverage --collectCoverageFrom=packages/*/src/**/* --coverageDirectory reports",
+    "test": "npx jest packages/*/test services/*/test --verbose --coverage --collectCoverageFrom=packages/*/src/**/* --coverageDirectory reports",
+    "test:watch": "npx jest packages/*/test services/*/test --verbose --coverage --watch --collectCoverageFrom=packages/*/src/**/* --coverageDirectory reports",
     "lint": "npx eslint packages/*/src/**/* packages/*/test/**/* --ext .json,.js,.ts --format junit --output-file ./reports/eslint.xml"
   },
   "devDependencies": {
