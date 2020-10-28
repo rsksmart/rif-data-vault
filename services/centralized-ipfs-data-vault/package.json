@@ -26,6 +26,7 @@
   "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
   "dependencies": {
     "@rsksmart/ipfs-pinner-provider": "0.0.0",
+<<<<<<< HEAD
     "@rsksmart/rif-id-ethr-did": "^0.1.0",
     "@rsksmart/rif-node-utils": "0.0.3",
     "@types/body-parser": "^1.19.0",
@@ -44,5 +45,21 @@
     "supertest": "^5.0.0",
     "typeorm": "^0.2.28",
     "typescript": "^4.0.5"
+=======
+    "@rsksmart/rif-node-utils": "0.0.3",
+    "@types/body-parser": "^1.19.0",
+    "@types/cors": "^2.8.8",
+    "@types/express": "^4.17.8",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "@types/supertest": "^2.0.10",
+    "sqlite3": "^5.0.0",
+    "supertest": "^5.0.0",
+    "typeorm": "^0.2.28"
+>>>>>>> First commit with TDD approach for the DV api
   }
 }

@@ -25,6 +25,7 @@ export const deleteDatabase = (connection: Connection, database: string) => conn
 })
 
 export const getRandomString = (): string => Math.random().toString(36).substring(3, 11)
+<<<<<<< HEAD
 
 export const ipfsEndpoint = 'http://localhost:5001'
 
@@ -61,3 +62,5 @@ export const challengeResponseFactory = async (
 }
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
+=======
+>>>>>>> First commit with TDD approach for the DV api
