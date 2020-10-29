@@ -1,9 +1,7 @@
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-pinner-provider'
-import express from 'express'
+import { Express } from 'express'
 
-export function setupDataVault (provider: IpfsPinnerProvider) {
-  const app = express()
-
+export function setupDataVault (app: Express, provider: IpfsPinnerProvider) {
   app.get('/:did/:key', async (req, res) => {
     const { did, key } = req.params
 
@@ -11,6 +9,4 @@ export function setupDataVault (provider: IpfsPinnerProvider) {
 
     res.status(200).json({ content })
   })
-
-  return app
 }
