@@ -1,6 +1,6 @@
 import express, { Express } from 'express'
 import { ipfsPinnerProviderFactory, IpfsPinnerProvider } from '@rsksmart/ipfs-pinner-provider'
-import { setupDataVault } from '../src/api'
+import { setupPublicApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
 import { createSqliteConnection, deleteDatabase } from './util'
@@ -17,7 +17,7 @@ async function testContentIsAccessible (
   // setup
   const dbConnection = await createSqliteConnection(database)
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
-  setupDataVault(app, ipfsPinnerProvider)
+  setupPublicApi(app, ipfsPinnerProvider)
 
   // arrange
   await arrange(ipfsPinnerProvider)
