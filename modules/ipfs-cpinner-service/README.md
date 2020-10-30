@@ -28,6 +28,8 @@ The IPFS Centralized pinner service is designed to let users store files for fre
 
 Content is stored in `did -> key -> file[]` dictionary. Files with a same `key` can be accessed all together.
 
+This service implements the [DID Auth protocol](https://rsksmart.github.io/rif-identity-docs/ssi/specs/did-auth) to protect the API.
+
 ### API
 
 The API is divided in two. Content modifications need [authenticated requests using DID Auth](https://github.com/rsksmart/rif-identity.js/tree/develop/packages/express-did-auth) and is supposed that the content uploaded is encrypted. This enables the accessing API to be open to anybody.
