@@ -1,9 +1,9 @@
 import express, { Express } from 'express'
 import { ipfsPinnerProviderFactory, IpfsPinnerProvider } from '@rsksmart/ipfs-pinner-provider'
-import setupApi, { Config } from '../src/setup'
+import setupApi, { AuthConfig } from '../src/setup'
 import request from 'supertest'
 import { Connection } from 'typeorm'
-import { challengeResponseFactory, createSqliteConnection, deleteDatabase, identityFactory, ipfsEndpoint } from './util'
+import { challengeResponseFactory, createSqliteConnection, deleteDatabase, identityFactory, ipfsEndpoint, mockedLogger } from './util'
 import bodyParser from 'body-parser'
 
 jest.setTimeout(10000)
@@ -12,7 +12,7 @@ describe('setup api with authentication', function (this: {
   dbConnection: Connection,
   ipfsPinnerProvider: IpfsPinnerProvider,
   app: Express,
-  config: Config,
+  config: AuthConfig,
   accessToken: string
 }) {
   beforeAll(async () => {
@@ -31,7 +31,7 @@ describe('setup api with authentication', function (this: {
     this.dbName = 'setup-1.dv-service.sqlite'
     this.dbConnection = await createSqliteConnection(this.dbName)
     this.ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
-    setupApi(this.app, this.ipfsPinnerProvider, this.config)
+    setupApi(this.app, this.ipfsPinnerProvider, this.config, mockedLogger)
 
     const challengeResponse = await request(this.app).get(`/request-auth/${userIdentity.did}`).expect(200)
     const { challenge } = challengeResponse.body

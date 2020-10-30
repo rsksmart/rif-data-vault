@@ -1,9 +1,9 @@
 import express, { Express } from 'express'
-import { ipfsPinnerProviderFactory, IpfsPinnerProvider } from '@rsksmart/ipfs-pinner-provider'
 import { setupPublicApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
-import { createSqliteConnection, deleteDatabase, ipfsEndpoint } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
+import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-pinner-provider'
 
 async function testContentIsAccessible (
   app: Express,
@@ -15,7 +15,7 @@ async function testContentIsAccessible (
   // setup
   const dbConnection = await createSqliteConnection(database)
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
-  setupPublicApi(app, ipfsPinnerProvider)
+  setupPublicApi(app, ipfsPinnerProvider, mockedLogger)
 
   // arrange
   await arrange(ipfsPinnerProvider)

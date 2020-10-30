@@ -4,6 +4,7 @@ import { Entities } from '@rsksmart/ipfs-pinner-provider'
 import { rskDIDFromPrivateKey } from '@rsksmart/rif-id-ethr-did'
 import { mnemonicToSeed, seedToRSKHDKey, generateMnemonic } from '@rsksmart/rif-id-mnemonic'
 import { createJWT, Signer } from 'did-jwt'
+import { Logger } from 'winston'
 
 export const createSqliteConnection = (database: string) => createConnection({
   type: 'sqlite',
@@ -58,3 +59,5 @@ export const challengeResponseFactory = async (
 
   return createJWT(payload, { issuer: issuer.did, signer: issuer.signer }, { typ: 'JWT', alg: 'ES256K' })
 }
+
+export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger

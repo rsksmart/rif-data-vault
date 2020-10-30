@@ -3,7 +3,7 @@ import express, { Express } from 'express'
 import { Connection } from 'typeorm'
 import request from 'supertest'
 import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-pinner-provider'
-import { createSqliteConnection, deleteDatabase, ipfsEndpoint } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
 import bodyParser from 'body-parser'
 
 describe('PUT', function (this: {
@@ -18,7 +18,7 @@ describe('PUT', function (this: {
     this.dbConnection = await createSqliteConnection(this.dbName)
     this.provider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
 
-    setupPermissionedApi(this.app, this.provider)
+    setupPermissionedApi(this.app, this.provider, mockedLogger)
   }
 
   const putAndGetResponseBody = async (key: string, content: string, id?: string) => {
