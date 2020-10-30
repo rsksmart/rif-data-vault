@@ -17,11 +17,32 @@ export function setupPublicApi (app: Express, provider: IpfsPinnerProvider) {
 
 export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider) {
   app.post('/:key', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
     const { key } = req.params
     const { content } = req.body
 
-    const id = await provider.create(req.user.did, key, content)
+    const id = await provider.create(did, key, content)
 
     res.status(201).json({ id })
+  })
+
+  app.put('/:key', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
+    const { key } = req.params
+    const { content } = req.body
+
+    const id = await provider.update(did, key, content)
+
+    res.status(200).send({ id })
+  })
+
+  app.put('/:key/:id', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
+    const { key, id } = req.params
+    const { content } = req.body
+
+    const newId = await provider.update(did, key, content, id)
+
+    res.status(200).send({ id: newId })
   })
 }
