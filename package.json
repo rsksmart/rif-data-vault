@@ -6,9 +6,12 @@
     "bootstrap": "npx lerna bootstrap",
     "setup": "npm run bootstrap && npm run link",
     "build": "npx lerna run build",
-    "test": "npx jest packages/*/test services/*/test --verbose --coverage --collectCoverageFrom=packages/*/src/**/* --coverageDirectory reports",
-    "test:watch": "npx jest packages/*/test services/*/test --verbose --coverage --watch --collectCoverageFrom=packages/*/src/**/* --coverageDirectory reports",
-    "lint": "npx eslint packages/*/src/**/* packages/*/test/**/* --ext .json,.js,.ts --format junit --output-file ./reports/eslint.xml"
+    "test": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/*",
+    "test:watch": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --watch",
+    "test:ci": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --coverageDirectory reports",
+    "lint": "npx eslint ./modules --ext .json,.js,.ts",
+    "lint:fix": "npx eslint ./modules --ext .json,.js,.ts --fix",
+    "lint:ci": "npx eslint ./modules --ext .json,.js,.ts --format junit --output-file ./reports/eslint.xml"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.1.0",

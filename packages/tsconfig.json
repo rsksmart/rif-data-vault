@@ -1,7 +1,0 @@
-{
-  "files": [],
-  "references": [
-      { "path": "ipfs-cpinner-client" },
-      { "path": "ipfs-cpinner-provider" }
-  ]
-}
