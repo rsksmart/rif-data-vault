@@ -29,5 +29,4 @@ export const ipfsPinnerProviderFactory = async (dbConnection: Connection, ipfsAp
   return new IpfsPinnerProvider(ipfsClient, metadataManager, ipfsPinner)
 }
 
-export default IpfsPinnerProvider
-export { IpfsClient, IpfsPinner, MetadataManager, Entities, IpfsMetadata, IpfsPinnedCid }
+export { IpfsPinnerProvider, IpfsClient, IpfsPinner, MetadataManager, Entities, IpfsMetadata, IpfsPinnedCid }

@@ -1,4 +1,4 @@
-import IpfsPinnerProvider, { createSqliteConnection, ipfsPinnerProviderFactory } from '../src'
+import { IpfsPinnerProvider, createSqliteConnection, ipfsPinnerProviderFactory } from '../src'
 import ipfsHash from 'ipfs-only-hash'
 import fs from 'fs'
 import { getRandomString } from './util'
