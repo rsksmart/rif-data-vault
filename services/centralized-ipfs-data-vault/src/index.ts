@@ -7,7 +7,7 @@ import { rskDIDFromPrivateKey, rskTestnetDIDFromPrivateKey } from '@rsksmart/rif
 import { Connection, createConnection } from 'typeorm'
 import { ipfsPinnerProviderFactory, Entities } from '@rsksmart/ipfs-pinner-provider'
 
-dotenv.config({ path: '../.env' }) // TODO: Should be removed that path
+dotenv.config()
 
 const env = {
   challengeSecret: process.env.CHALLENGE_SECRET,
@@ -50,11 +50,9 @@ createConnection({
   logging: false,
   dropSchema: true,
   synchronize: true
-}).then(async (dbConnection: Connection) => {
-  const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, `http://${env.ipfsHost}:${env.ipfsPort}`)
-  setupApp(app, ipfsPinnerProvider, config, logger)
-
-  const port = process.env.DATA_VAULT_PORT || 5108
-
-  app.listen(port, () => logger.info(`Data vault service service started on port ${port}`))
-})
+}).then((dbConnection: Connection) => ipfsPinnerProviderFactory(dbConnection, `http://${env.ipfsHost}:${env.ipfsPort}`))
+  .then(ipfsPinnerProvider => setupApp(app, ipfsPinnerProvider, config, logger))
+  .then(() => {
+    const port = process.env.DATA_VAULT_PORT || 5107
+    app.listen(port, () => logger.info(`Data vault service service started on port ${port}`))
+  })
