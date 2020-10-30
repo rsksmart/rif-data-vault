@@ -6,7 +6,9 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && node lib/index.js"
+    "build:prod": "tsc -p tsconfig.prod.json",
+    "start": "npm run build && node lib/index.js",
+    "start:prod": "npm run build:prod && node lib/index.js"
   },
   "repository": {
     "type": "git",
