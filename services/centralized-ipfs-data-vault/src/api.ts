@@ -45,4 +45,22 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
 
     res.status(200).send({ id: newId })
   })
+
+  app.delete('/:key', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
+    const { key } = req.params
+
+    await provider.delete(did, key)
+
+    res.status(200).send()
+  })
+
+  app.delete('/:key/:id', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
+    const { key, id } = req.params
+
+    await provider.delete(did, key, id)
+
+    res.status(200).send()
+  })
 }

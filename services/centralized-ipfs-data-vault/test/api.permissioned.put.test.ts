@@ -46,21 +46,21 @@ describe('PUT', function (this: {
 
   describe('/:key', () => {
     describe('tdd', () => {
-      it('should respond with an id', async () => {
+      test('should respond with an id', async () => {
         this.dbName = 'put-1.dv-service.sqlite'
         const body = await putAndGetResponseBody('The key', 'the content')
 
         expect(body.id).toBeTruthy()
       })
 
-      it('should save the new file in ipfs and respond with the cid', async () => {
+      test('should save the new file in ipfs and respond with the cid', async () => {
         this.dbName = 'put-2.dv-service.sqlite'
         const body = await putAndGetResponseBody('ThisIsAKey', 'This is a content')
 
         expect(body.id).toEqual('QmcPCC6iCzJMUQyby8eR4Csx6X7e7Xjfi4cmZnvDTVGZvd')
       })
 
-      it('should save the new content associated to a key and did', async () => {
+      test('should save the new content associated to a key and did', async () => {
         this.dbName = 'put-3.dv-service.sqlite'
         const key = 'ThisIsAnotherKey'
         const content = 'This is a new content'
@@ -71,7 +71,7 @@ describe('PUT', function (this: {
         expect(actualContent).toEqual([content])
       })
 
-      it('should replace existing content associated to the given key', async () => {
+      test('should replace existing content associated to the given key', async () => {
         this.dbName = 'put-4.dv-service.sqlite'
         await setup()
 
@@ -93,7 +93,7 @@ describe('PUT', function (this: {
     })
 
     describe('border', () => {
-      it('should replace all the content associated to a given did and key', async () => {
+      test('should replace all the content associated to a given did and key', async () => {
         this.dbName = 'put-5.dv-service.sqlite'
         await setup()
 
@@ -121,21 +121,21 @@ describe('PUT', function (this: {
 
   describe('/:key/:id', () => {
     describe('tdd', () => {
-      it('should respond with an id', async () => {
+      test('should respond with an id', async () => {
         this.dbName = 'put-6.dv-service.sqlite'
         const body = await putAndGetResponseBody('The key', 'the content with id', 'an id')
 
         expect(body.id).toBeTruthy()
       })
 
-      it('should save the new file in ipfs and respond with the cid', async () => {
+      test('should save the new file in ipfs and respond with the cid', async () => {
         this.dbName = 'put-7.dv-service.sqlite'
         const body = await putAndGetResponseBody('ThisIsAKey', 'This is a content with id', 'This is the id')
 
         expect(body.id).toEqual('QmXRoR64AbxP7YGdvew5sCwsRB7L1JLhEywtjXxjjLo89R')
       })
 
-      it('should save the new content associated to a key, id and did', async () => {
+      test('should save the new content associated to a key, id and did', async () => {
         this.dbName = 'put-8.dv-service.sqlite'
         const key = 'ThisIsAKey'
         const content = 'This is a new content with id'
@@ -147,7 +147,7 @@ describe('PUT', function (this: {
         expect(actualContent).toEqual([content])
       })
 
-      it('should replace existing content associated to the given key and id', async () => {
+      test('should replace existing content associated to the given key and id', async () => {
         this.dbName = 'put-9.dv-service.sqlite'
         await setup()
 
@@ -169,7 +169,7 @@ describe('PUT', function (this: {
     })
 
     describe('border', () => {
-      it('should replace just the content associated to the given did, key and cid', async () => {
+      test('should replace just the content associated to the given did, key and cid', async () => {
         this.dbName = 'put-10.dv-service.sqlite'
         await setup()
 
