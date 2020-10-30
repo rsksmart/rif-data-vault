@@ -12,3 +12,5 @@ coverage
 
 # typeorm
 *.sqlite
+
+*.DS_Store

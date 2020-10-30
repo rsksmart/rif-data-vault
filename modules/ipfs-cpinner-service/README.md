@@ -81,6 +81,50 @@ The service will:
 
 ### Configure
 
+Create an `.env` file in the root of the project with the following:
+
+```
+DATA_VAULT_PORT=port where the service will be served
+LOG_FILE=relative path of the log file
+LOG_ERROR_FILE=relative path of the error log file
+PRIVATE_KEY=private key associated to the service. Is used to sign access tokens
+SERVICE_URL=will be used as the `aud` file for JWTs. It expects this value to be present in the challenge response sent by the client and is part of the acces token emitted by the service
+DB_FILE=relative path of the sqlite database
+RPC_URL=rsk rpc url
+NETWORK_NAME=rsk:testnet or rsk
+IPFS_PORT= port of an http IPFS node api
+IPFS_HOST=host of an IPFS node api
+CHALLENGE_SECRET=secret used to create deterministic challenges
+```
+
+Default values:
+
+```
+DATA_VAULT_PORT=5107
+LOG_FILE=./log/new-data-vault.log
+LOG_ERROR_FILE=./log/new-data-vault.error.log
+DB_FILE=./db/new-data-vault.sqlite
+NETWORK_NAME=rsk:testnet
+IPFS_HOST=localhost
+IPFS_PORT=5001
+```
+
+Example:
+
+```
+DATA_VAULT_PORT=5107
+LOG_FILE=./log/data-vault.log
+LOG_ERROR_FILE=./log/data-vault.error.log
+PRIVATE_KEY=139d64ebceeb8b7702104a13d1d041303bd4a2f42090fa8c0b11c89cb97a5b24
+SERVICE_URL=http://datavault.com
+DB_FILE=./db/data-vault.sqlite
+RPC_URL=https://did.testnet.rsk.co:4444
+NETWORK_NAME=rsk:testnet
+IPFS_HOST=localhost
+IPFS_PORT=5001
+CHALLENGE_SECRET=aSecret
+```
+
 ### Set up IPFS
 
 First of all you need to have access to an IPFS node API. To run it locally:
@@ -103,7 +147,65 @@ First of all you need to have access to an IPFS node API. To run it locally:
 
 ### Run locally
 
+From the root of the project:
+
+```
+npm i
+npm run start
+```
+
 ### Run with Docker
+
+It will create two containers: one for the service and another one with the IPFS node. Both containers will be in the same network.
+
+Make sure that in your `.env` file you have set the IPFS references as the following:
+```
+IPFS_HOST=rif-identity-data-vault-ipfs
+IPFS_PORT=5002
+```
+
+1. From the root of the project:
+
+```
+docker-compose build
+docker-compose up -d
+```
+
+2. Enable access to IPFS node container port 5002
+
+    ```
+    docker container ls
+    # copy the id of the container named rif-identity-data-vault-ipfs:latest
+    docker exec -it COPIED-ID bash # e.g. 967eb3ce4730
+    cd /root/.ipfs/
+    apt update
+    apt install vim
+    vim config
+    ```
+
+    Update `“Addresses” -> “API”` and open ip4 port. Set `“API”: “/ipv4/0.0.0.0/tcp/5001"`
+
+    Before the update
+    
+    <img src="./img/before_update_ipfs.png" height="200" />
+
+    After the update
+
+    <img src="./img/after_update_ipfs.png" height="200" />
+
+    Save the file and exit the container
+
+    ```
+    exit
+    ```
+
+    Now restart IPFS docker
+
+    ```
+    docker restart COPIED-ID
+    ```
+
+3. Perform a quick health check: submit a GET request to: `http://localhost:5107/request-auth/myDid` and it should respond an HTTP 200 with a `challenge`
 
 ## Test
 
