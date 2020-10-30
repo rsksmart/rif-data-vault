@@ -3,9 +3,7 @@ import { ipfsPinnerProviderFactory, IpfsPinnerProvider } from '@rsksmart/ipfs-pi
 import { setupPublicApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
-import { createSqliteConnection, deleteDatabase } from './util'
-
-const ipfsEndpoint = 'http://localhost:5001'
+import { createSqliteConnection, deleteDatabase, ipfsEndpoint } from './util'
 
 async function testContentIsAccessible (
   app: Express,

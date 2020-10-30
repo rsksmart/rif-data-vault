@@ -1,12 +1,10 @@
 import express, { Express } from 'express'
 import request from 'supertest'
 import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-pinner-provider'
-import { createSqliteConnection, deleteDatabase } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsEndpoint } from './util'
 import { setupPermissionedApi } from '../src/api'
 import bodyParser from 'body-parser'
 import { Connection } from 'typeorm'
-
-const ipfsApi = 'http://localhost:5001'
 
 describe('POST', function (this: {
   app: Express,
@@ -18,7 +16,7 @@ describe('POST', function (this: {
 }) {
   const setup = async () => {
     this.dbConnection = await createSqliteConnection(this.dbName)
-    this.provider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsApi)
+    this.provider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
 
     setupPermissionedApi(this.app, this.provider)
   }
