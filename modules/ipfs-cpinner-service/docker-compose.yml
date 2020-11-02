@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+    rif-identity-data-vault-ipfs:
+        image: rif-identity-data-vault-ipfs:${DOCKER_TAG:-latest}
+        build:
+            context: .
+            dockerfile: Dockerfile.ipfs
+        ports:
+            - "5002:5001"
+        networks:
+            - rif-identity-data-vault
+
+    rif-identity-data-vault-service:
+        image: rif-identity-data-vault-service:${DOCKER_TAG:-latest}
+        build:
+            context: .
+            dockerfile: Dockerfile.dataVault
+        env_file: .env
+        volumes:
+            - "/var/db/rif-identity/new-data-vault:/app/db"
+            - "/var/log/rif-identity/new-data-vault:/app/log"
+        ports:
+            - "5107:5107"
+        networks:
+            - rif-identity-data-vault
+
+networks:
+    rif-identity-data-vault:
+        driver: bridge

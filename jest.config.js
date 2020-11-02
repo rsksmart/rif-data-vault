@@ -5,7 +5,7 @@ module.exports = {
   testResultsProcessor: 'jest-junit',
   "globals": {
     "ts-jest": {
-      "tsConfig": "./packages/tsconfig.settings.json"
+      "tsConfig": "./modules/tsconfig.settings.json"
     }
   },
 };

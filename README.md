@@ -1,43 +1,21 @@
 <p align="middle">
     <img src="https://www.rifos.org/assets/img/logo.svg" alt="logo" height="100" >
 </p>
-<h3 align="middle"><code>rif-data-vault</code></h3>
+<h3 align="middle">RIF Data Vault</h3>
 <p align="middle">
-    RIF Data Vault.
+    A user centric cloud storage system
 </p>
 <p align="middle">
-    <a href="https://badge.fury.io/js/%40rsksmart%2Frif-id">
-        <img src="https://badge.fury.io/js/%40rsksmart%2Frif-id.svg" alt="npm" />
-    </a>
+  <a href="https://rsksmart.github.io/rif-identity-docs/data-vault">
+    <img src="https://img.shields.io/badge/-docs-brightgreen" alt="docs" />
+  </a>
+  <a href="https://lgtm.com/projects/g/rsksmart/rif-data-vault/alerts/">
+    <img src="https://img.shields.io/lgtm/alerts/github/rsksmart/rif-data-vault" alt="alerts">
+  </a>
+  <a href="https://lgtm.com/projects/g/rsksmart/rif-data-vault/context:javascript">
+    <img src="https://img.shields.io/lgtm/grade/javascript/github/rsksmart/rif-data-vault">
+  </a>
 </p>
-
-_This project is a work in progress_
-
-The Data Vault is a user centric cloud storage system. This repo currently exposes a Javascript implementation for interacting with [this centralized IPFS pinner service](https://github.com/rsksmart/rif-identity-services/tree/develop/services/data-vault).
-
-## Getting started
-
-Use the Data Vault client to store and retrieve files
-
-> View the data-vault service README for a quick-start
-
-```typescript
-import { SecretBox } from 'daf-libsodium'
-
-// holderAgent is a uPort agent
-
-const secretKey = await SecretBox.createSecretKey()
-const secretBox = new SecretBox(secretKey)
-const dataVault = CentralizedIPFSPinnerClient.fromAgent((await holderAgent.getIdentities())[0], holderAgent, secretBox, 'http://localhost:5102', { ipfsDefault: true })
-
-const cid1 = await dataVault.put('some key', 'some value')
-const cid2 = await dataVault.put('some key', 'some other value')
-
-const result = await dataVault.get('some key')
-
-await dataVault.delete('some key', cid1)
-await dataVault.delete('some key', cid2)
-```
 
 ## Setup
 
@@ -48,6 +26,36 @@ npm i
 npm run setup
 ```
 
-## Run tests
+Install IPFS CLI. Find your option: https://docs.ipfs.io/how-to/command-line-quick-start/.
 
-_Currently no tests_
+## Test
+
+1. Init IPFS (once)
+
+  ```
+  ipfs init
+  ```
+
+2. Start IPFS Daemon
+
+  ```
+  ipfs daemon
+  ```
+
+3. Run tests
+
+  ```
+  npm test
+  ```
+
+  or watch mode with
+
+  ```
+  test:watch
+  ```
+
+## Lint
+
+```
+npm run lint
+```

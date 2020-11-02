@@ -8,6 +8,9 @@ lib
 # jest
 reports
 junit.xml
+coverage
 
 # typeorm
 *.sqlite
+
+*.DS_Store

@@ -29,7 +29,7 @@ commands:
             while (! ipfs id --api=/ip4/127.0.0.1/tcp/5001 2>/dev/null); do
               sleep 1
             done
-  
+
 jobs:
   build-test-lint:
     working_directory: ~/tmp
@@ -44,8 +44,8 @@ jobs:
             - run: npm install
             - run: npm run setup
             - run: npm run build
-            # - run: npm run lint
-            - run: npm run test
+            - run: npm run lint:ci
+            - run: npm run test:ci
             - store_test_results:
                 path: ./reports/
             - store_artifacts:
