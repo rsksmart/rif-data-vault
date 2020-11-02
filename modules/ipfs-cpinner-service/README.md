@@ -17,7 +17,7 @@ Alpha version at: []()
 
 ## Features
 
-- API for storing, updating and deleting, accessible only proving DID control - uses DID Auth
+- API for storing, updating and deleting, accessible only proving DID control - uses [DID Auth](https://rsksmart.github.io/rif-identity-docs/ssi/libraries/express-did-auth)
 - Open API for retrieving data - **It is strongly recommend to encrypt the content saved in IPFS using this package.**
 
 It is an API designed using IPFS Centralized Pinner Provider
