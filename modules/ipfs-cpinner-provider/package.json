@@ -30,7 +30,7 @@
   "dependencies": {
     "ipfs-http-client": "^47.0.1",
     "it-all": "^1.0.4",
-    "typeorm": "^0.2.28"
+    "typeorm": "0.2.28"
   },
   "devDependencies": {
     "ipfs-only-hash": "^2.0.1",

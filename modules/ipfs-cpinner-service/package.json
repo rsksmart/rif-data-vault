@@ -45,7 +45,7 @@
     "did-jwt": "^4.6.2",
     "sqlite3": "^5.0.0",
     "supertest": "^5.0.0",
-    "typeorm": "^0.2.28",
+    "typeorm": "0.2.28",
     "typescript": "^4.0.5",
     "@rsksmart/ipfs-cpinner-provider": "0.1.0",
     "@rsksmart/rif-node-utils": "0.0.3",

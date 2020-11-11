@@ -6,7 +6,7 @@
     "bootstrap": "npx lerna bootstrap",
     "setup": "npm run bootstrap && npm run link",
     "build": "npx lerna run build",
-    "test": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/*",
+    "test": "npx jest modules/ipfs-cpinner-client/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/*",
     "test:watch": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --watch",
     "test:ci": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --coverageDirectory reports",
     "lint": "npx eslint ./modules --ext .json,.js,.ts",
