@@ -1,0 +1,3 @@
+export const NO_DID = 'No DID'
+export const NO_SIGNER = 'No Signer'
+export const NO_SERVICE_DID = 'No service DID'

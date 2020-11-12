@@ -11,18 +11,22 @@ describe('get', function (this: {
   dbConnection: Connection,
   ipfsPinnerProvider: IpfsPinnerProvider
 }) {
-  const setup = async () => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection } = await startService(this.dbName)
+  const setup = async (): Promise<DataVaultWebClient> => {
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection } = await startService(this.dbName, 4600)
     this.server = server
     this.serviceUrl = serviceUrl
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection
+
+    return new DataVaultWebClient({ serviceUrl: this.serviceUrl })
   }
 
-  const setupAndAddFile = async (did: string, key: string, file: string) => {
-    await setup()
+  const setupAndAddFile = async (did: string, key: string, file: string): Promise<DataVaultWebClient> => {
+    const client = await setup()
 
     await this.ipfsPinnerProvider.create(did, key, file)
+
+    return client
   }
 
   afterEach(async () => {
@@ -32,23 +36,20 @@ describe('get', function (this: {
 
   test('should instantiate the library with a serviceUrl', async () => {
     this.dbName = 'get-1.sqlite'
-    await setup()
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    const client = await setup()
 
     expect(client).toBeTruthy()
   })
 
   test('should return an existing content in a form of array', async () => {
     this.dbName = 'get-2.sqlite'
-    await setup()
+    const client = await setup()
 
     const did = 'did:ethr:rsk:0x123456789'
     const key = 'ASavedContent'
     const file = 'hello world'
 
     await this.ipfsPinnerProvider.create(did, key, file)
-
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     const content = await client.get({ did, key })
     expect(content).toBeTruthy()
@@ -62,9 +63,7 @@ describe('get', function (this: {
     const file = 'this is something to be saved'
     const did = 'did:ethr:rsk:0x123456abcdef'
 
-    await setupAndAddFile(did, key, file)
-
-    const client = new DataVaultWebClient(({ serviceUrl: this.serviceUrl }))
+    const client = await setupAndAddFile(did, key, file)
 
     const content = await client.get({ did, key })
     expect(content).toEqual([file])
@@ -78,10 +77,8 @@ describe('get', function (this: {
     const file2 = 'this is content 2'
     const did = 'did:ethr:rsk:0x123456abcdef'
 
-    await setupAndAddFile(did, key, file1)
+    const client = await setupAndAddFile(did, key, file1)
     await this.ipfsPinnerProvider.create(did, key, file2)
-
-    const client = new DataVaultWebClient(({ serviceUrl: this.serviceUrl }))
 
     const content = await client.get({ did, key })
     expect(content).toEqual([file1, file2])
@@ -89,12 +86,10 @@ describe('get', function (this: {
 
   test('should return undefined if the key has not content associated', async () => {
     this.dbName = 'get-5.sqlite'
-    await setup()
+    const client = await setup()
 
     const key = 'DoNotExist'
     const did = 'did:ethr:rsk:0x123456abcdef'
-
-    const client = new DataVaultWebClient(({ serviceUrl: this.serviceUrl }))
 
     const content = await client.get({ did, key })
     expect(content).toBeFalsy()
