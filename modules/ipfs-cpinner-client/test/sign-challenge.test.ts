@@ -1,10 +1,11 @@
 import DataVaultWebClient, { Signer } from '../src'
-import { deleteDatabase, startService, challengeResponseFactory } from './util'
+import { deleteDatabase, identityFactory, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from '../src/errors'
+import { decodeJWT } from 'did-jwt'
 
-describe('', function (this: {
+describe('sign challenge', function (this: {
   serviceUrl: string,
   did: string,
   signer: Signer,
@@ -29,7 +30,7 @@ describe('', function (this: {
     await deleteDatabase(this.dbConnection, this.dbName)
   })
 
-  test('1', async () => {
+  test('should fail if no did to issue the jwt', async () => {
     this.dbName = 'sign-challenge-1.sqlite'
     this.challenge = '123456789'
     const client = await setup()
@@ -37,7 +38,7 @@ describe('', function (this: {
     await expect(() => client.signChallenge(this.challenge)).rejects.toThrowError(NO_DID)
   })
 
-  test('2', async () => {
+  test('should fail if no signer to sign the jwt', async () => {
     this.dbName = 'sign-challenge-2.sqlite'
     this.challenge = '123456789'
     this.did = 'did:ethr:rsk:0x123456789'
@@ -47,7 +48,7 @@ describe('', function (this: {
     await expect(() => client.signChallenge(this.challenge)).rejects.toThrowError(NO_SIGNER)
   })
 
-  test('2 bis', async () => {
+  test('should fail if no service did to set as the subject', async () => {
     this.dbName = 'sign-challenge-2-bis.sqlite'
     this.challenge = '123456789'
     this.did = 'did:ethr:rsk:0x123456789'
@@ -60,19 +61,25 @@ describe('', function (this: {
     await expect(() => client.signChallenge(this.challenge)).rejects.toThrowError(NO_SERVICE_DID)
   })
 
-  test('3', async () => {
+  test('should create a jwt with the proper values', async () => {
     this.dbName = 'sign-challenge-2.sqlite'
     this.challenge = '123456789'
-    this.did = 'did:ethr:rsk:0x123456789'
-    this.signer = async (data: string) => data
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
 
     const client = await setup()
-    const actual = await client.signChallenge(this.challenge)
+    const signed = await client.signChallenge(this.challenge)
 
-    const expected = await challengeResponseFactory(this.challenge, {
-      did: this.did, signer: this.signer
-    }, this.serviceUrl, this.serviceDid)
+    const { payload } = await decodeJWT(signed)
 
-    expect(actual).toEqual(expected)
+    const now = Math.floor(Date.now() / 1000)
+
+    expect(payload.sub).toEqual(this.serviceDid)
+    expect(payload.aud).toEqual(this.serviceUrl)
+    expect(payload.iss).toEqual(this.did)
+    expect(payload.challenge).toEqual(this.challenge)
+    expect(payload.nbf).toEqual(now)
+    expect(payload.exp).toEqual(now + 120)
   })
 })

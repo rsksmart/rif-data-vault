@@ -22,15 +22,14 @@ export default class {
       .then(({ content }) => content.length && content)
   }
 
-  async login (): Promise<{ accessToken: string, refreshToken: string }> {
+  login (): Promise<{ accessToken: string, refreshToken: string }> {
     const { did, signer, serviceUrl } = this.opts
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)
 
-    const challenge = await this.getChallenge()
-    const signature = await this.signChallenge(challenge)
-
-    return axios.post(`${serviceUrl}/auth`, { response: signature })
+    return this.getChallenge()
+      .then(this.signChallenge.bind(this))
+      .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && !!res.data && res.data)
   }
 

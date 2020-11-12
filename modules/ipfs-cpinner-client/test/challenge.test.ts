@@ -5,13 +5,13 @@ import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID } from '../src/errors'
 
-describe('', function (this: {
+describe('getChallenge', function (this: {
   serviceUrl: string,
   did: string,
   signer: Signer,
   dbName: string,
   server: Server,
-  dbConnection: Connection,
+  dbConnection: Connection
 }) {
   const setup = async (): Promise<DataVaultWebClient> => {
     const { server, serviceUrl, dbConnection } = await startService(this.dbName, 4601)
@@ -27,14 +27,14 @@ describe('', function (this: {
     await deleteDatabase(this.dbConnection, this.dbName)
   })
 
-  test('1', async () => {
+  test('should fail if no did to send', async () => {
     this.dbName = 'challenge-1.sqlite'
     const client = await setup()
 
     await expect(() => client.getChallenge()).rejects.toThrowError(NO_DID)
   })
 
-  test('2', async () => {
+  test('should get a challenge', async () => {
     this.dbName = 'challenge-2.sqlite'
     this.did = 'did:ethr:rsk:0x123456789'
 
@@ -45,7 +45,7 @@ describe('', function (this: {
     expect(challenge).toBeTruthy()
   })
 
-  test('3', async () => {
+  test('should get a challenge from the service', async () => {
     this.did = 'did:ethr:rsk:0x123456789'
     this.dbName = 'challenge-3.sqlite'
 

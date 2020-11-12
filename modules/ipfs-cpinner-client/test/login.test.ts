@@ -5,7 +5,7 @@ import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID, NO_SIGNER } from '../src/errors'
 
-describe('', function (this: {
+describe('login', function (this: {
   serviceUrl: string,
   did: string,
   signer: Signer,
@@ -29,23 +29,23 @@ describe('', function (this: {
     await deleteDatabase(this.dbConnection, this.dbName)
   })
 
-  test('1', async () => {
+  test('should fail if no did', async () => {
     this.dbName = 'login-1.sqlite'
     const client = await setup()
 
-    await expect(() => client.login()).rejects.toThrowError(NO_DID)
+    await expect(() => client.login()).toThrowError(NO_DID)
   })
 
-  test('2', async () => {
+  test('should fail if no signer', async () => {
     this.dbName = 'login-2.sqlite'
     this.did = 'did:ethr:rsk:0x123456789'
 
     const client = await setup()
 
-    await expect(() => client.login()).rejects.toThrowError(NO_SIGNER)
+    await expect(() => client.login()).toThrowError(NO_SIGNER)
   })
 
-  test('3', async () => {
+  test('should return an access token and refresh token', async () => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     this.signer = clientIdentity.signer as Signer
@@ -59,7 +59,7 @@ describe('', function (this: {
     expect(refreshToken).toBeTruthy()
   })
 
-  test('4', async () => {
+  test('should receive an access token and the subject must be the client did', async () => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     this.signer = clientIdentity.signer as Signer
@@ -76,7 +76,7 @@ describe('', function (this: {
     expect(payload.sub).toEqual(this.did)
   })
 
-  test('5', async () => {
+  test('should receive an access token issued by the service did', async () => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     this.signer = clientIdentity.signer as Signer
