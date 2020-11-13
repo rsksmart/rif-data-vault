@@ -1,106 +1,56 @@
 import DataVaultWebClient from '../src'
-describe('getTokens', function (this: {
-  serviceUrl: string,
-}) {
+
+describe.each([
+  ['accessToken'],
+  ['refreshToken']
+])('manage %s', (tokenType: string) => {
+  let client: DataVaultWebClient
+  const isAccessToken = tokenType === 'accessToken'
+
+  const getToken = () => isAccessToken ? client.getAccessToken() : client.getRefreshToken()
+  const setToken = (token: string) => isAccessToken ? client.setAccessToken(token) : client.setRefreshToken(token)
+
+  beforeEach(function () {
+    const serviceUrl = 'http://service.com'
+    client = new DataVaultWebClient({ serviceUrl })
+  })
+
   describe('get', () => {
-    describe('accessToken', () => {
-      test('should get undefined if nothing set', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    test('should get undefined if nothing set', async () => {
+      const token = await getToken()
 
-        const accessToken = await client.getAccessToken()
-
-        expect(accessToken).toBeUndefined()
-      })
-
-      test('should return something if the token has been set before', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
-
-        await client.setAccessToken('this is a token')
-
-        const accessToken = await client.getAccessToken()
-
-        expect(accessToken).toBeTruthy()
-      })
-
-      test('should return the set token', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
-
-        const setToken = await client.setAccessToken('this is a token')
-
-        const gotToken = await client.getAccessToken()
-
-        expect(gotToken).toEqual(setToken)
-      })
+      expect(token).toBeUndefined()
     })
 
-    describe('refreshToken', () => {
-      test('should return nothing if nothing set before', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    test('should return something if the token has been set before', async () => {
+      await setToken('this is a token')
 
-        const accessToken = await client.getRefreshToken()
+      const token = await getToken()
 
-        expect(accessToken).toBeUndefined()
-      })
+      expect(token).toBeTruthy()
+    })
 
-      test('should return something if the token has been set before', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    test('should return the saved token', async () => {
+      const saved = await setToken('this is a token')
 
-        await client.setRefreshToken('this is a token')
+      const retrieved = await getToken()
 
-        const refreshToken = await client.getRefreshToken()
-
-        expect(refreshToken).toBeTruthy()
-      })
-
-      test('should return the set token', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
-
-        const setToken = await client.setRefreshToken('this is a token')
-
-        const gotToken = await client.getRefreshToken()
-
-        expect(gotToken).toEqual(setToken)
-      })
+      expect(retrieved).toEqual(saved)
     })
   })
 
   describe('set', () => {
-    describe('accessToken', () => {
-      test('should return something', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    test('should return something', async () => {
+      const actual = await setToken('an access token')
 
-        const actual = await client.setAccessToken('an access token')
-
-        expect(actual).toBeTruthy()
-      })
-
-      test('should return the sent token', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
-
-        const accessToken = 'an access token'
-        const actual = await client.setAccessToken(accessToken)
-
-        expect(actual).toEqual(accessToken)
-      })
+      expect(actual).toBeTruthy()
     })
 
-    describe('refreshToken', () => {
-      test('should return something', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    test('should return the sent token', async () => {
+      const accessToken = 'an access token'
+      const actual = await setToken(accessToken)
 
-        const actual = await client.setRefreshToken('a refresh token')
-
-        expect(actual).toBeTruthy()
-      })
-
-      test('should return return the sent token', async () => {
-        const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
-
-        const refreshToken = 'a refresh token'
-        const actual = await client.setRefreshToken(refreshToken)
-
-        expect(actual).toEqual(refreshToken)
-      })
+      expect(actual).toEqual(accessToken)
     })
   })
 })

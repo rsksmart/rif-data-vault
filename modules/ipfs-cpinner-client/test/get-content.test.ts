@@ -7,18 +7,16 @@ import { Connection } from 'typeorm'
 describe('get', function (this: {
   dbName: string,
   server: Server,
-  serviceUrl: string,
   dbConnection: Connection,
   ipfsPinnerProvider: IpfsPinnerProvider
 }) {
   const setup = async (): Promise<DataVaultWebClient> => {
     const { server, serviceUrl, ipfsPinnerProvider, dbConnection } = await startService(this.dbName, 4600)
     this.server = server
-    this.serviceUrl = serviceUrl
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection
 
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    return new DataVaultWebClient({ serviceUrl })
   }
 
   const setupAndAddFile = async (did: string, key: string, file: string): Promise<DataVaultWebClient> => {
@@ -52,6 +50,7 @@ describe('get', function (this: {
     await this.ipfsPinnerProvider.create(did, key, file)
 
     const content = await client.get({ did, key })
+
     expect(content).toBeTruthy()
     expect(content).toBeInstanceOf(Array)
   })

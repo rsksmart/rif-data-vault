@@ -4,9 +4,9 @@ import { deleteDatabase, startService, identityFactory } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID, NO_SIGNER } from '../src/errors'
+import MockDate from 'mockdate'
 
 describe('login', function (this: {
-  serviceUrl: string,
   did: string,
   signer: Signer,
   dbName: string,
@@ -18,13 +18,23 @@ describe('login', function (this: {
     const { server, serviceUrl, dbConnection, serviceDid } = await startService(this.dbName, 4602)
     this.server = server
     this.serviceDid = serviceDid
-    this.serviceUrl = serviceUrl
     this.dbConnection = dbConnection
 
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer: this.signer, serviceDid: this.serviceDid })
+    return new DataVaultWebClient({ serviceUrl, did: this.did, signer: this.signer, serviceDid: this.serviceDid })
   }
 
+  const setupComplete = async (): Promise<DataVaultWebClient> => {
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
+
+    return setup()
+  }
+
+  beforeEach(() => MockDate.set(Date.now()))
+
   afterEach(async () => {
+    MockDate.reset()
     this.server.close()
     await deleteDatabase(this.dbConnection, this.dbName)
   })
@@ -39,19 +49,14 @@ describe('login', function (this: {
   test('should fail if no signer', async () => {
     this.dbName = 'login-2.sqlite'
     this.did = 'did:ethr:rsk:0x123456789'
-
     const client = await setup()
 
     expect(() => client.login()).rejects.toThrowError(NO_SIGNER)
   })
 
   test('should return an access token and refresh token', async () => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
     this.dbName = 'login-3.sqlite'
-
-    const client = await setup()
+    const client = await setupComplete()
 
     const { accessToken, refreshToken } = await client.login()
 
@@ -60,12 +65,8 @@ describe('login', function (this: {
   })
 
   test('should receive an access token and the subject must be the client did', async () => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
     this.dbName = 'login-4.sqlite'
-
-    const client = await setup()
+    const client = await setupComplete()
 
     const { accessToken } = await client.login()
 
@@ -77,12 +78,8 @@ describe('login', function (this: {
   })
 
   test('should receive an access token issued by the service did', async () => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
     this.dbName = 'login-5.sqlite'
-
-    const client = await setup()
+    const client = await setupComplete()
 
     const { accessToken } = await client.login()
 
@@ -93,30 +90,9 @@ describe('login', function (this: {
     expect(payload.iss).toEqual(this.serviceDid)
   })
 
-  test('should set the access token', async () => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
+  test('should set the access token in the state', async () => {
     this.dbName = 'login-6.sqlite'
-
-    const client = await setup()
-
-    expect(await client.getAccessToken()).toBeUndefined()
-
-    await client.login()
-
-    const accessToken = client.getAccessToken()
-
-    expect(accessToken).toBeTruthy()
-  })
-
-  test('should set the access token retrieved from the login', async () => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
-    this.dbName = 'login-7.sqlite'
-
-    const client = await setup()
+    const client = await setupComplete()
 
     expect(await client.getAccessToken()).toBeUndefined()
 
@@ -127,32 +103,15 @@ describe('login', function (this: {
     expect(expectedAccessToken).toEqual(accessToken)
   })
 
-  test('should set the refresh token', async () => {
+  test('should set the refresh token in the state', async () => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     this.signer = clientIdentity.signer as Signer
-    this.dbName = 'login-8.sqlite'
+    this.dbName = 'login-7.sqlite'
 
     const client = await setup()
 
     expect(await client.getRefreshToken()).toBeUndefined()
-
-    await client.login()
-
-    const refreshToken = await client.getRefreshToken()
-
-    expect(refreshToken).toBeTruthy()
-  })
-
-  test('should set the access token retrieved from the login', async () => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
-    this.dbName = 'login-6.sqlite'
-
-    const client = await setup()
-
-    expect(await client.getAccessToken()).toBeUndefined()
 
     const { refreshToken } = await client.login()
 

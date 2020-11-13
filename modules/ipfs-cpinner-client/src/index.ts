@@ -29,6 +29,21 @@ export default class {
       .then(({ content }) => content.length && content)
   }
 
+  async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
+    const { content, key } = payload
+    const { serviceUrl } = this.opts
+    let accessToken = await this.getAccessToken()
+
+    if (!accessToken) {
+      ({ accessToken } = await this.login())
+    }
+
+    return axios.post(`${serviceUrl}/${key}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      .then(res => res.status === 201 && res.data)
+
+    // TODO: Refresh token if necessary
+  }
+
   async login (): Promise<LoginResponse> {
     const { did, signer, serviceUrl } = this.opts
     if (!did) throw new Error(NO_DID)
@@ -71,19 +86,6 @@ export default class {
     }
 
     return createJWT(payload, { issuer: did, signer }, { typ: 'JWT', alg: 'ES256K' })
-  }
-
-  async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
-    const { content, key } = payload
-    const { serviceUrl } = this.opts
-    let accessToken = await this.getAccessToken()
-
-    if (!accessToken) {
-      ({ accessToken } = await this.login())
-    }
-
-    return axios.post(`${serviceUrl}/${key}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
-      .then(res => res.status === 201 && res.data)
   }
 
   async setAccessToken (token: string): Promise<string> {

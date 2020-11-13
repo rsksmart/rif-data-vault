@@ -4,6 +4,7 @@ import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from '../src/errors'
 import { decodeJWT } from 'did-jwt'
+import MockDate from 'mockdate'
 
 describe('sign challenge', function (this: {
   serviceUrl: string,
@@ -15,14 +16,17 @@ describe('sign challenge', function (this: {
   challenge: string,
   serviceDid: string,
 }) {
-  const setup = async (): Promise<DataVaultWebClient> => {
+  const setup = async () => {
     const { server, serviceUrl, dbConnection, serviceDid } = await startService(this.dbName, 4603)
     this.server = server
     this.serviceUrl = serviceUrl
     this.dbConnection = dbConnection
     this.serviceDid = serviceDid
+    this.challenge = '123456789'
 
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer: this.signer, serviceDid: this.serviceDid })
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
   }
 
   afterEach(async () => {
@@ -32,28 +36,22 @@ describe('sign challenge', function (this: {
 
   test('should fail if no did to issue the jwt', async () => {
     this.dbName = 'sign-challenge-1.sqlite'
-    this.challenge = '123456789'
-    const client = await setup()
+    await setup()
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     await expect(() => client.signChallenge(this.challenge)).rejects.toThrowError(NO_DID)
   })
 
   test('should fail if no signer to sign the jwt', async () => {
     this.dbName = 'sign-challenge-2.sqlite'
-    this.challenge = '123456789'
-    this.did = 'did:ethr:rsk:0x123456789'
-
-    const client = await setup()
+    await setup()
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did })
 
     await expect(() => client.signChallenge(this.challenge)).rejects.toThrowError(NO_SIGNER)
   })
 
   test('should fail if no service did to set as the subject', async () => {
     this.dbName = 'sign-challenge-2-bis.sqlite'
-    this.challenge = '123456789'
-    this.did = 'did:ethr:rsk:0x123456789'
-    this.signer = async (data: string) => data
-
     await setup()
 
     const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer: this.signer })
@@ -62,13 +60,14 @@ describe('sign challenge', function (this: {
   })
 
   test('should create a jwt with the proper values', async () => {
-    this.dbName = 'sign-challenge-2.sqlite'
-    this.challenge = '123456789'
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
+    MockDate.set(Date.now())
 
-    const client = await setup()
+    this.dbName = 'sign-challenge-3.sqlite'
+    await setup()
+    const client = new DataVaultWebClient({
+      serviceUrl: this.serviceUrl, did: this.did, signer: this.signer, serviceDid: this.serviceDid
+    })
+
     const signed = await client.signChallenge(this.challenge)
 
     const { payload } = await decodeJWT(signed)
@@ -81,5 +80,7 @@ describe('sign challenge', function (this: {
     expect(payload.challenge).toEqual(this.challenge)
     expect(payload.nbf).toEqual(now)
     expect(payload.exp).toEqual(now + 120)
+
+    MockDate.reset()
   })
 })

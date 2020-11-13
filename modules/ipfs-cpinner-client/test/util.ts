@@ -70,6 +70,7 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const ipfsEndpoint = 'http://localhost:5001'
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
   setupApi(app, ipfsPinnerProvider, config, mockedLogger)
+
   const server = app.listen(port)
 
   return { server, ipfsPinnerProvider, serviceUrl, dbConnection, serviceDid }

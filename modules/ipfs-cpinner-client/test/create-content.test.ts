@@ -4,40 +4,38 @@ import { Connection } from 'typeorm'
 import { Server } from 'http'
 import { deleteDatabase, identityFactory, startService } from './util'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
+import MockDate from 'mockdate'
 
-jest.setTimeout(8000)
+jest.setTimeout(10000) // it will perform two requests: login and create
+
 describe('create content', function (this: {
-  serviceUrl: string,
   server: Server,
   dbConnection: Connection,
-  serviceDid: string,
   dbName: string,
-  signer: Signer,
   did: string,
   ipfsPinnerProvider: IpfsPinnerProvider
 }) {
   const setup = async (): Promise<DataVaultWebClient> => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(this.dbName, 4605)
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(this.dbName, 4604)
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
-    this.signer = clientIdentity.signer as Signer
+    const signer = clientIdentity.signer as Signer
     this.server = server
-    this.serviceUrl = serviceUrl
     this.dbConnection = dbConnection
-    this.serviceDid = serviceDid
     this.ipfsPinnerProvider = ipfsPinnerProvider
 
-    return new DataVaultWebClient({
-      serviceUrl: this.serviceUrl, did: this.did, signer: this.signer, serviceDid: this.serviceDid
-    })
+    return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
   }
 
+  beforeEach(() => MockDate.set(Date.now()))
+
   afterEach(async () => {
+    MockDate.reset()
     this.server.close()
     await deleteDatabase(this.dbConnection, this.dbName)
   })
 
-  test('should return somethinf', async () => {
+  test('should return something', async () => {
     this.dbName = 'create-1.sqlite'
     const client = await setup()
 
@@ -88,4 +86,7 @@ describe('create content', function (this: {
 
     expect(actualContent).toEqual([content])
   })
+
+  // TODO: Test that doing a login before reduces the execution time
+  // TODO: Test refreshing the expired AT
 })

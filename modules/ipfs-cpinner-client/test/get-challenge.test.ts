@@ -1,14 +1,14 @@
-import DataVaultWebClient, { Signer } from '../src'
+import DataVaultWebClient from '../src'
 import axios from 'axios'
 import { deleteDatabase, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID } from '../src/errors'
+import MockDate from 'mockdate'
 
 describe('getChallenge', function (this: {
   serviceUrl: string,
   did: string,
-  signer: Signer,
   dbName: string,
   server: Server,
   dbConnection: Connection
@@ -19,7 +19,7 @@ describe('getChallenge', function (this: {
     this.serviceUrl = serviceUrl
     this.dbConnection = dbConnection
 
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer: this.signer })
+    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did })
   }
 
   afterEach(async () => {
@@ -46,6 +46,8 @@ describe('getChallenge', function (this: {
   })
 
   test('should get a challenge from the service', async () => {
+    MockDate.set(Date.now())
+
     this.did = 'did:ethr:rsk:0x123456789'
     this.dbName = 'challenge-3.sqlite'
 
@@ -57,5 +59,7 @@ describe('getChallenge', function (this: {
       .then(res => res.status === 200 && !!res.data && res.data.challenge)
 
     expect(actual).toEqual(expected)
+
+    MockDate.reset()
   })
 })
