@@ -33,7 +33,7 @@ describe('login', function (this: {
     this.dbName = 'login-1.sqlite'
     const client = await setup()
 
-    await expect(() => client.login()).toThrowError(NO_DID)
+    expect(() => client.login()).rejects.toThrowError(NO_DID)
   })
 
   test('should fail if no signer', async () => {
@@ -42,7 +42,7 @@ describe('login', function (this: {
 
     const client = await setup()
 
-    await expect(() => client.login()).toThrowError(NO_SIGNER)
+    expect(() => client.login()).rejects.toThrowError(NO_SIGNER)
   })
 
   test('should return an access token and refresh token', async () => {
@@ -91,5 +91,73 @@ describe('login', function (this: {
     const { payload } = decodeJWT(accessToken)
 
     expect(payload.iss).toEqual(this.serviceDid)
+  })
+
+  test('should set the access token', async () => {
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
+    this.dbName = 'login-6.sqlite'
+
+    const client = await setup()
+
+    expect(await client.getAccessToken()).toBeUndefined()
+
+    await client.login()
+
+    const accessToken = client.getAccessToken()
+
+    expect(accessToken).toBeTruthy()
+  })
+
+  test('should set the access token retrieved from the login', async () => {
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
+    this.dbName = 'login-7.sqlite'
+
+    const client = await setup()
+
+    expect(await client.getAccessToken()).toBeUndefined()
+
+    const { accessToken } = await client.login()
+
+    const expectedAccessToken = await client.getAccessToken()
+
+    expect(expectedAccessToken).toEqual(accessToken)
+  })
+
+  test('should set the refresh token', async () => {
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
+    this.dbName = 'login-8.sqlite'
+
+    const client = await setup()
+
+    expect(await client.getRefreshToken()).toBeUndefined()
+
+    await client.login()
+
+    const refreshToken = await client.getRefreshToken()
+
+    expect(refreshToken).toBeTruthy()
+  })
+
+  test('should set the access token retrieved from the login', async () => {
+    const clientIdentity = await identityFactory()
+    this.did = clientIdentity.did
+    this.signer = clientIdentity.signer as Signer
+    this.dbName = 'login-6.sqlite'
+
+    const client = await setup()
+
+    expect(await client.getAccessToken()).toBeUndefined()
+
+    const { refreshToken } = await client.login()
+
+    const expectedRefreshToken = await client.getRefreshToken()
+
+    expect(expectedRefreshToken).toEqual(refreshToken)
   })
 })

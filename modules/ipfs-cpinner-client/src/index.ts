@@ -1,8 +1,13 @@
 import axios from 'axios'
 import { createJWT } from 'did-jwt'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from './errors'
+import ipfsHash from 'ipfs-only-hash'
 
-type GetFilePayload = { did: string, key: string }
+type GetContentPayload = { did: string, key: string }
+type CreateContentPayload = { key: string, content: string }
+type CreateContentResponse = { id: string }
+type LoginResponse = { accessToken: string, refreshToken: string }
+
 export type Signer = (string) => Promise<string>
 
 type Options = {
@@ -13,24 +18,32 @@ type Options = {
 }
 
 export default class {
+  private accessToken: string
+  private refreshToken: string
+
   // eslint-disable-next-line no-useless-constructor
   constructor (private opts: Options) {}
 
-  get ({ did, key }: GetFilePayload): Promise<string> {
+  get ({ did, key }: GetContentPayload): Promise<string[]> {
     return axios.get(`${this.opts.serviceUrl}/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
       .then(({ content }) => content.length && content)
   }
 
-  login (): Promise<{ accessToken: string, refreshToken: string }> {
+  async login (): Promise<LoginResponse> {
     const { did, signer, serviceUrl } = this.opts
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)
 
-    return this.getChallenge()
+    const tokens = await this.getChallenge()
       .then(this.signChallenge.bind(this))
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && !!res.data && res.data)
+
+    this.accessToken = tokens.accessToken
+    this.refreshToken = tokens.refreshToken
+
+    return tokens
   }
 
   async getChallenge (): Promise<string> {
@@ -59,5 +72,28 @@ export default class {
     }
 
     return createJWT(payload, { issuer: did, signer }, { typ: 'JWT', alg: 'ES256K' })
+  }
+
+  async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
+    const id = await ipfsHash.of(Buffer.from(payload.content))
+    return { id }
+  }
+
+  async setAccessToken (token: string): Promise<string> {
+    this.accessToken = token
+    return token
+  }
+
+  async setRefreshToken (token: string): Promise<string> {
+    this.refreshToken = token
+    return token
+  }
+
+  async getAccessToken (): Promise<string> {
+    return this.accessToken
+  }
+
+  async getRefreshToken (): Promise<string> {
+    return this.refreshToken
   }
 }
