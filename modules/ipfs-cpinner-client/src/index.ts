@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { createJWT } from 'did-jwt'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from './errors'
-import ipfsHash from 'ipfs-only-hash'
 
 type GetContentPayload = { did: string, key: string }
 type CreateContentPayload = { key: string, content: string }
@@ -75,8 +74,16 @@ export default class {
   }
 
   async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
-    const id = await ipfsHash.of(Buffer.from(payload.content))
-    return { id }
+    const { content, key } = payload
+    const { serviceUrl } = this.opts
+    let accessToken = await this.getAccessToken()
+
+    if (!accessToken) {
+      ({ accessToken } = await this.login())
+    }
+
+    return axios.post(`${serviceUrl}/${key}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      .then(res => res.status === 201 && res.data)
   }
 
   async setAccessToken (token: string): Promise<string> {
