@@ -7,7 +7,7 @@ type CreateContentPayload = { key: string, content: string }
 type CreateContentResponse = { id: string }
 type LoginResponse = { accessToken: string, refreshToken: string }
 
-export type Signer = (string) => Promise<string>
+export type Signer = (data: string) => Promise<string>
 
 type Options = {
   serviceUrl: string,
