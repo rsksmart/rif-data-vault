@@ -6,6 +6,7 @@ type GetContentPayload = { did: string, key: string }
 type CreateContentPayload = { key: string, content: string }
 type CreateContentResponse = { id: string }
 type LoginResponse = { accessToken: string, refreshToken: string }
+type DeleteTokenPayload = { key: string, id?: string }
 
 export type Signer = (data: string) => Promise<string>
 
@@ -42,6 +43,20 @@ export default class {
       .then(res => res.status === 201 && res.data)
 
     // TODO: Refresh token if necessary
+  }
+
+  async delete (payload: DeleteTokenPayload): Promise<boolean> {
+    const { key, id } = payload
+    const { serviceUrl } = this.opts
+    let accessToken = await this.getAccessToken()
+
+    if (!accessToken) {
+      ({ accessToken } = await this.login())
+    }
+
+    const path = id ? `${key}/${id}` : key
+    return axios.delete(`${serviceUrl}/${path}`, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      .then(res => res.status === 200)
   }
 
   async login (): Promise<LoginResponse> {
