@@ -5,6 +5,7 @@ import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import ipfsHash from 'ipfs-only-hash'
+import LocalStorageMockFactory from './localStorageMockFactory'
 
 jest.setTimeout(10000)
 
@@ -27,7 +28,10 @@ describe('swap content', function (this: {
     return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
   }
 
-  beforeEach(() => MockDate.set(testTimestamp))
+  beforeEach(() => {
+    MockDate.set(testTimestamp)
+    global.localStorage = LocalStorageMockFactory()
+  })
 
   afterEach(async () => {
     MockDate.reset()

@@ -2,6 +2,9 @@ import axios from 'axios'
 import { createJWT, decodeJWT } from 'did-jwt'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from './errors'
 
+const ACCESS_TOKEN_KEY = 'accessToken'
+const REFRESH_TOKEN_KEY = 'refreshToken'
+
 type GetContentPayload = { did: string, key: string }
 type CreateContentPayload = { key: string, content: string }
 type CreateContentResponse = { id: string }
@@ -12,19 +15,33 @@ type SwapContentResponse = { id: string }
 
 export type Signer = (data: string) => Promise<string>
 
+export interface ClientKeyValueStorage {
+  get (key: string): Promise<string>
+  set (key: string, value: string): Promise<void>
+}
+
+const ClientKeyValueStorageFactory = {
+  fromLocalStorage: (): ClientKeyValueStorage => ({
+    get: (key: string) => Promise.resolve(localStorage.getItem(key)),
+    set: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value))
+  })
+}
+
 type Options = {
   serviceUrl: string,
   serviceDid?: string,
   did?: string
   signer?: Signer
+  storage?: ClientKeyValueStorage
 }
 
 export default class {
-  private accessToken: string
-  private refreshToken: string
+  private storage: ClientKeyValueStorage
 
   // eslint-disable-next-line no-useless-constructor
-  constructor (private opts: Options) {}
+  constructor (private opts: Options) {
+    this.storage = opts.storage || ClientKeyValueStorageFactory.fromLocalStorage()
+  }
 
   get ({ did, key }: GetContentPayload): Promise<string[]> {
     return axios.get(`${this.opts.serviceUrl}/${did}/${key}`)
@@ -32,46 +49,55 @@ export default class {
       .then(({ content }) => content.length && content)
   }
 
-  async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
+  create (payload: CreateContentPayload): Promise<CreateContentResponse> {
     const { content, key } = payload
     const { serviceUrl } = this.opts
-    const accessToken = await this.checkAndGetAccessToken()
 
-    return axios.post(`${serviceUrl}/${key}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+    return this.checkAndGetAccessToken()
+      .then(accessToken => axios.post(
+        `${serviceUrl}/${key}`,
+        { content },
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
       .then(res => res.status === 201 && res.data)
   }
 
-  async delete (payload: DeleteTokenPayload): Promise<boolean> {
+  delete (payload: DeleteTokenPayload): Promise<boolean> {
     const { key, id } = payload
     const { serviceUrl } = this.opts
-    const accessToken = await this.checkAndGetAccessToken()
-
     const path = id ? `${key}/${id}` : key
-    return axios.delete(`${serviceUrl}/${path}`, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+
+    return this.checkAndGetAccessToken()
+      .then(accessToken => axios.delete(
+        `${serviceUrl}/${path}`,
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
       .then(res => res.status === 200)
   }
 
-  async swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
+  swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
     const { key, content, id } = payload
     const { serviceUrl } = this.opts
-    const accessToken = await this.checkAndGetAccessToken()
 
     const path = id ? `${key}/${id}` : key
-    return axios.put(`${serviceUrl}/${path}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+    return this.checkAndGetAccessToken()
+      .then(accessToken => axios.put(
+        `${serviceUrl}/${path}`,
+        { content },
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
       .then(res => res.status === 200 && res.data)
   }
 
-  private async checkAndGetAccessToken () {
-    let accessToken = await this.getAccessToken()
+  private async checkAndGetAccessToken (): Promise<string> {
+    const accessToken = await this.storage.get(ACCESS_TOKEN_KEY)
 
-    if (!accessToken) {
-      ({ accessToken } = await this.login())
-    } else {
-      const { payload } = await decodeJWT(accessToken)
+    if (!accessToken) return this.login().then((tokens) => tokens.accessToken)
 
-      if (payload.exp <= Math.floor(Date.now() / 1000)) {
-        ({ accessToken } = await this.refreshAccessToken())
-      }
+    const { payload } = decodeJWT(accessToken)
+
+    if (payload.exp <= Math.floor(Date.now() / 1000)) {
+      return this.refreshAccessToken().then((tokens) => tokens.accessToken)
     }
 
     return accessToken
@@ -87,8 +113,8 @@ export default class {
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && !!res.data && res.data)
 
-    this.accessToken = tokens.accessToken
-    this.refreshToken = tokens.refreshToken
+    await this.storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
+    await this.storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
 
     return tokens
   }
@@ -98,7 +124,7 @@ export default class {
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)
 
-    const refreshToken = await this.getRefreshToken()
+    const refreshToken = await this.storage.get(REFRESH_TOKEN_KEY)
 
     if (!refreshToken) return this.login()
 
@@ -107,8 +133,8 @@ export default class {
 
     // TODO: Take care of expired refresh token
 
-    this.accessToken = tokens.accessToken
-    this.refreshToken = tokens.refreshToken
+    await this.storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
+    await this.storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
 
     return tokens
   }
@@ -139,23 +165,5 @@ export default class {
     }
 
     return createJWT(payload, { issuer: did, signer }, { typ: 'JWT', alg: 'ES256K' })
-  }
-
-  async setAccessToken (token: string): Promise<string> {
-    this.accessToken = token
-    return token
-  }
-
-  async setRefreshToken (token: string): Promise<string> {
-    this.refreshToken = token
-    return token
-  }
-
-  async getAccessToken (): Promise<string> {
-    return this.accessToken
-  }
-
-  async getRefreshToken (): Promise<string> {
-    return this.refreshToken
   }
 }

@@ -6,7 +6,7 @@ import { Connection } from 'typeorm'
 import { NO_DID } from '../src/errors'
 import MockDate from 'mockdate'
 
-describe('getChallenge', function (this: {
+describe.skip('getChallenge', function (this: {
   serviceUrl: string,
   did: string,
   dbName: string,

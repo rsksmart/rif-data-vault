@@ -6,7 +6,7 @@ import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from '../src/errors'
 import { decodeJWT } from 'did-jwt'
 import MockDate from 'mockdate'
 
-describe('sign challenge', function (this: {
+describe.skip('sign challenge', function (this: {
   serviceUrl: string,
   did: string,
   signer: Signer,

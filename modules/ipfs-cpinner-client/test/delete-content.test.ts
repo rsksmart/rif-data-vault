@@ -4,8 +4,10 @@ import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import DataVaultWebClient, { Signer } from '../src'
 import MockDate from 'mockdate'
+import LocalStorageMockFactory from './localStorageMockFactory'
 
 jest.setTimeout(10000)
+
 describe('delete content', function (this: {
   dbName: string,
   did: string,
@@ -33,7 +35,10 @@ describe('delete content', function (this: {
     return client
   }
 
-  beforeEach(() => MockDate.set(testTimestamp))
+  beforeEach(() => {
+    MockDate.set(testTimestamp)
+    global.localStorage = LocalStorageMockFactory()
+  })
 
   afterEach(async () => {
     MockDate.reset()

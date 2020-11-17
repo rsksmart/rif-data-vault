@@ -5,8 +5,9 @@ import { Server } from 'http'
 import { deleteDatabase, identityFactory, startService, testTimestamp } from './util'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
+import LocalStorageMockFactory from './localStorageMockFactory'
 
-jest.setTimeout(10000) // it will perform two requests: login and create
+jest.setTimeout(12000)
 
 describe('create content', function (this: {
   server: Server,
@@ -27,24 +28,15 @@ describe('create content', function (this: {
     return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
   }
 
-  beforeEach(() => MockDate.set(testTimestamp))
+  beforeEach(() => {
+    MockDate.set(testTimestamp)
+    global.localStorage = LocalStorageMockFactory()
+  })
 
   afterEach(async () => {
     MockDate.reset()
     this.server.close()
     await deleteDatabase(this.dbConnection, this.dbName)
-  })
-
-  test('should return something', async () => {
-    this.dbName = 'create-1.sqlite'
-    const client = await setup()
-
-    const key = 'AKey'
-    const content = 'the content'
-
-    const response = await client.create({ key, content })
-
-    expect(response).toBeTruthy()
   })
 
   test('should return an id', async () => {
