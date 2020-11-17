@@ -95,3 +95,5 @@ export const challengeResponseFactory = async (
 
   return createJWT(payload, { issuer: issuer.did, signer: issuer.signer }, { typ: 'JWT', alg: 'ES256K' })
 }
+
+export const testTimestamp = 1603300440000

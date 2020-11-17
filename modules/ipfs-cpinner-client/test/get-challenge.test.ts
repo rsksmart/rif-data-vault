@@ -1,6 +1,6 @@
 import DataVaultWebClient from '../src'
 import axios from 'axios'
-import { deleteDatabase, startService } from './util'
+import { deleteDatabase, startService, testTimestamp } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID } from '../src/errors'
@@ -46,7 +46,7 @@ describe('getChallenge', function (this: {
   })
 
   test('should get a challenge from the service', async () => {
-    MockDate.set(Date.now())
+    MockDate.set(testTimestamp)
 
     this.did = 'did:ethr:rsk:0x123456789'
     this.dbName = 'challenge-3.sqlite'

@@ -1,4 +1,4 @@
-import { startService, deleteDatabase, identityFactory } from './util'
+import { startService, deleteDatabase, identityFactory, testTimestamp } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
@@ -33,7 +33,7 @@ describe('delete content', function (this: {
     return client
   }
 
-  beforeEach(() => MockDate.set(Date.now()))
+  beforeEach(() => MockDate.set(testTimestamp))
 
   afterEach(async () => {
     MockDate.reset()

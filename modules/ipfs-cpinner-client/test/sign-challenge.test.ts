@@ -1,5 +1,5 @@
 import DataVaultWebClient, { Signer } from '../src'
-import { deleteDatabase, identityFactory, startService } from './util'
+import { deleteDatabase, identityFactory, startService, testTimestamp } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from '../src/errors'
@@ -60,7 +60,7 @@ describe('sign challenge', function (this: {
   })
 
   test('should create a jwt with the proper values', async () => {
-    MockDate.set(Date.now())
+    MockDate.set(testTimestamp)
 
     this.dbName = 'sign-challenge-3.sqlite'
     await setup()

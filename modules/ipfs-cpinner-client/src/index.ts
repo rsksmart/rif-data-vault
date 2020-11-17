@@ -7,6 +7,8 @@ type CreateContentPayload = { key: string, content: string }
 type CreateContentResponse = { id: string }
 type LoginResponse = { accessToken: string, refreshToken: string }
 type DeleteTokenPayload = { key: string, id?: string }
+type SwapContentPayload = { key: string, content: string, id?: string }
+type SwapContentResponse = { id: string }
 
 export type Signer = (data: string) => Promise<string>
 
@@ -59,6 +61,20 @@ export default class {
       .then(res => res.status === 200)
   }
 
+  async swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
+    const { key, content, id } = payload
+    const { serviceUrl } = this.opts
+    let accessToken = await this.getAccessToken()
+
+    if (!accessToken) {
+      ({ accessToken } = await this.login())
+    }
+
+    const path = id ? `${key}/${id}` : key
+    return axios.put(`${serviceUrl}/${path}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      .then(res => res.status === 200 && res.data)
+  }
+
   async login (): Promise<LoginResponse> {
     const { did, signer, serviceUrl } = this.opts
     if (!did) throw new Error(NO_DID)
@@ -68,6 +84,11 @@ export default class {
       .then(this.signChallenge.bind(this))
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && !!res.data && res.data)
+      .catch(res => {
+        console.log('SARASA')
+        console.log(res.status)
+        console.log(res.data)
+      })
 
     this.accessToken = tokens.accessToken
     this.refreshToken = tokens.refreshToken

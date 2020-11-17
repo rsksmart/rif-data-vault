@@ -1,6 +1,6 @@
 import DataVaultWebClient, { Signer } from '../src'
 import { decodeJWT } from 'did-jwt'
-import { deleteDatabase, startService, identityFactory } from './util'
+import { deleteDatabase, startService, identityFactory, testTimestamp } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { NO_DID, NO_SIGNER } from '../src/errors'
@@ -31,7 +31,7 @@ describe('login', function (this: {
     return setup()
   }
 
-  beforeEach(() => MockDate.set(Date.now()))
+  beforeEach(() => MockDate.set(testTimestamp))
 
   afterEach(async () => {
     MockDate.reset()

@@ -2,7 +2,7 @@ import DataVaultWebClient, { Signer } from '../src'
 import ipfsHash from 'ipfs-only-hash'
 import { Connection } from 'typeorm'
 import { Server } from 'http'
-import { deleteDatabase, identityFactory, startService } from './util'
+import { deleteDatabase, identityFactory, startService, testTimestamp } from './util'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 
@@ -27,7 +27,7 @@ describe('create content', function (this: {
     return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
   }
 
-  beforeEach(() => MockDate.set(Date.now()))
+  beforeEach(() => MockDate.set(testTimestamp))
 
   afterEach(async () => {
     MockDate.reset()
