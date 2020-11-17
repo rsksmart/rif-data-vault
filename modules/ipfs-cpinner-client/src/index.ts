@@ -1,24 +1,13 @@
 import axios from 'axios'
-import { createJWT, decodeJWT } from 'did-jwt'
-import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from './errors'
-
-const ACCESS_TOKEN_KEY = 'accessToken'
-const REFRESH_TOKEN_KEY = 'refreshToken'
-
-type GetContentPayload = { did: string, key: string }
-type CreateContentPayload = { key: string, content: string }
-type CreateContentResponse = { id: string }
-type LoginResponse = { accessToken: string, refreshToken: string }
-type DeleteTokenPayload = { key: string, id?: string }
-type SwapContentPayload = { key: string, content: string, id?: string }
-type SwapContentResponse = { id: string }
-
-export type Signer = (data: string) => Promise<string>
-
-export interface ClientKeyValueStorage {
-  get (key: string): Promise<string>
-  set (key: string, value: string): Promise<void>
-}
+import { decodeJWT } from 'did-jwt'
+import { authManagerFactory } from './auth-manager'
+import { ACCESS_TOKEN_KEY } from './constants'
+import {
+  AuthenticationManager,
+  ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
+  DeleteTokenPayload, GetContentPayload, Options,
+  SwapContentPayload, SwapContentResponse
+} from './types'
 
 const ClientKeyValueStorageFactory = {
   fromLocalStorage: (): ClientKeyValueStorage => ({
@@ -27,20 +16,13 @@ const ClientKeyValueStorageFactory = {
   })
 }
 
-type Options = {
-  serviceUrl: string,
-  serviceDid?: string,
-  did?: string
-  signer?: Signer
-  storage?: ClientKeyValueStorage
-}
-
 export default class {
   private storage: ClientKeyValueStorage
+  private authManager: AuthenticationManager
 
-  // eslint-disable-next-line no-useless-constructor
   constructor (private opts: Options) {
     this.storage = opts.storage || ClientKeyValueStorageFactory.fromLocalStorage()
+    this.authManager = authManagerFactory(opts, this.storage)
   }
 
   get ({ did, key }: GetContentPayload): Promise<string[]> {
@@ -92,78 +74,14 @@ export default class {
   private async checkAndGetAccessToken (): Promise<string> {
     const accessToken = await this.storage.get(ACCESS_TOKEN_KEY)
 
-    if (!accessToken) return this.login().then((tokens) => tokens.accessToken)
+    if (!accessToken) return this.authManager.login().then((tokens) => tokens.accessToken)
 
     const { payload } = decodeJWT(accessToken)
 
     if (payload.exp <= Math.floor(Date.now() / 1000)) {
-      return this.refreshAccessToken().then((tokens) => tokens.accessToken)
+      return this.authManager.refreshAccessToken().then((tokens) => tokens.accessToken)
     }
 
     return accessToken
-  }
-
-  async login (): Promise<LoginResponse> {
-    const { did, signer, serviceUrl } = this.opts
-    if (!did) throw new Error(NO_DID)
-    if (!signer) throw new Error(NO_SIGNER)
-
-    const tokens = await this.getChallenge()
-      .then(this.signChallenge.bind(this))
-      .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
-      .then(res => res.status === 200 && !!res.data && res.data)
-
-    await this.storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
-    await this.storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
-
-    return tokens
-  }
-
-  async refreshAccessToken (): Promise<LoginResponse> {
-    const { did, signer, serviceUrl } = this.opts
-    if (!did) throw new Error(NO_DID)
-    if (!signer) throw new Error(NO_SIGNER)
-
-    const refreshToken = await this.storage.get(REFRESH_TOKEN_KEY)
-
-    if (!refreshToken) return this.login()
-
-    const tokens = await axios.post(`${serviceUrl}/refresh-token`, { refreshToken })
-      .then(res => res.status === 200 && !!res.data && res.data)
-
-    // TODO: Take care of expired refresh token
-
-    await this.storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
-    await this.storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
-
-    return tokens
-  }
-
-  async getChallenge (): Promise<string> {
-    const { did, serviceUrl } = this.opts
-    if (!did) throw new Error(NO_DID)
-
-    return axios.get(`${serviceUrl}/request-auth/${did}`)
-      .then(res => res.status === 200 && !!res.data && res.data.challenge)
-  }
-
-  async signChallenge (challenge: string): Promise<string> {
-    const { did, signer, serviceUrl, serviceDid } = this.opts
-    if (!did) throw new Error(NO_DID)
-    if (!signer) throw new Error(NO_SIGNER)
-    if (!serviceDid) throw new Error(NO_SERVICE_DID)
-
-    const now = Math.floor(Date.now() / 1000)
-
-    const payload = {
-      challenge,
-      aud: serviceUrl,
-      sub: serviceDid,
-      exp: now + 120,
-      nbf: now,
-      iat: now
-    }
-
-    return createJWT(payload, { issuer: did, signer }, { typ: 'JWT', alg: 'ES256K' })
   }
 }

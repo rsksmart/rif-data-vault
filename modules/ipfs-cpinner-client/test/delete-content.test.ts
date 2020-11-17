@@ -2,9 +2,10 @@ import { startService, deleteDatabase, identityFactory, testTimestamp } from './
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
-import DataVaultWebClient, { Signer } from '../src'
+import DataVaultWebClient from '../src'
 import MockDate from 'mockdate'
 import LocalStorageMockFactory from './localStorageMockFactory'
+import { Signer } from '../src/types'
 
 jest.setTimeout(10000)
 

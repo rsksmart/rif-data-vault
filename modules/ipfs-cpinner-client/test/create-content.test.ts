@@ -1,4 +1,4 @@
-import DataVaultWebClient, { Signer } from '../src'
+import DataVaultWebClient from '../src'
 import ipfsHash from 'ipfs-only-hash'
 import { Connection } from 'typeorm'
 import { Server } from 'http'
@@ -6,6 +6,7 @@ import { deleteDatabase, identityFactory, startService, testTimestamp } from './
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import LocalStorageMockFactory from './localStorageMockFactory'
+import { Signer } from '../src/types'
 
 jest.setTimeout(12000)
 
