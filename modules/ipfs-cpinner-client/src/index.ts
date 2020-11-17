@@ -35,7 +35,7 @@ export default class {
     const { content, key } = payload
     const { serviceUrl } = this.opts
 
-    return this.checkAndGetAccessToken()
+    return this.getAccessToken()
       .then(accessToken => axios.post(
         `${serviceUrl}/${key}`,
         { content },
@@ -49,7 +49,7 @@ export default class {
     const { serviceUrl } = this.opts
     const path = id ? `${key}/${id}` : key
 
-    return this.checkAndGetAccessToken()
+    return this.getAccessToken()
       .then(accessToken => axios.delete(
         `${serviceUrl}/${path}`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
@@ -62,7 +62,7 @@ export default class {
     const { serviceUrl } = this.opts
 
     const path = id ? `${key}/${id}` : key
-    return this.checkAndGetAccessToken()
+    return this.getAccessToken()
       .then(accessToken => axios.put(
         `${serviceUrl}/${path}`,
         { content },
@@ -71,7 +71,7 @@ export default class {
       .then(res => res.status === 200 && res.data)
   }
 
-  private async checkAndGetAccessToken (): Promise<string> {
+  private async getAccessToken (): Promise<string> {
     const accessToken = await this.storage.get(ACCESS_TOKEN_KEY)
 
     if (!accessToken) return this.authManager.login().then((tokens) => tokens.accessToken)
