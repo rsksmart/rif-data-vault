@@ -113,7 +113,7 @@ describe('swap content', function (this: {
   })
 
   test('should swap only the content associated to the given id if present', async () => {
-    this.dbName = 'swap-5.sqlite'
+    this.dbName = 'swap-6.sqlite'
     const client = await setup()
 
     const key = 'TheKey6'
@@ -131,5 +131,27 @@ describe('swap content', function (this: {
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
     expect(expected).toEqual([secondContent, newContent])
+  })
+
+  test('should refresh the token if necessary', async () => {
+    this.dbName = 'swap-7.sqlite'
+    const client = await setup()
+
+    const key = 'TheKey7'
+    const firstContent = 'the content 7'
+    const secondContent = 'another content 7'
+
+    const cid1 = await this.ipfsPinnerProvider.create(this.did, key, firstContent)
+    const cid2 = await this.ipfsPinnerProvider.create(this.did, key, secondContent)
+
+    const newContent = 'this is the new content'
+    await client.swap({ key, content: newContent, id: cid1 })
+
+    MockDate.set(testTimestamp + 1 * 60 * 60 * 1000) // add 1 hour
+
+    await client.swap({ key, content: newContent, id: cid2 })
+
+    const expected = await this.ipfsPinnerProvider.get(this.did, key)
+    expect(expected).toEqual([newContent, newContent])
   })
 })

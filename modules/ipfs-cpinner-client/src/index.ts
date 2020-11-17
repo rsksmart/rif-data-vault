@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { createJWT } from 'did-jwt'
+import { createJWT, decodeJWT } from 'did-jwt'
 import { NO_DID, NO_SERVICE_DID, NO_SIGNER } from './errors'
 
 type GetContentPayload = { did: string, key: string }
@@ -35,26 +35,16 @@ export default class {
   async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
     const { content, key } = payload
     const { serviceUrl } = this.opts
-    let accessToken = await this.getAccessToken()
-
-    if (!accessToken) {
-      ({ accessToken } = await this.login())
-    }
+    const accessToken = await this.checkAndGetAccessToken()
 
     return axios.post(`${serviceUrl}/${key}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
       .then(res => res.status === 201 && res.data)
-
-    // TODO: Refresh token if necessary
   }
 
   async delete (payload: DeleteTokenPayload): Promise<boolean> {
     const { key, id } = payload
     const { serviceUrl } = this.opts
-    let accessToken = await this.getAccessToken()
-
-    if (!accessToken) {
-      ({ accessToken } = await this.login())
-    }
+    const accessToken = await this.checkAndGetAccessToken()
 
     const path = id ? `${key}/${id}` : key
     return axios.delete(`${serviceUrl}/${path}`, { headers: { Authorization: `DIDAuth ${accessToken}` } })
@@ -64,15 +54,27 @@ export default class {
   async swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
     const { key, content, id } = payload
     const { serviceUrl } = this.opts
-    let accessToken = await this.getAccessToken()
-
-    if (!accessToken) {
-      ({ accessToken } = await this.login())
-    }
+    const accessToken = await this.checkAndGetAccessToken()
 
     const path = id ? `${key}/${id}` : key
     return axios.put(`${serviceUrl}/${path}`, { content }, { headers: { Authorization: `DIDAuth ${accessToken}` } })
       .then(res => res.status === 200 && res.data)
+  }
+
+  private async checkAndGetAccessToken () {
+    let accessToken = await this.getAccessToken()
+
+    if (!accessToken) {
+      ({ accessToken } = await this.login())
+    } else {
+      const { payload } = await decodeJWT(accessToken)
+
+      if (payload.exp <= Math.floor(Date.now() / 1000)) {
+        ({ accessToken } = await this.refreshAccessToken())
+      }
+    }
+
+    return accessToken
   }
 
   async login (): Promise<LoginResponse> {
@@ -84,11 +86,26 @@ export default class {
       .then(this.signChallenge.bind(this))
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && !!res.data && res.data)
-      .catch(res => {
-        console.log('SARASA')
-        console.log(res.status)
-        console.log(res.data)
-      })
+
+    this.accessToken = tokens.accessToken
+    this.refreshToken = tokens.refreshToken
+
+    return tokens
+  }
+
+  async refreshAccessToken (): Promise<LoginResponse> {
+    const { did, signer, serviceUrl } = this.opts
+    if (!did) throw new Error(NO_DID)
+    if (!signer) throw new Error(NO_SIGNER)
+
+    const refreshToken = await this.getRefreshToken()
+
+    if (!refreshToken) return this.login()
+
+    const tokens = await axios.post(`${serviceUrl}/refresh-token`, { refreshToken })
+      .then(res => res.status === 200 && !!res.data && res.data)
+
+    // TODO: Take care of expired refresh token
 
     this.accessToken = tokens.accessToken
     this.refreshToken = tokens.refreshToken

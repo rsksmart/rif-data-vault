@@ -87,6 +87,28 @@ describe('create content', function (this: {
     expect(actualContent).toEqual([content])
   })
 
+  test('should refresh the access token if necessary', async () => {
+    this.dbName = 'create-5.sqlite'
+    const client = await setup()
+
+    const key = 'KeyTest5'
+    const content = 'content for test 5'
+
+    await client.create({ key, content })
+
+    MockDate.set(testTimestamp + 1 * 60 * 60 * 1000) // add 1 hour
+
+    const key2 = 'AnotherKeyTest5'
+    const content2 = 'another content for test 5'
+
+    await client.create({ key: key2, content: content2 })
+
+    const actualContent1 = await this.ipfsPinnerProvider.get(this.did, key)
+    expect(actualContent1).toEqual([content])
+
+    const actualContent2 = await this.ipfsPinnerProvider.get(this.did, key2)
+    expect(actualContent2).toEqual([content2])
+  })
+
   // TODO: Test that doing a login before reduces the execution time
-  // TODO: Test refreshing the expired AT
 })

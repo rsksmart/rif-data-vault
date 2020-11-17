@@ -6,6 +6,8 @@ import { Connection } from 'typeorm'
 import { NO_DID, NO_SIGNER } from '../src/errors'
 import MockDate from 'mockdate'
 
+jest.setTimeout(7000)
+
 describe('login', function (this: {
   did: string,
   signer: Signer,

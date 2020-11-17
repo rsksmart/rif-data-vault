@@ -137,4 +137,26 @@ describe('delete content', function (this: {
     const retrieved2AfterDelete = await this.ipfsPinnerProvider.get(this.did, key2)
     expect(retrieved2AfterDelete).toEqual([content2])
   })
+
+  test('should refresh the access token if necessary', async () => {
+    this.dbName = 'delete-7.sqlite'
+    const client = await setup()
+
+    const key1 = 'SeventhKey'
+    const content1 = 'seventh content'
+
+    const key2 = 'SeventhKey2'
+    const content2 = 'Seventh content 2'
+
+    await this.ipfsPinnerProvider.create(this.did, key1, content1)
+    await this.ipfsPinnerProvider.create(this.did, key2, content2)
+
+    const deleted1 = await client.delete({ key: key1 })
+    expect(deleted1).toBe(true)
+
+    MockDate.set(testTimestamp + 1 * 60 * 60 * 1000) // add 1 hour
+
+    const deleted2 = await client.delete({ key: key2 })
+    expect(deleted2).toBe(true)
+  })
 })
