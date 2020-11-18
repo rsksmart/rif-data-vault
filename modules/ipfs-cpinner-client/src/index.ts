@@ -5,7 +5,7 @@ import { ACCESS_TOKEN_KEY } from './constants'
 import {
   AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
-  DeleteTokenPayload, GetContentPayload, Options,
+  DeleteTokenPayload, GetContentPayload, Config,
   SwapContentPayload, SwapContentResponse
 } from './types'
 
@@ -20,20 +20,20 @@ export default class {
   private storage: ClientKeyValueStorage
   private authManager: AuthenticationManager
 
-  constructor (private opts: Options) {
-    this.storage = opts.storage || ClientKeyValueStorageFactory.fromLocalStorage()
-    this.authManager = authManagerFactory(opts, this.storage)
+  constructor (private config: Config) {
+    this.storage = config.storage || ClientKeyValueStorageFactory.fromLocalStorage()
+    this.authManager = authManagerFactory(config, this.storage)
   }
 
   get ({ did, key }: GetContentPayload): Promise<string[]> {
-    return axios.get(`${this.opts.serviceUrl}/${did}/${key}`)
+    return axios.get(`${this.config.serviceUrl}/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
       .then(({ content }) => content.length && content)
   }
 
   create (payload: CreateContentPayload): Promise<CreateContentResponse> {
     const { content, key } = payload
-    const { serviceUrl } = this.opts
+    const { serviceUrl } = this.config
 
     return this.getAccessToken()
       .then(accessToken => axios.post(
@@ -46,7 +46,7 @@ export default class {
 
   delete (payload: DeleteTokenPayload): Promise<boolean> {
     const { key, id } = payload
-    const { serviceUrl } = this.opts
+    const { serviceUrl } = this.config
     const path = id ? `${key}/${id}` : key
 
     return this.getAccessToken()
@@ -59,7 +59,7 @@ export default class {
 
   swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
     const { key, content, id } = payload
-    const { serviceUrl } = this.opts
+    const { serviceUrl } = this.config
 
     const path = id ? `${key}/${id}` : key
     return this.getAccessToken()
@@ -85,3 +85,5 @@ export default class {
     return accessToken
   }
 }
+
+export { ClientKeyValueStorage }

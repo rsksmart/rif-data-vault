@@ -24,6 +24,7 @@ Install dependencies
 ```
 npm i
 npm run setup
+npm run build
 ```
 
 Install IPFS CLI. Find your option: https://docs.ipfs.io/how-to/command-line-quick-start/.

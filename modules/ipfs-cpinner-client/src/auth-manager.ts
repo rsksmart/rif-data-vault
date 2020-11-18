@@ -1,11 +1,11 @@
 import { NO_DID, NO_SIGNER, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, NO_SERVICE_DID } from './constants'
-import { ClientKeyValueStorage, LoginResponse, Options } from './types'
+import { ClientKeyValueStorage, LoginResponse, Config } from './types'
 import axios from 'axios'
 import { createJWT } from 'did-jwt'
 
-export default (opts: Options, storage: ClientKeyValueStorage) => {
+export default (config: Config, storage: ClientKeyValueStorage) => {
   const login = async (): Promise<LoginResponse> => {
-    const { did, signer, serviceUrl } = opts
+    const { did, signer, serviceUrl } = config
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)
 
@@ -21,7 +21,7 @@ export default (opts: Options, storage: ClientKeyValueStorage) => {
   }
 
   const refreshAccessToken = async (): Promise<LoginResponse> => {
-    const { did, signer, serviceUrl } = opts
+    const { did, signer, serviceUrl } = config
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)
 
@@ -45,7 +45,7 @@ export default (opts: Options, storage: ClientKeyValueStorage) => {
   }
 
   const getChallenge = async (): Promise<string> => {
-    const { did, serviceUrl } = opts
+    const { did, serviceUrl } = config
     if (!did) throw new Error(NO_DID)
 
     return axios.get(`${serviceUrl}/request-auth/${did}`)
@@ -53,7 +53,7 @@ export default (opts: Options, storage: ClientKeyValueStorage) => {
   }
 
   const signChallenge = async (challenge: string): Promise<string> => {
-    const { did, signer, serviceUrl, serviceDid } = opts
+    const { did, signer, serviceUrl, serviceDid } = config
 
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)

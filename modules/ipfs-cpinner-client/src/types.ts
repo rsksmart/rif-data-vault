@@ -18,7 +18,7 @@ export interface AuthenticationManager {
   refreshAccessToken(): Promise<LoginResponse>
 }
 
-export type Options = {
+export type Config = {
   serviceUrl: string,
   serviceDid?: string,
   did?: string
