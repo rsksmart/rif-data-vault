@@ -48,7 +48,7 @@ jobs:
             - run:
                 name: Run Tests
                 no_output_timeout: 30m
-                command: npm run test:ci
+                command: npm run test
             - store_test_results:
                 path: ./reports/
             - store_artifacts:
