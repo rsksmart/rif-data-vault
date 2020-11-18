@@ -5,7 +5,7 @@ import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import ipfsHash from 'ipfs-only-hash'
-import LocalStorageMockFactory from './localStorageMockFactory'
+import localStorageMockFactory from './localStorageMockFactory'
 import { Signer } from '../src/types'
 
 jest.setTimeout(10000)
@@ -44,7 +44,7 @@ describe('swap content', function (this: {
 
   beforeEach(() => {
     MockDate.set(testTimestamp)
-    global.localStorage = LocalStorageMockFactory()
+    global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {

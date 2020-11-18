@@ -5,7 +5,7 @@ import { Server } from 'http'
 import { deleteDatabase, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
-import LocalStorageMockFactory from './localStorageMockFactory'
+import localStorageMockFactory from './localStorageMockFactory'
 import { Signer } from '../src/types'
 
 jest.setTimeout(12000)
@@ -45,7 +45,7 @@ describe('create content', function (this: {
 
   beforeEach(() => {
     MockDate.set(testTimestamp)
-    global.localStorage = LocalStorageMockFactory()
+    global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {

@@ -3,7 +3,6 @@ import { Connection } from 'typeorm'
 import { Server } from 'http'
 import { customStorageFactory, deleteDatabase, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import MockDate from 'mockdate'
-import LocalStorageMockFactory from './localStorageMockFactory'
 import { Signer } from '../src/types'
 
 jest.setTimeout(12000)
@@ -39,10 +38,7 @@ describe('custom storage', function (this: {
     await deleteDatabase(this.dbConnection, dbName)
   })
 
-  beforeEach(() => {
-    MockDate.set(testTimestamp)
-    global.localStorage = LocalStorageMockFactory()
-  })
+  beforeEach(() => MockDate.set(testTimestamp))
 
   afterEach(async () => {
     MockDate.reset()

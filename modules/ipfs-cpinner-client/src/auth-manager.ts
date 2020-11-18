@@ -13,6 +13,7 @@ export default (config: Config, storage: ClientKeyValueStorage) => {
       .then(signChallenge)
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && res.data)
+      .catch(console.log)
 
     await storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
     await storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
@@ -50,6 +51,7 @@ export default (config: Config, storage: ClientKeyValueStorage) => {
 
     return axios.get(`${serviceUrl}/request-auth/${did}`)
       .then(res => res.status === 200 && !!res.data && res.data.challenge)
+      .catch(console.log)
   }
 
   const signChallenge = async (challenge: string): Promise<string> => {
