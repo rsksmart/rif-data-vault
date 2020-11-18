@@ -9,6 +9,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
+import { ClientKeyValueStorage } from '../src/types'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
@@ -35,9 +36,9 @@ export const createSqliteConnection = (database: string) => createConnection({
   synchronize: true
 })
 
-export const resetDatabase = async (dbConnection: Promise<Connection>) => {
-  await (await dbConnection).dropDatabase()
-  await (await dbConnection).synchronize()
+export const resetDatabase = async (dbConnection: Connection) => {
+  await dbConnection.dropDatabase()
+  await dbConnection.synchronize()
 }
 
 export const deleteDatabase = (connection: Connection, database: string) => connection.close().then(() => {
@@ -49,7 +50,8 @@ export const startService = async (dbName: string, port?: number): Promise<{
   serviceUrl: string,
   serviceDid: string,
   ipfsPinnerProvider: IpfsPinnerProvider,
-  dbConnection: Connection
+  dbConnection: Connection,
+  dbConnectionPromise: Promise<Connection>
 }> => {
   if (!port) port = 4600
   const serviceUrl = `http://localhost:${port}`
@@ -66,14 +68,15 @@ export const startService = async (dbName: string, port?: number): Promise<{
     serviceSigner: serviceIdentity.signer
   }
 
-  const dbConnection = await createSqliteConnection(dbName)
+  const dbConnectionPromise = createSqliteConnection(dbName)
+  const dbConnection = await dbConnectionPromise
   const ipfsEndpoint = 'http://localhost:5001'
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
   setupApi(app, ipfsPinnerProvider, config, mockedLogger)
 
   const server = app.listen(port)
 
-  return { server, ipfsPinnerProvider, serviceUrl, dbConnection, serviceDid }
+  return { server, ipfsPinnerProvider, serviceUrl, dbConnection, dbConnectionPromise, serviceDid }
 }
 
 export const challengeResponseFactory = async (
@@ -97,3 +100,15 @@ export const challengeResponseFactory = async (
 }
 
 export const testTimestamp = 1603300440000
+
+export const customStorageFactory = (): ClientKeyValueStorage => {
+  const store: any = {}
+  return {
+    get: async (key: string) => {
+      return store[key]
+    },
+    set: async (key: string, value: string) => {
+      store[key] = value.toString()
+    }
+  }
+}

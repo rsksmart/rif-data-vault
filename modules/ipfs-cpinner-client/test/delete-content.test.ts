@@ -1,4 +1,4 @@
-import { startService, deleteDatabase, identityFactory, testTimestamp } from './util'
+import { startService, deleteDatabase, identityFactory, testTimestamp, resetDatabase } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
@@ -10,22 +10,21 @@ import { Signer } from '../src/types'
 jest.setTimeout(10000)
 
 describe('delete content', function (this: {
-  dbName: string,
   did: string,
   server: Server,
   dbConnection: Connection,
   ipfsPinnerProvider: IpfsPinnerProvider
+  serviceUrl: string
+  serviceDid: string
 }) {
+  const dbName = 'delete.sqlite'
+
   const setup = async (): Promise<DataVaultWebClient> => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     const signer = clientIdentity.signer as Signer
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(this.dbName, 4605)
-    this.server = server
-    this.ipfsPinnerProvider = ipfsPinnerProvider
-    this.dbConnection = dbConnection
 
-    return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
+    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid })
   }
 
   const setupAndAddFile = async (key: string, file: string): Promise<DataVaultWebClient> => {
@@ -36,6 +35,15 @@ describe('delete content', function (this: {
     return client
   }
 
+  beforeAll(async () => {
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4603)
+    this.server = server
+    this.ipfsPinnerProvider = ipfsPinnerProvider
+    this.dbConnection = dbConnection
+    this.serviceDid = serviceDid
+    this.serviceUrl = serviceUrl
+  })
+
   beforeEach(() => {
     MockDate.set(testTimestamp)
     global.localStorage = LocalStorageMockFactory()
@@ -43,12 +51,15 @@ describe('delete content', function (this: {
 
   afterEach(async () => {
     MockDate.reset()
+    await resetDatabase(this.dbConnection)
+  })
+
+  afterAll(async () => {
     this.server.close()
-    await deleteDatabase(this.dbConnection, this.dbName)
+    await deleteDatabase(this.dbConnection, dbName)
   })
 
   test('should return true when deleting from a key that do not exist', async () => {
-    this.dbName = 'delete-1.sqlite'
     const client = await setup()
 
     const deleted = await client.delete({ key: 'do not exist' })
@@ -57,7 +68,6 @@ describe('delete content', function (this: {
   })
 
   test('should return true when key exists', async () => {
-    this.dbName = 'delete-2.sqlite'
     const key = 'AKey'
     const content = 'the content'
 
@@ -69,7 +79,6 @@ describe('delete content', function (this: {
   })
 
   test('should return true if more than one content associated to the given key', async () => {
-    this.dbName = 'delete-3.sqlite'
     const key = 'ThirdKey'
     const content = 'a content'
     const anotherContent = 'another content'
@@ -83,10 +92,9 @@ describe('delete content', function (this: {
   })
 
   test('should delete data from the storage provider', async () => {
-    this.dbName = 'delete-4.sqlite'
-    const key = 'ForuthKey'
+    const key = 'FourthKey'
     const content = 'fourth content'
-    const anotherContent = 'another content'
+    const anotherContent = 'another fourth content'
     const client = await setupAndAddFile(key, content)
 
     await this.ipfsPinnerProvider.create(this.did, key, anotherContent)
@@ -102,7 +110,6 @@ describe('delete content', function (this: {
   })
 
   test('should delete only the content associated to given id if id and key is present', async () => {
-    this.dbName = 'delete-5.sqlite'
     const key = 'FifthKey'
     const content = 'fifth content'
     const anotherContent = 'another fifth content'
@@ -121,7 +128,6 @@ describe('delete content', function (this: {
   })
 
   test('should delete only the content associated to the given key', async () => {
-    this.dbName = 'delete-6.sqlite'
     const client = await setup()
 
     const key1 = 'SixthKey'
@@ -145,7 +151,6 @@ describe('delete content', function (this: {
   })
 
   test('should refresh the access token if necessary', async () => {
-    this.dbName = 'delete-7.sqlite'
     const client = await setup()
 
     const key1 = 'SeventhKey'

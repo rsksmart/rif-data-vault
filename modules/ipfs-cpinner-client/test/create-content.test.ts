@@ -2,7 +2,7 @@ import DataVaultWebClient from '../src'
 import ipfsHash from 'ipfs-only-hash'
 import { Connection } from 'typeorm'
 import { Server } from 'http'
-import { deleteDatabase, identityFactory, startService, testTimestamp } from './util'
+import { deleteDatabase, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import LocalStorageMockFactory from './localStorageMockFactory'
@@ -13,21 +13,35 @@ jest.setTimeout(12000)
 describe('create content', function (this: {
   server: Server,
   dbConnection: Connection,
-  dbName: string,
   did: string,
-  ipfsPinnerProvider: IpfsPinnerProvider
+  ipfsPinnerProvider: IpfsPinnerProvider,
+  serviceUrl: string,
+  serviceDid: string
 }) {
+  const dbName = 'create.sqlite'
+
   const setup = async (): Promise<DataVaultWebClient> => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(this.dbName, 4604)
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     const signer = clientIdentity.signer as Signer
+
+    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid })
+  }
+
+  beforeAll(async () => {
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4601)
+
     this.server = server
     this.dbConnection = dbConnection
     this.ipfsPinnerProvider = ipfsPinnerProvider
+    this.serviceUrl = serviceUrl
+    this.serviceDid = serviceDid
+  })
 
-    return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
-  }
+  afterAll(async () => {
+    this.server.close()
+    await deleteDatabase(this.dbConnection, dbName)
+  })
 
   beforeEach(() => {
     MockDate.set(testTimestamp)
@@ -36,12 +50,10 @@ describe('create content', function (this: {
 
   afterEach(async () => {
     MockDate.reset()
-    this.server.close()
-    await deleteDatabase(this.dbConnection, this.dbName)
+    await resetDatabase(this.dbConnection)
   })
 
   test('should return an id', async () => {
-    this.dbName = 'create-2.sqlite'
     const client = await setup()
 
     const key = 'AKey'
@@ -53,7 +65,6 @@ describe('create content', function (this: {
   })
 
   test('should return an ipfs cid', async () => {
-    this.dbName = 'create-3.sqlite'
     const client = await setup()
 
     const key = 'AnotherKey'
@@ -67,7 +78,6 @@ describe('create content', function (this: {
   })
 
   test('should save the content in the service', async () => {
-    this.dbName = 'create-4.sqlite'
     const client = await setup()
 
     const key = 'AnotherKeyTest4'
@@ -81,7 +91,6 @@ describe('create content', function (this: {
   })
 
   test('should refresh the access token if necessary', async () => {
-    this.dbName = 'create-5.sqlite'
     const client = await setup()
 
     const key = 'KeyTest5'

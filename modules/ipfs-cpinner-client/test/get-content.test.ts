@@ -1,47 +1,50 @@
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import DataVaultWebClient from '../src'
-import { deleteDatabase, startService } from './util'
+import { deleteDatabase, resetDatabase, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 
 describe('get', function (this: {
-  dbName: string,
   server: Server,
   dbConnection: Connection,
-  ipfsPinnerProvider: IpfsPinnerProvider
+  ipfsPinnerProvider: IpfsPinnerProvider,
+  serviceUrl: string
 }) {
-  const setup = async (): Promise<DataVaultWebClient> => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection } = await startService(this.dbName, 4600)
-    this.server = server
-    this.ipfsPinnerProvider = ipfsPinnerProvider
-    this.dbConnection = dbConnection
-
-    return new DataVaultWebClient({ serviceUrl })
-  }
+  const dbName = 'get.sqlite'
 
   const setupAndAddFile = async (did: string, key: string, file: string): Promise<DataVaultWebClient> => {
-    const client = await setup()
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     await this.ipfsPinnerProvider.create(did, key, file)
 
     return client
   }
 
-  afterEach(async () => {
+  beforeAll(async () => {
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection } = await startService(dbName, 4600)
+    this.server = server
+    this.ipfsPinnerProvider = ipfsPinnerProvider
+    this.dbConnection = dbConnection
+    this.serviceUrl = serviceUrl
+  })
+
+  afterAll(async () => {
     this.server.close()
-    await deleteDatabase(this.dbConnection, this.dbName)
+    await deleteDatabase(this.dbConnection, dbName)
+  })
+
+  afterEach(async () => {
+    await resetDatabase(this.dbConnection)
   })
 
   test('should instantiate the library with a serviceUrl', async () => {
-    this.dbName = 'get-1.sqlite'
-    const client = await setup()
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     expect(client).toBeTruthy()
   })
 
   test('should return an existing content in a form of array', async () => {
-    this.dbName = 'get-2.sqlite'
-    const client = await setup()
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     const did = 'did:ethr:rsk:0x123456789'
     const key = 'ASavedContent'
@@ -56,8 +59,6 @@ describe('get', function (this: {
   })
 
   test('should return the saved content when getting by did and key', async () => {
-    this.dbName = 'get-3.sqlite'
-
     const key = 'AnotherSavedContent'
     const file = 'this is something to be saved'
     const did = 'did:ethr:rsk:0x123456abcdef'
@@ -69,8 +70,6 @@ describe('get', function (this: {
   })
 
   test('should retrieve multiple content associated to one key', async () => {
-    this.dbName = 'get-4.sqlite'
-
     const key = 'MultipleContents'
     const file1 = 'this is content 1'
     const file2 = 'this is content 2'
@@ -84,8 +83,7 @@ describe('get', function (this: {
   })
 
   test('should return undefined if the key has not content associated', async () => {
-    this.dbName = 'get-5.sqlite'
-    const client = await setup()
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     const key = 'DoNotExist'
     const did = 'did:ethr:rsk:0x123456abcdef'

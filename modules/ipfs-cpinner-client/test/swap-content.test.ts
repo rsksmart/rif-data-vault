@@ -1,5 +1,5 @@
 import DataVaultWebClient from '../src'
-import { startService, identityFactory, deleteDatabase, testTimestamp } from './util'
+import { startService, identityFactory, deleteDatabase, testTimestamp, resetDatabase } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
@@ -13,21 +13,34 @@ jest.setTimeout(10000)
 describe('swap content', function (this: {
   server: Server,
   dbConnection: Connection,
-  dbName: string,
   did: string,
-  ipfsPinnerProvider: IpfsPinnerProvider
+  ipfsPinnerProvider: IpfsPinnerProvider,
+  serviceUrl: string,
+  serviceDid: string
 }) {
+  const dbName = 'swap.sqlite'
+
   const setup = async (): Promise<DataVaultWebClient> => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(this.dbName, 4607)
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
     const signer = clientIdentity.signer as Signer
+
+    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid })
+  }
+
+  beforeAll(async () => {
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4602)
     this.server = server
     this.dbConnection = dbConnection
     this.ipfsPinnerProvider = ipfsPinnerProvider
+    this.serviceUrl = serviceUrl
+    this.serviceDid = serviceDid
+  })
 
-    return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
-  }
+  afterAll(async () => {
+    this.server.close()
+    await deleteDatabase(this.dbConnection, dbName)
+  })
 
   beforeEach(() => {
     MockDate.set(testTimestamp)
@@ -36,24 +49,10 @@ describe('swap content', function (this: {
 
   afterEach(async () => {
     MockDate.reset()
-    this.server.close()
-    await deleteDatabase(this.dbConnection, this.dbName)
-  })
-
-  test('should return a truthy response', async () => {
-    this.dbName = 'swap-1.sqlite'
-    const client = await setup()
-
-    const key = 'TheKey21'
-    const content = 'the content'
-
-    const response = await client.swap({ key, content })
-
-    expect(response).toBeTruthy()
+    await resetDatabase(this.dbConnection)
   })
 
   test('should return an id as part of the response', async () => {
-    this.dbName = 'swap-2.sqlite'
     const client = await setup()
 
     const key = 'TheKey2'
@@ -65,7 +64,6 @@ describe('swap content', function (this: {
   })
 
   test('should create the content if it does not exist', async () => {
-    this.dbName = 'swap-3.sqlite'
     const client = await setup()
 
     const key = 'TheKey3'
@@ -79,7 +77,6 @@ describe('swap content', function (this: {
   })
 
   test('should swap an existing content', async () => {
-    this.dbName = 'swap-4.sqlite'
     const client = await setup()
 
     const key = 'TheKey4'
@@ -96,8 +93,7 @@ describe('swap content', function (this: {
     expect(id).not.toEqual(originalCid)
   })
 
-  test('should swap the all even if there are more that one content associated to the key', async () => {
-    this.dbName = 'swap-5.sqlite'
+  test('should swap all the content even if there are more that one content associated to the key', async () => {
     const client = await setup()
 
     const key = 'TheKey5'
@@ -118,7 +114,6 @@ describe('swap content', function (this: {
   })
 
   test('should swap only the content associated to the given id if present', async () => {
-    this.dbName = 'swap-6.sqlite'
     const client = await setup()
 
     const key = 'TheKey6'
@@ -139,7 +134,6 @@ describe('swap content', function (this: {
   })
 
   test('should refresh the token if necessary', async () => {
-    this.dbName = 'swap-7.sqlite'
     const client = await setup()
 
     const key = 'TheKey7'

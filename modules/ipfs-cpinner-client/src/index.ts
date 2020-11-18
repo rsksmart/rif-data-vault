@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
-import { authManagerFactory } from './auth-manager'
+import authManagerFactory from './auth-manager'
 import { ACCESS_TOKEN_KEY } from './constants'
 import {
   AuthenticationManager,
@@ -74,12 +74,12 @@ export default class {
   private async getAccessToken (): Promise<string> {
     const accessToken = await this.storage.get(ACCESS_TOKEN_KEY)
 
-    if (!accessToken) return this.authManager.login().then((tokens) => tokens.accessToken)
+    if (!accessToken) return this.authManager.login().then(tokens => tokens.accessToken)
 
     const { payload } = decodeJWT(accessToken)
 
     if (payload.exp <= Math.floor(Date.now() / 1000)) {
-      return this.authManager.refreshAccessToken().then((tokens) => tokens.accessToken)
+      return this.authManager.refreshAccessToken().then(tokens => tokens.accessToken)
     }
 
     return accessToken

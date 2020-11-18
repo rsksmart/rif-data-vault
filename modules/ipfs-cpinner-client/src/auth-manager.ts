@@ -3,7 +3,7 @@ import { ClientKeyValueStorage, LoginResponse, Options } from './types'
 import axios from 'axios'
 import { createJWT } from 'did-jwt'
 
-export const authManagerFactory = (opts: Options, storage: ClientKeyValueStorage) => {
+export default (opts: Options, storage: ClientKeyValueStorage) => {
   const login = async (): Promise<LoginResponse> => {
     const { did, signer, serviceUrl } = opts
     if (!did) throw new Error(NO_DID)
@@ -12,7 +12,7 @@ export const authManagerFactory = (opts: Options, storage: ClientKeyValueStorage
     const tokens = await getChallenge()
       .then(signChallenge)
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
-      .then(res => res.status === 200 && !!res.data && res.data)
+      .then(res => res.status === 200 && res.data)
 
     await storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
     await storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
@@ -30,9 +30,13 @@ export const authManagerFactory = (opts: Options, storage: ClientKeyValueStorage
     if (!refreshToken) return login()
 
     const tokens = await axios.post(`${serviceUrl}/refresh-token`, { refreshToken })
-      .then(res => res.status === 200 && !!res.data && res.data)
+      .then(res => res.status === 200 && res.data)
+      .catch(err => {
+        if (err.response.status !== 401) throw err
 
-    // TODO: Take care of expired refresh token
+        // if it is expired, do another login
+        return login()
+      })
 
     await storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
     await storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
@@ -50,6 +54,7 @@ export const authManagerFactory = (opts: Options, storage: ClientKeyValueStorage
 
   const signChallenge = async (challenge: string): Promise<string> => {
     const { did, signer, serviceUrl, serviceDid } = opts
+
     if (!did) throw new Error(NO_DID)
     if (!signer) throw new Error(NO_SIGNER)
     if (!serviceDid) throw new Error(NO_SERVICE_DID)
@@ -68,5 +73,5 @@ export const authManagerFactory = (opts: Options, storage: ClientKeyValueStorage
     return createJWT(payload, { issuer: did, signer }, { typ: 'JWT', alg: 'ES256K' })
   }
 
-  return { login, refreshAccessToken, getChallenge, signChallenge }
+  return { login, refreshAccessToken }
 }
