@@ -7,8 +7,8 @@
     "setup": "npm run bootstrap && npm run link",
     "build": "npx lerna run build",
     "test": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/*",
-    "test:watch": "npx jest modules/ipfs-cpinner-client/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --watch",
-    "test:ci": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --coverageDirectory reports",
+    "test:watch": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --watch",
+    "test:ci": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --coverageDirectory reports --max-old-space-size=4096 --maxWorkers=2",
     "lint": "npx eslint ./modules --ext .json,.js,.ts",
     "lint:fix": "npx eslint ./modules --ext .json,.js,.ts --fix",
     "lint:ci": "npx eslint ./modules --ext .json,.js,.ts --format junit --output-file ./reports/eslint.xml"

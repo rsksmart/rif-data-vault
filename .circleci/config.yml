@@ -45,10 +45,7 @@ jobs:
             - run: npm run setup
             - run: npm run build
             - run: npm run lint:ci
-            - run:
-                name: Run Tests
-                no_output_timeout: 30m
-                command: npm run test
+            - run: npm run test:ci
             - store_test_results:
                 path: ./reports/
             - store_artifacts:
