@@ -13,7 +13,6 @@ export default (config: Config, storage: ClientKeyValueStorage) => {
       .then(signChallenge)
       .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
       .then(res => res.status === 200 && res.data)
-      .catch(console.log)
 
     await storage.set(ACCESS_TOKEN_KEY, tokens.accessToken)
     await storage.set(REFRESH_TOKEN_KEY, tokens.refreshToken)
