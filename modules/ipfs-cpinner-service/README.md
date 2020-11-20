@@ -74,7 +74,11 @@ Get all files of a given `did` and `key`
 GET /:did/:key -> { content[] } (get files)
 ```
 
-## Run
+## Advanced usage
+
+See our [documentation](https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-service)
+
+## Run for development
 
 The service will:
 - Setup a local database were content associated to DIDs is mapped
