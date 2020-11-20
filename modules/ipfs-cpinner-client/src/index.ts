@@ -1,98 +1,89 @@
 import axios from 'axios'
-import { Agent, AbstractSecretBox } from 'daf-core'
-import RIFStorage, { Provider } from '@rsksmart/rif-storage'
+import { decodeJWT } from 'did-jwt'
+import authManagerFactory from './auth-manager'
+import { ACCESS_TOKEN_KEY } from './constants'
+import {
+  AuthenticationManager,
+  ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
+  DeleteTokenPayload, GetContentPayload, Config,
+  SwapContentPayload, SwapContentResponse
+} from './types'
 
-interface ICentralizedIPFSPinnerClient {
-  put: (key: string, content: string) => Promise<string>
-  get: (key: string) => Promise<{ cid: string, content: Buffer }[] | { cid: string }[]>
-  delete: (key: string, cid: string) => Promise<string>
+const ClientKeyValueStorageFactory = {
+  fromLocalStorage: (): ClientKeyValueStorage => ({
+    get: (key: string) => Promise.resolve(localStorage.getItem(key)),
+    set: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value))
+  })
 }
 
-type URLSetup = { auth: string, get: string, put: string, delete: string }
+export default class {
+  private storage: ClientKeyValueStorage
+  private authManager: AuthenticationManager
 
-interface Signer {
-  identity: string
-  signJWT: (data: Object) => Promise<string>
-  decodeJWT: (data: string) => Promise<any>
-}
-
-type CentralizedIPFSPinnerClientConstructor = {
-  baseUrl: string,
-  urls?: URLSetup,
-  signer: Signer
-  secretBox: AbstractSecretBox
-  ipfsGet?: (cid: string) => Promise<Buffer>
-}
-
-type IPFSClientOptions = { ipfsDefault?: boolean, ipfsClientOptions?: { host: string, port: string, protocol: string } }
-
-const CentralizedIPFSPinnerClient = (function (
-  this: ICentralizedIPFSPinnerClient,
-  { baseUrl, urls, signer, secretBox, ipfsGet }: CentralizedIPFSPinnerClientConstructor
-) {
-  if ((!baseUrl && !urls) || (!!baseUrl && !!urls)) throw new Error('Invalid setup')
-
-  const _urls = urls || {
-    auth: baseUrl + '/auth',
-    get: baseUrl + '/get',
-    put: baseUrl + '/put',
-    delete: baseUrl + '/delete'
+  constructor (private config: Config) {
+    this.storage = config.storage || ClientKeyValueStorageFactory.fromLocalStorage()
+    this.authManager = authManagerFactory(config, this.storage)
   }
 
-  const login = () => axios.post(_urls.auth, { did: signer.identity })
-    .then(res => res.status === 200 && res.data)
-    .then(signer.decodeJWT)
-    .then(message => (message.credentials[0].credentialSubject as any).token)
+  get ({ did, key }: GetContentPayload): Promise<string[]> {
+    return axios.get(`${this.config.serviceUrl}/${did}/${key}`)
+      .then(res => res.status === 200 && res.data)
+      .then(({ content }) => content.length && content)
+  }
 
-  const loginAndSendClaimWithToken = (claims: any[], url: string) => login()
-    .then(token => signer.signJWT({
-      issuer: signer.identity,
-      claims: [{ claimType: 'token', claimValue: token }, ...claims]
-    }))
-    .then(jwt => axios.post(url, { jwt }))
-    .then(res => res.status === 200 && res.data)
+  create (payload: CreateContentPayload): Promise<CreateContentResponse> {
+    const { content, key } = payload
+    const { serviceUrl } = this.config
 
-  this.put = (key: string, content: string) => secretBox.encrypt(content).then(_content =>
-    loginAndSendClaimWithToken([
-      { claimType: 'key', claimValue: key },
-      { claimType: 'content', claimValue: _content }
-    ], _urls.put)
-  )
+    return this.getAccessToken()
+      .then(accessToken => axios.post(
+        `${serviceUrl}/${key}`,
+        { content },
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 201 && res.data)
+  }
 
-  this.get = (key: string) => loginAndSendClaimWithToken([
-    { claimType: 'key', claimValue: key }
-  ], _urls.get).then((cids: string[]) => new Promise(
-    resolve => ipfsGet ? Promise.all(cids.map(cid => ipfsGet(cid)
-      .then(cypher => secretBox.decrypt(cypher.toString('utf-8'))
-        .then(content => ({ cid, content }))
-      )))
-      .then(resolve) : resolve(cids.map(cid => ({ cid })))
-  ))
+  delete (payload: DeleteTokenPayload): Promise<boolean> {
+    const { key, id } = payload
+    const { serviceUrl } = this.config
+    const path = id ? `${key}/${id}` : key
 
-  this.delete = (key: string, cid: string) => loginAndSendClaimWithToken([
-    { claimType: 'key', claimValue: key },
-    { claimType: 'cid', claimValue: cid }
-  ], _urls.delete)
-} as any as {
-  fromAgent: (identity: string, agent: Agent, secretBox: AbstractSecretBox, baseUrl: string, options: IPFSClientOptions) => ICentralizedIPFSPinnerClient
-  new (params: CentralizedIPFSPinnerClientConstructor): ICentralizedIPFSPinnerClient
-})
+    return this.getAccessToken()
+      .then(accessToken => axios.delete(
+        `${serviceUrl}/${path}`,
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 200)
+  }
 
-CentralizedIPFSPinnerClient.fromAgent = function (identity: string, agent: Agent, secretBox: AbstractSecretBox, baseUrl: string, { ipfsDefault, ipfsClientOptions }: IPFSClientOptions) {
-  const dataVault = new CentralizedIPFSPinnerClient({
-    baseUrl,
-    signer: {
-      identity: identity,
-      signJWT: data => agent.handleAction({ type: 'sign.sdr.jwt', data }),
-      decodeJWT: raw => agent.handleMessage({ raw, save: false, metaData: [] })
-    },
-    secretBox,
-    ipfsGet: (ipfsDefault || !!ipfsClientOptions) ? ((cid: string) => RIFStorage(
-      Provider.IPFS, ipfsDefault ? { host: 'localhost', port: '8080', protocol: 'http' } : ipfsClientOptions
-    ).get(cid)) as (cid: string) => Promise<Buffer> : undefined
-  })
+  swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
+    const { key, content, id } = payload
+    const { serviceUrl } = this.config
 
-  return dataVault
+    const path = id ? `${key}/${id}` : key
+    return this.getAccessToken()
+      .then(accessToken => axios.put(
+        `${serviceUrl}/${path}`,
+        { content },
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 200 && res.data)
+  }
+
+  private async getAccessToken (): Promise<string> {
+    const accessToken = await this.storage.get(ACCESS_TOKEN_KEY)
+
+    if (!accessToken) return this.authManager.login().then(tokens => tokens.accessToken)
+
+    const { payload } = decodeJWT(accessToken)
+
+    if (payload.exp <= Math.floor(Date.now() / 1000)) {
+      return this.authManager.refreshAccessToken().then(tokens => tokens.accessToken)
+    }
+
+    return accessToken
+  }
 }
 
-export { CentralizedIPFSPinnerClient }
+export { ClientKeyValueStorage }

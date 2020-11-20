@@ -3,9 +3,9 @@ module.exports = {
   testEnvironment: 'node',
   reporters: ['default', 'jest-junit'],
   testResultsProcessor: 'jest-junit',
-  "globals": {
-    "ts-jest": {
-      "tsConfig": "./modules/tsconfig.settings.json"
+  globals: {
+    'ts-jest': {
+      tsConfig: './modules/tsconfig.settings.json'
     }
-  },
-};
+  }
+}
