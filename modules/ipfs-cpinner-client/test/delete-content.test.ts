@@ -18,7 +18,6 @@ describe('delete content', function (this: {
 }) {
   const dbName = 'delete.sqlite'
 
-
   const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
     .then(({ did, dataVaultClient }) => {
       this.did = did

@@ -1,7 +1,6 @@
 import { Connection, createConnection } from 'typeorm'
 import { rskDIDFromPrivateKey } from '@rsksmart/rif-id-ethr-did'
 import { mnemonicToSeed, seedToRSKHDKey, generateMnemonic } from '@rsksmart/rif-id-mnemonic'
-import { Signer, createJWT } from 'did-jwt'
 import { Entities, IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
 import fs from 'fs'
 import { Logger } from 'winston'
@@ -125,7 +124,7 @@ export const setupAuthManager = async (serviceUrl: string, serviceDid: string) =
   const storage = customStorageFactory()
 
   return {
-    authManager:  authManagerFactory(
+    authManager: authManagerFactory(
       { serviceUrl, did, rpcPersonalSign, serviceDid },
       storage
     ),
