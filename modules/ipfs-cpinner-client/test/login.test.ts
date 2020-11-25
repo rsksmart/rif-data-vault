@@ -1,6 +1,6 @@
-import { AuthenticationManager, ClientKeyValueStorage, Signer } from '../src/types'
+import { ClientKeyValueStorage } from '../src/types'
 import { decodeJWT } from 'did-jwt'
-import { deleteDatabase, startService, identityFactory, testTimestamp, customStorageFactory, resetDatabase } from './util'
+import { deleteDatabase, startService, testTimestamp, customStorageFactory, resetDatabase, setupAuthManager } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { ACCESS_TOKEN_KEY, NO_DID, NO_SIGNER, REFRESH_TOKEN_KEY } from '../src/constants'
@@ -19,18 +19,12 @@ describe('login', function (this: {
 }) {
   const dbName = 'login.sqlite'
 
-  const setupComplete = async (): Promise<AuthenticationManager> => {
-    const authManagerIdentity = await identityFactory()
-    this.did = authManagerIdentity.did
-    const rpcPersonalSign = authManagerIdentity.rpcPersonalSign
-
-    this.storage = customStorageFactory()
-
-    return authManagerFactory(
-      { serviceUrl: this.serviceUrl, did: this.did, rpcPersonalSign, serviceDid: this.serviceDid },
-      this.storage
-    )
-  }
+  const setupComplete = () => setupAuthManager(this.serviceUrl, this.serviceDid)
+    .then(({ authManager, did, storage }) => {
+      this.did = did
+      this.storage = storage
+      return authManager
+    })
 
   beforeAll(async () => {
     const { server, serviceUrl, dbConnection, serviceDid } = await startService(dbName, 4605)

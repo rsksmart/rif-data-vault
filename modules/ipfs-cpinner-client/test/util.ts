@@ -11,6 +11,8 @@ import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
 import { hashPersonalMessage, ecsign, toRpcSig } from 'ethereumjs-util'
 import { ClientKeyValueStorage } from '../src/types'
+import DataVaultWebClient from '../src'
+import authManagerFactory from '../src/auth-manager'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
@@ -21,16 +23,19 @@ export const identityFactory = async () => {
 
   const privateKey = hdKey.derive(0).privateKey.toString('hex')
 
-  return { did: rskDIDFromPrivateKey()(privateKey).did, rpcPersonalSign: (data: string) => {
-    const messageDigest = hashPersonalMessage(Buffer.from(data))
+  return {
+    did: rskDIDFromPrivateKey()(privateKey).did,
+    rpcPersonalSign: (data: string) => {
+      const messageDigest = hashPersonalMessage(Buffer.from(data))
 
-    const ecdsaSignature = ecsign(
-      messageDigest,
-      Buffer.from(privateKey, 'hex')
-    )
+      const ecdsaSignature = ecsign(
+        messageDigest,
+        Buffer.from(privateKey, 'hex')
+      )
 
-    return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
-  } }
+      return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
+    }
+  }
 }
 
 export const createSqliteConnection = (database: string) => createConnection({
@@ -102,5 +107,29 @@ export const customStorageFactory = (): ClientKeyValueStorage => {
     set: async (key: string, value: string) => {
       store[key] = value.toString()
     }
+  }
+}
+
+export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string): Promise<{ dataVaultClient: DataVaultWebClient, did: string }> => {
+  const { rpcPersonalSign, did } = await identityFactory()
+
+  return {
+    dataVaultClient: new DataVaultWebClient({ serviceUrl, did: did, rpcPersonalSign, serviceDid }),
+    did
+  }
+}
+
+export const setupAuthManager = async (serviceUrl: string, serviceDid: string) => {
+  const { rpcPersonalSign, did } = await identityFactory()
+
+  const storage = customStorageFactory()
+
+  return {
+    authManager:  authManagerFactory(
+      { serviceUrl, did, rpcPersonalSign, serviceDid },
+      storage
+    ),
+    did,
+    storage
   }
 }

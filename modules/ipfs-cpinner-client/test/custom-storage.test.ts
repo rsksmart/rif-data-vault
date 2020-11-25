@@ -3,7 +3,6 @@ import { Connection } from 'typeorm'
 import { Server } from 'http'
 import { customStorageFactory, deleteDatabase, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import MockDate from 'mockdate'
-import { Signer } from '../src/types'
 
 jest.setTimeout(12000)
 

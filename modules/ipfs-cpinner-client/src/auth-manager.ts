@@ -1,7 +1,6 @@
 import { NO_DID, NO_SIGNER, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, NO_SERVICE_DID } from './constants'
 import { ClientKeyValueStorage, LoginResponse, Config } from './types'
 import axios from 'axios'
-import { createJWT } from 'did-jwt'
 
 export default (config: Config, storage: ClientKeyValueStorage) => {
   const login = async (): Promise<LoginResponse> => {
