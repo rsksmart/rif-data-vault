@@ -22,9 +22,9 @@ describe('delete content', function (this: {
   const setup = async (): Promise<DataVaultWebClient> => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
-    const signer = clientIdentity.signer as Signer
+    const rpcPersonalSign = clientIdentity.rpcPersonalSign
 
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid })
+    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, rpcPersonalSign, serviceDid: this.serviceDid })
   }
 
   const setupAndAddFile = async (key: string, file: string): Promise<DataVaultWebClient> => {

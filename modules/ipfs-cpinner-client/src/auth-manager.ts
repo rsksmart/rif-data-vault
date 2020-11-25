@@ -5,9 +5,7 @@ import { createJWT } from 'did-jwt'
 
 export default (config: Config, storage: ClientKeyValueStorage) => {
   const login = async (): Promise<LoginResponse> => {
-    const { did, signer, serviceUrl } = config
-    if (!did) throw new Error(NO_DID)
-    if (!signer) throw new Error(NO_SIGNER)
+    const { serviceUrl } = config
 
     const tokens = await getChallenge()
       .then(signChallenge)
@@ -21,9 +19,7 @@ export default (config: Config, storage: ClientKeyValueStorage) => {
   }
 
   const refreshAccessToken = async (): Promise<LoginResponse> => {
-    const { did, signer, serviceUrl } = config
-    if (!did) throw new Error(NO_DID)
-    if (!signer) throw new Error(NO_SIGNER)
+    const { serviceUrl } = config
 
     const refreshToken = await storage.get(REFRESH_TOKEN_KEY)
 
@@ -46,32 +42,21 @@ export default (config: Config, storage: ClientKeyValueStorage) => {
 
   const getChallenge = async (): Promise<string> => {
     const { did, serviceUrl } = config
-    if (!did) throw new Error(NO_DID)
 
     return axios.get(`${serviceUrl}/request-auth/${did}`)
       .then(res => res.status === 200 && !!res.data && res.data.challenge)
-      .catch(console.log)
   }
 
-  const signChallenge = async (challenge: string): Promise<string> => {
-    const { did, signer, serviceUrl, serviceDid } = config
+  const signChallenge = (challenge: string) => {
+    const { did, rpcPersonalSign, serviceUrl, serviceDid } = config
 
     if (!did) throw new Error(NO_DID)
-    if (!signer) throw new Error(NO_SIGNER)
+    if (!rpcPersonalSign) throw new Error(NO_SIGNER)
     if (!serviceDid) throw new Error(NO_SERVICE_DID)
 
-    const now = Math.floor(Date.now() / 1000)
+    const message = `Login to ${serviceUrl}\nVerification code: ${challenge}`
 
-    const payload = {
-      challenge,
-      aud: serviceUrl,
-      sub: serviceDid,
-      exp: now + 120,
-      nbf: now,
-      iat: now
-    }
-
-    return createJWT(payload, { issuer: did, signer }, { typ: 'JWT', alg: 'ES256K' })
+    return rpcPersonalSign(message).then(sig => ({ did, sig }))
   }
 
   return { login, refreshAccessToken }

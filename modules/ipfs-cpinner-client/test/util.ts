@@ -9,22 +9,28 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
+import { hashPersonalMessage, ecsign, toRpcSig } from 'ethereumjs-util'
 import { ClientKeyValueStorage } from '../src/types'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
-export interface Identity {
-  did: string
-  signer: Signer
-}
-
-export const identityFactory = async (): Promise<Identity> => {
+export const identityFactory = async () => {
   const mnemonic = generateMnemonic(12)
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
   const privateKey = hdKey.derive(0).privateKey.toString('hex')
-  return rskDIDFromPrivateKey()(privateKey)
+
+  return { did: rskDIDFromPrivateKey()(privateKey).did, rpcPersonalSign: (data: string) => {
+    const messageDigest = hashPersonalMessage(Buffer.from(data))
+
+    const ecdsaSignature = ecsign(
+      messageDigest,
+      Buffer.from(privateKey, 'hex')
+    )
+
+    return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
+  } }
 }
 
 export const createSqliteConnection = (database: string) => createConnection({
@@ -56,7 +62,13 @@ export const startService = async (dbName: string, port?: number): Promise<{
   if (!port) port = 4600
   const serviceUrl = `http://localhost:${port}`
 
-  const serviceIdentity = await identityFactory()
+  const mnemonic = generateMnemonic(12)
+  const seed = await mnemonicToSeed(mnemonic)
+  const hdKey = seedToRSKHDKey(seed)
+
+  const privateKey = hdKey.derive(0).privateKey.toString('hex')
+
+  const serviceIdentity = rskDIDFromPrivateKey()(privateKey)
   const serviceDid = serviceIdentity.did
   const app = express()
   app.use(bodyParser.json())
@@ -77,26 +89,6 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const server = app.listen(port)
 
   return { server, ipfsPinnerProvider, serviceUrl, dbConnection, dbConnectionPromise, serviceDid }
-}
-
-export const challengeResponseFactory = async (
-  challenge: string,
-  issuer: Identity,
-  serviceUrl: string,
-  serviceDid: string
-): Promise<string> => {
-  const now = Math.floor(Date.now() / 1000)
-
-  const payload = {
-    challenge,
-    aud: serviceUrl,
-    sub: serviceDid,
-    exp: now + 120, // 2 mins validity
-    nbf: now,
-    iat: now
-  }
-
-  return createJWT(payload, { issuer: issuer.did, signer: issuer.signer }, { typ: 'JWT', alg: 'ES256K' })
 }
 
 export const testTimestamp = 1603300440000

@@ -22,12 +22,12 @@ describe('login', function (this: {
   const setupComplete = async (): Promise<AuthenticationManager> => {
     const authManagerIdentity = await identityFactory()
     this.did = authManagerIdentity.did
-    const signer = authManagerIdentity.signer as Signer
+    const rpcPersonalSign = authManagerIdentity.rpcPersonalSign
 
     this.storage = customStorageFactory()
 
     return authManagerFactory(
-      { serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid },
+      { serviceUrl: this.serviceUrl, did: this.did, rpcPersonalSign, serviceDid: this.serviceDid },
       this.storage
     )
   }

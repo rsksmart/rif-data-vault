@@ -19,9 +19,9 @@ export interface AuthenticationManager {
 }
 
 export type Config = {
-  serviceUrl: string,
-  serviceDid?: string,
+  serviceUrl: string
+  serviceDid?: string
   did?: string
-  signer?: Signer
+  rpcPersonalSign?: (data: string) => Promise<string>
   storage?: ClientKeyValueStorage
 }
