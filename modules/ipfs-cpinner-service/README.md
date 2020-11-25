@@ -68,10 +68,16 @@ DELETE /:key/:id -> { }
 
 ### Accessing content
 
+Get all keys of a given `did`
+
+```
+GET /keys/:did -> { keys: string[] }
+```
+
 Get all files of a given `did` and `key`
 
 ```
-GET /:did/:key -> { content[] } (get files)
+GET /:did/:key -> { content: string[] } (get files)
 ```
 
 ## Advanced usage

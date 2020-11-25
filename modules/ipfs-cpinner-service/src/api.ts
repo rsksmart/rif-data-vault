@@ -7,6 +7,16 @@ interface AuthenticatedRequest extends Request {
 }
 
 export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
+  app.get('/keys/:did', async (req, res) => {
+    const { did } = req.params
+
+    logger.info(`Retrieving keys from ${did}`)
+
+    const keys = await provider.getKeys(did)
+
+    res.status(200).json({ keys })
+  })
+
   app.get('/:did/:key', async (req, res) => {
     const { did, key } = req.params
 

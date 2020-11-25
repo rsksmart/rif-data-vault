@@ -48,8 +48,12 @@ describe('setup api with authentication', function (this: {
   const id = 'QmcPCC6iCzJMUQyby8eR4Csx6X7e7Xjfi4cmZnvDTVGZvd'
   const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
 
-  describe('GET /:key', () => {
+  describe('GET /:did/:key', () => {
     test('should respond 200 with no access token', () => request(this.app).get(`/${did}/${key}`).expect(200))
+  })
+
+  describe('GET /keys/:did', () => {
+    test('should respond 200 with no access token', () => request(this.app).get(`/keys/${did}`).expect(200))
   })
 
   describe('POST /:key', () => {
