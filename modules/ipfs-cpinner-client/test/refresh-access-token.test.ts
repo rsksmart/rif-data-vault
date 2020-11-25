@@ -1,6 +1,6 @@
-import { AuthenticationManager, ClientKeyValueStorage, Signer } from '../src/types'
+import { ClientKeyValueStorage } from '../src/types'
 import {
-  identityFactory, customStorageFactory, startService, deleteDatabase,
+  setupAuthManager, customStorageFactory, startService, deleteDatabase,
   testTimestamp, resetDatabase
 } from './util'
 import authManagerFactory from '../src/auth-manager'
@@ -19,16 +19,12 @@ describe('refresh access token', function (this: {
 }) {
   const dbName = 'refresh-at.sqlite'
 
-  const setupComplete = async (): Promise<AuthenticationManager> => {
-    const authManagerIdentity = await identityFactory()
-    this.did = authManagerIdentity.did
-    const signer = authManagerIdentity.signer as Signer
-    this.storage = customStorageFactory()
-    return authManagerFactory(
-      { serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid },
-      this.storage
-    )
-  }
+  const setupComplete = () => setupAuthManager(this.serviceUrl, this.serviceDid)
+    .then(({ authManager, did, storage }) => {
+      this.did = did
+      this.storage = storage
+      return authManager
+    })
 
   beforeAll(async () => {
     const { server, serviceUrl, dbConnection, serviceDid } = await startService(dbName, 4606)

@@ -3,8 +3,8 @@ import fs from 'fs'
 import { Entities } from '@rsksmart/ipfs-cpinner-provider'
 import { rskDIDFromPrivateKey } from '@rsksmart/rif-id-ethr-did'
 import { mnemonicToSeed, seedToRSKHDKey, generateMnemonic } from '@rsksmart/rif-id-mnemonic'
-import { createJWT, Signer } from 'did-jwt'
 import { Logger } from 'winston'
+import { toRpcSig, ecsign, hashPersonalMessage } from 'ethereumjs-util'
 
 export const createSqliteConnection = (database: string) => createConnection({
   type: 'sqlite',
@@ -28,36 +28,30 @@ export const getRandomString = (): string => Math.random().toString(36).substrin
 
 export const ipfsEndpoint = 'http://localhost:5001'
 
-export interface Identity {
-  did: string
-  signer: Signer
-}
-
-export const identityFactory = async (): Promise<Identity> => {
+export const identityFactory = async () => {
   const mnemonic = generateMnemonic(12)
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
   const privateKey = hdKey.derive(0).privateKey.toString('hex')
-  return rskDIDFromPrivateKey()(privateKey)
+  return { identity: rskDIDFromPrivateKey()(privateKey), privateKey }
 }
 
-export const challengeResponseFactory = async (
+export const challengeResponseFactory = (
   challenge: string,
-  issuer: Identity,
+  did: string,
+  issuerPrivateKey: string,
   serviceUrl: string
-): Promise<string> => {
-  const now = Math.floor(Date.now() / 1000)
+) => {
+  const message = `Login to ${serviceUrl}\nVerification code: ${challenge}`
+  const messageDigest = hashPersonalMessage(Buffer.from(message))
 
-  const payload = {
-    challenge,
-    aud: serviceUrl,
-    exp: now + 120, // 2 mins validity
-    nbf: now,
-    iat: now
-  }
+  const ecdsaSignature = ecsign(
+    messageDigest,
+    Buffer.from(issuerPrivateKey, 'hex')
+  )
 
-  return createJWT(payload, { issuer: issuer.did, signer: issuer.signer }, { typ: 'JWT', alg: 'ES256K' })
+  return { did, sig: toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s) }
 }
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger

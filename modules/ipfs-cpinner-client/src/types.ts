@@ -6,8 +6,6 @@ export type DeleteTokenPayload = { key: string, id?: string }
 export type SwapContentPayload = { key: string, content: string, id?: string }
 export type SwapContentResponse = { id: string }
 
-export type Signer = (data: string) => Promise<string>
-
 export interface ClientKeyValueStorage {
   get (key: string): Promise<string>
   set (key: string, value: string): Promise<void>
@@ -19,9 +17,9 @@ export interface AuthenticationManager {
 }
 
 export type Config = {
-  serviceUrl: string,
-  serviceDid?: string,
+  serviceUrl: string
+  serviceDid?: string
   did?: string
-  signer?: Signer
+  rpcPersonalSign?: (data: string) => Promise<string>
   storage?: ClientKeyValueStorage
 }

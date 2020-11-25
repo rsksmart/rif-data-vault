@@ -1,11 +1,10 @@
-import { startService, deleteDatabase, identityFactory, testTimestamp, resetDatabase } from './util'
+import { startService, deleteDatabase, setupDataVaultClient, testTimestamp, resetDatabase } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import DataVaultWebClient from '../src'
 import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
-import { Signer } from '../src/types'
 
 jest.setTimeout(10000)
 
@@ -19,13 +18,11 @@ describe('delete content', function (this: {
 }) {
   const dbName = 'delete.sqlite'
 
-  const setup = async (): Promise<DataVaultWebClient> => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    const signer = clientIdentity.signer as Signer
-
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid })
-  }
+  const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    .then(({ did, dataVaultClient }) => {
+      this.did = did
+      return dataVaultClient
+    })
 
   const setupAndAddFile = async (key: string, file: string): Promise<DataVaultWebClient> => {
     const client = await setup()

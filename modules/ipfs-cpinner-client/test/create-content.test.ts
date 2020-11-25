@@ -1,12 +1,10 @@
-import DataVaultWebClient from '../src'
 import ipfsHash from 'ipfs-only-hash'
 import { Connection } from 'typeorm'
 import { Server } from 'http'
-import { deleteDatabase, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
-import { Signer } from '../src/types'
+import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient } from './util'
 
 jest.setTimeout(12000)
 
@@ -20,13 +18,11 @@ describe('create content', function (this: {
 }) {
   const dbName = 'create.sqlite'
 
-  const setup = async (): Promise<DataVaultWebClient> => {
-    const clientIdentity = await identityFactory()
-    this.did = clientIdentity.did
-    const signer = clientIdentity.signer as Signer
-
-    return new DataVaultWebClient({ serviceUrl: this.serviceUrl, did: this.did, signer, serviceDid: this.serviceDid })
-  }
+  const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    .then(({ did, dataVaultClient }) => {
+      this.did = did
+      return dataVaultClient
+    })
 
   beforeAll(async () => {
     const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4601)

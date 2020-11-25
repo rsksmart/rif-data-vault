@@ -16,7 +16,7 @@ describe('setup api with authentication', function (this: {
   accessToken: string
 }) {
   beforeAll(async () => {
-    const serviceIdentity = await identityFactory()
+    const serviceIdentity = (await identityFactory()).identity
     const userIdentity = await identityFactory()
     this.app = express()
     this.app.use(bodyParser.json())
@@ -33,9 +33,9 @@ describe('setup api with authentication', function (this: {
     this.ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
     setupApi(this.app, this.ipfsPinnerProvider, this.config, mockedLogger)
 
-    const challengeResponse = await request(this.app).get(`/request-auth/${userIdentity.did}`).expect(200)
+    const challengeResponse = await request(this.app).get(`/request-auth/${userIdentity.identity.did}`).expect(200)
     const { challenge } = challengeResponse.body
-    const signed = await challengeResponseFactory(challenge, userIdentity, this.config.serviceUrl)
+    const signed = await challengeResponseFactory(challenge, userIdentity.identity.did, userIdentity.privateKey, this.config.serviceUrl)
 
     const { body } = await request(this.app).post('/auth').send({ response: signed }).expect(200)
     this.accessToken = body.accessToken

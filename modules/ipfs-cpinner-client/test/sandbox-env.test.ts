@@ -1,8 +1,10 @@
 import DataVaultWebClient from '../src'
 import { identityFactory } from './util'
-import { Signer } from '../src/types'
 import localStorageMockFactory from './localStorageMockFactory'
+
 jest.setTimeout(12000)
+
+// this are integration tests
 
 describe.skip('sandbox environment', function (this: {
   did: string
@@ -10,13 +12,13 @@ describe.skip('sandbox environment', function (this: {
   const setup = async (): Promise<DataVaultWebClient> => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
-    const signer = clientIdentity.signer as Signer
+    const rpcPersonalSign = clientIdentity.rpcPersonalSign
 
     // COMPLETE WITH YOUR SANDBOX ENVIRONMENT VALUES
     const serviceDid = ''
     const serviceUrl = ''
 
-    return new DataVaultWebClient({ serviceUrl, did: this.did, signer, serviceDid })
+    return new DataVaultWebClient({ serviceUrl, did: this.did, rpcPersonalSign, serviceDid })
   }
 
   beforeEach(() => { global.localStorage = localStorageMockFactory() })

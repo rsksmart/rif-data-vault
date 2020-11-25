@@ -31,8 +31,9 @@ const storage: ClientKeyValueStorage = myCustomStorage
 
 // the following fields are required just to perform write operations
 const serviceDid = 'did:ethr:rsk:0x123456789....abc'
-const did = 'did:ethr:rsk:0xabcdef....123'
-const signer = mySignerFunction
+const address = '0xabcdef....123' // user's address
+const did = `did:ethr:rsk:${address}`
+const signer = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] }) // this is an example with Metamask
 
 const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid, storage })
 ```
