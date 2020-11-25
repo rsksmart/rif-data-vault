@@ -188,4 +188,21 @@ describe('ipfs pinner provider', () => {
 
     expect(deleted).toBeTruthy()
   })
+
+  test('get all keys by did should return an empty array if no keys', async () => {
+    const keys = await centralizedPinnerProvider.getKeys(did)
+
+    expect(keys).toEqual([])
+  })
+
+  test('get all keys by did should return all the created keys', async () => {
+    const anotherKey = 'another key'
+
+    await centralizedPinnerProvider.create(did, key, content)
+    await centralizedPinnerProvider.create(did, anotherKey, content)
+
+    const keys = await centralizedPinnerProvider.getKeys(did)
+
+    expect(keys).toEqual([key, anotherKey])
+  })
 })

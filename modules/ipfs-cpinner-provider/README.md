@@ -53,9 +53,11 @@ const did = 'did:ethr:rsk:12345678'
 const key = 'the key'
 const content = 'the content'
 
-const cid: string = await ipfsPinnerProvider.put(did, key, content)
+const cid: string = await ipfsPinnerProvider.create(did, key, content)
 
 const cids: string[] = await ipfsPinnerProvider.get(did, key)
+
+const keys: string[] = await ipfsPinnerProvider.getKeys(did)
 
 const newCid: string = await ipfsPinnerProvider.swap(did, key, 'the new content')
 
@@ -66,7 +68,7 @@ const deleted: boolean = await ipfsPinnerProvider.delete(did, key)
 const deleted: boolean = await ipfsPinnerProvider.delete(did, key, cid) // cid can be specified if there is more than one content associated to the given did and key
 ```
 
-See our [documentation](https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-provider) for advanced usage.
+See our [documentation](https://developers.rsk.co/rif/identity/) for advanced usage.
 
 ## Test
 

@@ -22,6 +22,13 @@ export default class implements MetadataManager {
     }).then((entries: { cid: string }[]) => entries.map(entry => entry.cid))
   }
 
+  getKeys (did: DID): Promise<Key[]> {
+    return this.repository.find({
+      where: { did },
+      select: ['key']
+    }).then((entries: { key: string }[]) => [...new Set(entries.map(entry => entry.key))])
+  }
+
   async delete (did: string, key: Key, cid: CID): Promise<boolean> {
     const file = await this.repository.findOne({ where: { did, key, cid } })
 

@@ -17,6 +17,16 @@ describe('ipfs pinner provider', () => {
 
   afterAll(() => fs.unlinkSync(database))
 
+  test('get keys', async () => {
+    const key = getRandomString()
+    const content = getRandomString()
+
+    await centralizedPinnerProvider.create(did, key, content)
+
+    const retrievedContent = await centralizedPinnerProvider.getKeys(did)
+    expect(retrievedContent).toEqual([key])
+  })
+
   test('create content', async () => {
     const key = getRandomString()
     const content = getRandomString()

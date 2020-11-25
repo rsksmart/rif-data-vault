@@ -77,4 +77,62 @@ describe('metadata manager', () => {
 
     expect(result).toBeFalsy()
   })
+
+  test('gets empty array if no keys', async () => {
+    const did = 'did:ethr:rsk:edcba'
+
+    const result = await metadataManager.getKeys(did)
+
+    expect(result).toEqual([])
+  })
+
+  test('gets array with just created key', async () => {
+    const did = 'did:ethr:rsk:edcba'
+    const key = 'one key'
+    const cid = 'one cid'
+
+    await metadataManager.save(did, key, cid)
+    const result = await metadataManager.getKeys(did)
+
+    expect(result).toEqual([key])
+  })
+
+  test('gets array with more than one key', async () => {
+    const did = 'did:ethr:rsk:edcba'
+    const key = 'one key'
+    const anotherKey = 'another key'
+    const cid = 'one cid'
+
+    await metadataManager.save(did, key, cid)
+    await metadataManager.save(did, anotherKey, cid)
+    const result = await metadataManager.getKeys(did)
+
+    expect(result).toEqual([key, anotherKey])
+  })
+
+  test('gets array with non repeated keys', async () => {
+    const did = 'did:ethr:rsk:edcba'
+    const key = 'one key'
+    const cid = 'one cid'
+
+    await metadataManager.save(did, key, cid)
+    await metadataManager.save(did, key, cid)
+    const result = await metadataManager.getKeys(did)
+
+    expect(result).toEqual([key])
+  })
+
+  test('get keys should not return a deleted key', async () => {
+    const did = 'did:ethr:rsk:edcba'
+    const key = 'one key'
+    const cid = 'one cid'
+
+    await metadataManager.save(did, key, cid)
+    const before = await metadataManager.getKeys(did)
+    expect(before).toEqual([key])
+
+    await metadataManager.delete(did, key, cid)
+    const after = await metadataManager.getKeys(did)
+    expect(after).toEqual([])
+  })
 })
