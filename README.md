@@ -15,7 +15,11 @@
   <a href="https://lgtm.com/projects/g/rsksmart/rif-data-vault/context:javascript">
     <img src="https://img.shields.io/lgtm/grade/javascript/github/rsksmart/rif-data-vault">
   </a>
+  <a href="https://circleci.com/gh/rsksmart/rif-data-vault">
+    <img src="https://circleci.com/gh/rsksmart/rif-data-vault.svg?style=svg">
+  </a>
 </p>
+
 
 ## Setup
 
