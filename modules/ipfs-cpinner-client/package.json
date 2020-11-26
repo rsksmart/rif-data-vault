@@ -1,5 +1,5 @@
 {
-  "name": "@rsksmart/rif-cpinner-client",
+  "name": "@rsksmart/ipfs-cpinner-client",
   "version": "0.1.0",
   "description": "RIF Data Vault - IPFS centralized pinner client",
   "main": "lib/index.js",
