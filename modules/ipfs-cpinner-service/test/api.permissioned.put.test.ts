@@ -24,7 +24,7 @@ describe('PUT', function (this: {
   const putAndGetResponseBody = async (key: string, content: string, id?: string) => {
     await setup()
 
-    const { body } = await request(this.app).put(`/${key}${id ? `/${id}` : ''}`).send({ content }).expect(200)
+    const { body } = await request(this.app).put(`/content/${key}${id ? `/${id}` : ''}`).send({ content }).expect(200)
 
     return body
   }
@@ -81,7 +81,7 @@ describe('PUT', function (this: {
 
         // update it
         const newContent = 'This is the new content'
-        const { body } = await request(this.app).put(`/${key}`).send({ content: newContent }).expect(200)
+        const { body } = await request(this.app).put(`/content/${key}`).send({ content: newContent }).expect(200)
 
         expect(body.id).not.toEqual(firstCid)
 
@@ -106,7 +106,7 @@ describe('PUT', function (this: {
 
         // update it
         const newContent = 'This is the new content'
-        const { body } = await request(this.app).put(`/${key}`).send({ content: newContent }).expect(200)
+        const { body } = await request(this.app).put(`/content/${key}`).send({ content: newContent }).expect(200)
 
         expect(body.id).not.toEqual(firstCid)
         expect(body.id).not.toEqual(secondCid)
@@ -157,7 +157,7 @@ describe('PUT', function (this: {
 
         // update it
         const newContent = 'This is the new content with id'
-        const { body } = await request(this.app).put(`/${key}/${firstCid}`).send({ content: newContent }).expect(200)
+        const { body } = await request(this.app).put(`/content/${key}/${firstCid}`).send({ content: newContent }).expect(200)
 
         expect(body.id).not.toEqual(firstCid)
 
@@ -182,7 +182,7 @@ describe('PUT', function (this: {
 
         // update just the second cid
         const newContent = 'This is the new content that will update the second one'
-        const { body } = await request(this.app).put(`/${key}/${secondCid}`).send({ content: newContent }).expect(200)
+        const { body } = await request(this.app).put(`/content/${key}/${secondCid}`).send({ content: newContent }).expect(200)
 
         expect(body.id).not.toEqual(firstCid)
         expect(body.id).not.toEqual(secondCid)

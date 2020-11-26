@@ -21,7 +21,7 @@ async function testContentIsAccessible (
   await arrange(ipfsPinnerProvider)
 
   // act
-  const { body } = await request(app).get(`/${did}/${key}`).expect(200)
+  const { body } = await request(app).get(`/content/${did}/${key}`).expect(200)
 
   // assert
   expect(body.content).toEqual(expectedContent)

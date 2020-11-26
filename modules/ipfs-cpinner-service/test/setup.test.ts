@@ -13,7 +13,8 @@ describe('setup api with authentication', function (this: {
   ipfsPinnerProvider: IpfsPinnerProvider,
   app: Express,
   config: AuthConfig,
-  accessToken: string
+  accessToken: string,
+  clientDid: string
 }) {
   beforeAll(async () => {
     const serviceIdentity = (await identityFactory()).identity
@@ -31,11 +32,12 @@ describe('setup api with authentication', function (this: {
     this.dbName = 'setup-1.dv-service.sqlite'
     this.dbConnection = await createSqliteConnection(this.dbName)
     this.ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
+    this.clientDid = userIdentity.identity.did
     setupApi(this.app, this.ipfsPinnerProvider, this.config, mockedLogger)
 
-    const challengeResponse = await request(this.app).get(`/request-auth/${userIdentity.identity.did}`).expect(200)
+    const challengeResponse = await request(this.app).get(`/request-auth/${this.clientDid}`).expect(200)
     const { challenge } = challengeResponse.body
-    const signed = await challengeResponseFactory(challenge, userIdentity.identity.did, userIdentity.privateKey, this.config.serviceUrl)
+    const signed = await challengeResponseFactory(challenge, this.clientDid, userIdentity.privateKey, this.config.serviceUrl)
 
     const { body } = await request(this.app).post('/auth').send({ response: signed }).expect(200)
     this.accessToken = body.accessToken
@@ -46,32 +48,40 @@ describe('setup api with authentication', function (this: {
   const key = 'ThisIsTheKey'
   const content = 'This is a content'
   const id = 'QmcPCC6iCzJMUQyby8eR4Csx6X7e7Xjfi4cmZnvDTVGZvd'
-  const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
 
-  describe('GET /:did/:key', () => {
-    test('should respond 200 with no access token', () => request(this.app).get(`/${did}/${key}`).expect(200))
-  })
-
-  describe('GET /keys/:did', () => {
-    test('should respond 200 with no access token', () => request(this.app).get(`/keys/${did}`).expect(200))
+  describe('GET /content/:did/:key', () => {
+    test('should respond 200 with no access token', () => request(this.app).get(`/content/${this.clientDid}/${key}`).expect(200))
   })
 
   describe('POST /:key', () => {
-    test('should respond 401 without access token', () => request(this.app).post(`/${key}`).send({ content }).expect(401))
+    test('should respond 401 without access token', () => request(this.app).post(`/content/${key}`).send({ content }).expect(401))
 
     test('should respond 201 with access token', () => request(this.app)
-      .post(`/${key}`)
+      .post(`/content/${key}`)
       .send({ content })
       .set('Authorization', `DIDAuth ${this.accessToken}`)
       .expect(201)
     )
   })
 
-  describe('PUT /:key', () => {
-    test('should respond 401 without access token', () => request(this.app).put(`/${key}`).send({ content }).expect(401))
+  describe('GET /keys/:did', () => {
+    test('should respond 401 with no access token', () => request(this.app).get(`/keys/${this.clientDid}`).expect(401))
 
     test('should respond 200 with access token', () => request(this.app)
-      .put(`/${key}`)
+      .get(`/keys/${this.clientDid}`)
+      .set('Authorization', `DIDAuth ${this.accessToken}`)
+      .expect(200)
+      .then(response => {
+        const body = response.body
+        expect(body.keys).toEqual([key])
+      }))
+  })
+
+  describe('PUT /:key', () => {
+    test('should respond 401 without access token', () => request(this.app).put(`/content/${key}`).send({ content }).expect(401))
+
+    test('should respond 200 with access token', () => request(this.app)
+      .put(`/content/${key}`)
       .send({ content })
       .set('Authorization', `DIDAuth ${this.accessToken}`)
       .expect(200)
@@ -79,10 +89,10 @@ describe('setup api with authentication', function (this: {
   })
 
   describe('PUT /:key/:id', () => {
-    test('should respond 401 without access token', () => request(this.app).put(`/${key}/${id}`).send({ content }).expect(401))
+    test('should respond 401 without access token', () => request(this.app).put(`/content/${key}/${id}`).send({ content }).expect(401))
 
     test('should respond 200 with access token', () => request(this.app)
-      .put(`/${key}/${id}`)
+      .put(`/content/${key}/${id}`)
       .send({ content })
       .set('Authorization', `DIDAuth ${this.accessToken}`)
       .expect(200)
@@ -90,10 +100,10 @@ describe('setup api with authentication', function (this: {
   })
 
   describe('DELETE /:key', () => {
-    test('should respond 401 without access token', () => request(this.app).delete(`/${key}`).send({ content }).expect(401))
+    test('should respond 401 without access token', () => request(this.app).delete(`/content/${key}`).send({ content }).expect(401))
 
     test('should respond 200 with access token', () => request(this.app)
-      .delete(`/${key}`)
+      .delete(`/content/${key}`)
       .send({ content })
       .set('Authorization', `DIDAuth ${this.accessToken}`)
       .expect(200)
@@ -101,10 +111,10 @@ describe('setup api with authentication', function (this: {
   })
 
   describe('DELETE /:key/:id', () => {
-    test('should respond 401 without access token', () => request(this.app).delete(`/${key}/${id}`).send({ content }).expect(401))
+    test('should respond 401 without access token', () => request(this.app).delete(`/content/${key}/${id}`).send({ content }).expect(401))
 
     test('should respond 200 with access token', () => request(this.app)
-      .delete(`/${key}/${id}`)
+      .delete(`/content/${key}/${id}`)
       .send({ content })
       .set('Authorization', `DIDAuth ${this.accessToken}`)
       .expect(200)

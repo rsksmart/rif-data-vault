@@ -39,36 +39,36 @@ The API is divided in two. Content modifications need [authenticated requests us
 Add files given a file `key`
 
 ```
-POST /:key { body: content } -> { id }
+POST /content/:key { body: content } -> { id }
 ```
 
 Update files of a given `key`
 
 ```
-PUT /:key/ { content } -> { id }
+PUT /content/:key/ { content } -> { id }
 ```
 
 Update a specific file of a given `key`
 
 ```
-PUT /:key/:id { content } -> { id }
+PUT /content/:key/:id { content } -> { id }
 ```
 
 Delete all files of a given `key`
 
 ```
-DELETE /:key -> { }
+DELETE /content/:key -> { }
 ```
 
 Delete a specific file of a given `key`
 
 ```
-DELETE /:key/:id -> { }
+DELETE /content/:key/:id -> { }
 ```
 
 ### Accessing content
 
-Get all keys of a given `did`
+Get all keys of a given `did` (needs authentication)
 
 ```
 GET /keys/:did -> { keys: string[] }
@@ -77,7 +77,7 @@ GET /keys/:did -> { keys: string[] }
 Get all files of a given `did` and `key`
 
 ```
-GET /:did/:key -> { content: string[] } (get files)
+GET /content/:did/:key -> { content: string[] } (get files)
 ```
 
 ## Advanced usage

@@ -1,5 +1,5 @@
 import express, { Express } from 'express'
-import { setupPublicApi } from '../src/api'
+import { setupPermissionedApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
 import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
@@ -18,7 +18,7 @@ describe('GET /keys', function (this: {
 
     this.dbConnection = await createSqliteConnection(this.database)
     const ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
-    setupPublicApi(this.app, ipfsPinnerProvider, mockedLogger)
+    setupPermissionedApi(this.app, ipfsPinnerProvider, mockedLogger)
 
     const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
 
@@ -32,7 +32,7 @@ describe('GET /keys', function (this: {
 
     this.dbConnection = await createSqliteConnection(this.database)
     const ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
-    setupPublicApi(this.app, ipfsPinnerProvider, mockedLogger)
+    setupPermissionedApi(this.app, ipfsPinnerProvider, mockedLogger)
 
     const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
     const key = 'ExistingKey'
