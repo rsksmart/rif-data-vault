@@ -50,6 +50,16 @@ const key = 'EmailCredential'
 const credentials = await client.get({ did, key })
 ```
 
+### Get keys
+
+```typescript
+import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
+
+const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid })
+
+const keys = await client.getKeys({ did })
+```
+
 ### Create
 
 ```typescript

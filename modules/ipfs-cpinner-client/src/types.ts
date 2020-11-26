@@ -1,3 +1,4 @@
+export type GetKeysPayload = { did: string }
 export type GetContentPayload = { did: string, key: string }
 export type CreateContentPayload = { key: string, content: string }
 export type CreateContentResponse = { id: string }

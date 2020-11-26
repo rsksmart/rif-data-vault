@@ -26,6 +26,10 @@ export default class IpfsPinnerProvider {
     return Promise.all(cids.map(cid => this.ipfsClient.get(cid))).then(arrays => Array.prototype.concat.apply([], arrays))
   }
 
+  async getKeys (did: DID): Promise<Key[]> {
+    return this.metadataManager.getKeys(did)
+  }
+
   async delete (did: DID, key: Key, cid?: CID): Promise<boolean> {
     if (cid) return this.deleteByCid(did, key, cid)
 

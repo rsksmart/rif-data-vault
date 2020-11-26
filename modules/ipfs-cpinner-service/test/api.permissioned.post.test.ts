@@ -24,7 +24,7 @@ describe('POST', function (this: {
   const postContentAndGetResponseBody = async (key: string, content: string) => {
     await setup()
 
-    const { body } = await request(this.app).post(`/${key}`).send({ content }).expect(201)
+    const { body } = await request(this.app).post(`/content/${key}`).send({ content }).expect(201)
 
     return body
   }
@@ -70,7 +70,6 @@ describe('POST', function (this: {
 
   describe('border', () => {
     test('should save more than one content per key', async () => {
-      // this.app.use(this.middleware(this.did))
       this.dbName = 'post-4.ipfs-dv-service.sqlite'
       await setup()
 
@@ -78,8 +77,8 @@ describe('POST', function (this: {
       const content1 = 'This is a content'
       const content2 = 'This is another content for the same key'
 
-      await request(this.app).post(`/${key}`).send({ content: content1 }).expect(201)
-      await request(this.app).post(`/${key}`).send({ content: content2 }).expect(201)
+      await request(this.app).post(`/content/${key}`).send({ content: content1 }).expect(201)
+      await request(this.app).post(`/content/${key}`).send({ content: content2 }).expect(201)
 
       const actualContent = await this.provider.get(this.did, key)
       expect(actualContent).toEqual([content1, content2])
@@ -93,12 +92,12 @@ describe('POST', function (this: {
       const content1 = 'This is a content'
       const content2 = 'This is another content'
 
-      await request(this.app).post(`/${key}`).send({ content: content1 }).expect(201)
+      await request(this.app).post(`/content/${key}`).send({ content: content1 }).expect(201)
 
       const anotherDid = 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79'
       const firstDid = this.did
       this.did = anotherDid
-      await request(this.app).post(`/${key}`).send({ content: content2 }).expect(201)
+      await request(this.app).post(`/content/${key}`).send({ content: content2 }).expect(201)
 
       const actualContentForDid1 = await this.provider.get(firstDid, key)
       expect(actualContentForDid1).toEqual([content1])
@@ -118,14 +117,14 @@ describe('POST', function (this: {
       const content2 = 'This is another content'
       const content3 = 'This is another content for the third key'
 
-      await request(this.app).post(`/${key1}`).send({ content: content1 }).expect(201)
-      await request(this.app).post(`/${key2}`).send({ content: content2 }).expect(201)
+      await request(this.app).post(`/content/${key1}`).send({ content: content1 }).expect(201)
+      await request(this.app).post(`/content/${key2}`).send({ content: content2 }).expect(201)
 
       const anotherDid = 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79'
       const firstDid = this.did
       this.did = anotherDid
-      await request(this.app).post(`/${key2}`).send({ content: content2 }).expect(201)
-      await request(this.app).post(`/${key3}`).send({ content: content3 }).expect(201)
+      await request(this.app).post(`/content/${key2}`).send({ content: content2 }).expect(201)
+      await request(this.app).post(`/content/${key3}`).send({ content: content3 }).expect(201)
 
       // did 1
       let actualContent = await this.provider.get(firstDid, key1)

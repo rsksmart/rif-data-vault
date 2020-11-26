@@ -41,7 +41,7 @@ describe('PUT', function (this: {
         await setup()
 
         const key = 'AKey'
-        const { body } = await request(this.app).delete(`/${key}`).expect(200)
+        const { body } = await request(this.app).delete(`/content/${key}`).expect(200)
 
         expect(body).toMatchObject({})
       })
@@ -54,7 +54,7 @@ describe('PUT', function (this: {
         const content = 'The content'
         await this.provider.create(this.did, key, content)
 
-        await request(this.app).delete(`/${key}`).expect(200)
+        await request(this.app).delete(`/content/${key}`).expect(200)
 
         const retrievedContent = await this.provider.get(this.did, key)
         expect(retrievedContent).toEqual([])
@@ -72,7 +72,7 @@ describe('PUT', function (this: {
         await this.provider.create(this.did, key, content1)
         await this.provider.create(this.did, key, content2)
 
-        await request(this.app).delete(`/${key}`).expect(200)
+        await request(this.app).delete(`/content/${key}`).expect(200)
 
         const retrievedContent = await this.provider.get(this.did, key)
         expect(retrievedContent).toEqual([])
@@ -88,7 +88,7 @@ describe('PUT', function (this: {
 
         const key = 'AKey'
         const id = 'AnId'
-        const { body } = await request(this.app).delete(`/${key}/${id}`).expect(200)
+        const { body } = await request(this.app).delete(`/content/${key}/${id}`).expect(200)
 
         expect(body).toMatchObject({})
       })
@@ -101,7 +101,7 @@ describe('PUT', function (this: {
         const content = 'The content'
         const id = await this.provider.create(this.did, key, content)
 
-        await request(this.app).delete(`/${key}/${id}`).expect(200)
+        await request(this.app).delete(`/content/${key}/${id}`).expect(200)
 
         const retrievedContent = await this.provider.get(this.did, key)
         expect(retrievedContent).toEqual([])
@@ -119,7 +119,7 @@ describe('PUT', function (this: {
         await this.provider.create(this.did, key, content1)
         const idToDelete = await this.provider.create(this.did, key, content2)
 
-        await request(this.app).delete(`/${key}/${idToDelete}`).expect(200)
+        await request(this.app).delete(`/content/${key}/${idToDelete}`).expect(200)
 
         const retrievedContent = await this.provider.get(this.did, key)
         expect(retrievedContent).toEqual([content1])

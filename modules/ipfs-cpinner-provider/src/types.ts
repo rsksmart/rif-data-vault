@@ -7,6 +7,7 @@ export interface MetadataManager {
   save(did: DID, key: Key, id: CID): Promise<boolean>
   find(did: DID, key: Key): Promise<CID[]>
   delete(did: DID, key: Key, id: CID): Promise<boolean>
+  getKeys (did: DID): Promise<Key[]>
 }
 
 export interface IpfsClient {

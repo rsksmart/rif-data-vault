@@ -7,7 +7,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
-  app.get('/:did/:key', async (req, res) => {
+  app.get('/content/:did/:key', async (req, res) => {
     const { did, key } = req.params
 
     logger.info(`Retrieving content from ${did}. Key: ${key}`)
@@ -19,7 +19,17 @@ export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logg
 }
 
 export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
-  app.post('/:key', async (req: AuthenticatedRequest, res) => {
+  app.get('/keys/:did', async (req, res) => {
+    const { did } = req.params
+
+    logger.info(`Retrieving keys from ${did}`)
+
+    const keys = await provider.getKeys(did)
+
+    res.status(200).json({ keys })
+  })
+
+  app.post('/content/:key', async (req: AuthenticatedRequest, res) => {
     const { did } = req.user
     const { key } = req.params
     const { content } = req.body
@@ -31,7 +41,7 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
     res.status(201).json({ id })
   })
 
-  app.put('/:key', async (req: AuthenticatedRequest, res) => {
+  app.put('/content/:key', async (req: AuthenticatedRequest, res) => {
     const { did } = req.user
     const { key } = req.params
     const { content } = req.body
@@ -43,7 +53,7 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
     res.status(200).send({ id })
   })
 
-  app.put('/:key/:id', async (req: AuthenticatedRequest, res) => {
+  app.put('/content/:key/:id', async (req: AuthenticatedRequest, res) => {
     const { did } = req.user
     const { key, id } = req.params
     const { content } = req.body
@@ -55,7 +65,7 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
     res.status(200).send({ id: newId })
   })
 
-  app.delete('/:key', async (req: AuthenticatedRequest, res) => {
+  app.delete('/content/:key', async (req: AuthenticatedRequest, res) => {
     const { did } = req.user
     const { key } = req.params
 
@@ -66,7 +76,7 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
     res.status(200).send()
   })
 
-  app.delete('/:key/:id', async (req: AuthenticatedRequest, res) => {
+  app.delete('/content/:key/:id', async (req: AuthenticatedRequest, res) => {
     const { did } = req.user
     const { key, id } = req.params
 

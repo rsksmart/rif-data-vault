@@ -6,7 +6,7 @@ import {
   AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse
+  SwapContentPayload, SwapContentResponse, GetKeysPayload
 } from './types'
 
 const ClientKeyValueStorageFactory = {
@@ -26,9 +26,20 @@ export default class {
   }
 
   get ({ did, key }: GetContentPayload): Promise<string[]> {
-    return axios.get(`${this.config.serviceUrl}/${did}/${key}`)
+    return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
       .then(({ content }) => content.length && content)
+  }
+
+  getKeys ({ did }: GetKeysPayload): Promise<string[]> {
+    const { serviceUrl } = this.config
+
+    return this.getAccessToken()
+      .then(accessToken => axios.get(
+        `${serviceUrl}/keys/${did}`,
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 200 && !!res.data && res.data.keys)
   }
 
   create (payload: CreateContentPayload): Promise<CreateContentResponse> {
@@ -37,7 +48,7 @@ export default class {
 
     return this.getAccessToken()
       .then(accessToken => axios.post(
-        `${serviceUrl}/${key}`,
+        `${serviceUrl}/content/${key}`,
         { content },
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
@@ -51,7 +62,7 @@ export default class {
 
     return this.getAccessToken()
       .then(accessToken => axios.delete(
-        `${serviceUrl}/${path}`,
+        `${serviceUrl}/content/${path}`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200)
@@ -64,7 +75,7 @@ export default class {
     const path = id ? `${key}/${id}` : key
     return this.getAccessToken()
       .then(accessToken => axios.put(
-        `${serviceUrl}/${path}`,
+        `${serviceUrl}/content/${path}`,
         { content },
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
