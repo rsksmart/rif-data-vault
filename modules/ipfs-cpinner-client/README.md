@@ -33,9 +33,9 @@ const storage: ClientKeyValueStorage = myCustomStorage
 const serviceDid = 'did:ethr:rsk:0x123456789....abc'
 const address = '0xabcdef....123' // user's address
 const did = `did:ethr:rsk:${address}`
-const signer = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] }) // this is an example with Metamask
+const rpcPersonalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] }) // this is an example with Metamask
 
-const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid, storage })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, storage })
 ```
 
 ### Get
@@ -55,9 +55,9 @@ const credentials = await client.get({ did, key })
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
 
-const keys = await client.getKeys({ did })
+const keys = await client.getKeys()
 ```
 
 ### Create
@@ -65,7 +65,7 @@ const keys = await client.getKeys({ did })
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
 
 const key = 'MyKey'
 const content = 'this is my content'
@@ -78,7 +78,7 @@ const id = await client.create({ key, content })
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
 
 const key = 'MyKey'
 const content = 'this is my content'
@@ -91,7 +91,7 @@ const id = await client.swap({ key, content })
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, signer, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
 
 const key = 'MyKey'
 
