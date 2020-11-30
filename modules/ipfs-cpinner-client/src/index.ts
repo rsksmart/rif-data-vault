@@ -28,7 +28,6 @@ export default class {
   get ({ did, key }: GetContentPayload): Promise<string[]> {
     return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
-      .then(({ content }) => content.length && content)
   }
 
   getKeys (): Promise<string[]> {

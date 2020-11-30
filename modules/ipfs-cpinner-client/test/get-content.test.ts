@@ -12,12 +12,12 @@ describe('get', function (this: {
 }) {
   const dbName = 'get.sqlite'
 
-  const setupAndAddFile = async (did: string, key: string, file: string): Promise<DataVaultWebClient> => {
+  const setupAndAddFile = async (did: string, key: string, file: string): Promise<{ client: DataVaultWebClient, id: string }> => {
     const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
-    await this.ipfsPinnerProvider.create(did, key, file)
+    const id = await this.ipfsPinnerProvider.create(did, key, file)
 
-    return client
+    return { client, id }
   }
 
   beforeAll(async () => {
@@ -63,10 +63,10 @@ describe('get', function (this: {
     const file = 'this is something to be saved'
     const did = 'did:ethr:rsk:0x123456abcdef'
 
-    const client = await setupAndAddFile(did, key, file)
+    const { client, id } = await setupAndAddFile(did, key, file)
 
     const content = await client.get({ did, key })
-    expect(content).toEqual([file])
+    expect(content).toEqual([{ id, content: file }])
   })
 
   test('should retrieve multiple content associated to one key', async () => {
@@ -75,20 +75,23 @@ describe('get', function (this: {
     const file2 = 'this is content 2'
     const did = 'did:ethr:rsk:0x123456abcdef'
 
-    const client = await setupAndAddFile(did, key, file1)
-    await this.ipfsPinnerProvider.create(did, key, file2)
+    const { client, id } = await setupAndAddFile(did, key, file1)
+    const id2 = await this.ipfsPinnerProvider.create(did, key, file2)
 
     const content = await client.get({ did, key })
-    expect(content).toEqual([file1, file2])
+    expect(content).toEqual([
+      { id, content: file1 },
+      { id: id2, content: file2 }
+    ])
   })
 
-  test('should return undefined if the key has not content associated', async () => {
+  test('should return an empty array if the key has not content associated', async () => {
     const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
 
     const key = 'DoNotExist'
     const did = 'did:ethr:rsk:0x123456abcdef'
 
     const content = await client.get({ did, key })
-    expect(content).toBeFalsy()
+    expect(content).toEqual([])
   })
 })
