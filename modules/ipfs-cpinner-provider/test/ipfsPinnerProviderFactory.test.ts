@@ -42,40 +42,40 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
 
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
   })
 
   test('update content', async () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
 
     const anotherContent = 'another'
-    await centralizedPinnerProvider.update(did, key, anotherContent)
+    const newCid = await centralizedPinnerProvider.update(did, key, anotherContent)
 
     // should get proper content
     const retrievedNewContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedNewContent).toEqual([anotherContent])
+    expect(retrievedNewContent).toEqual([{ id: newCid, content: anotherContent }])
   })
 
   test('delete content', async () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
 
     const deleted = await centralizedPinnerProvider.delete(did, key)
 

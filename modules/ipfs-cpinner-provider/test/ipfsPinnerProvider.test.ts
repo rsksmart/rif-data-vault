@@ -49,22 +49,25 @@ describe('ipfs pinner provider', () => {
   })
 
   test('get one content', async () => {
-    await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
 
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
   })
 
   test('get two contents', async () => {
     const anotherContent = 'another content'
 
-    await centralizedPinnerProvider.create(did, key, content)
-    await centralizedPinnerProvider.create(did, key, anotherContent)
+    const id1 = await centralizedPinnerProvider.create(did, key, content)
+    const id2 = await centralizedPinnerProvider.create(did, key, anotherContent)
 
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
 
-    expect(retrievedContent).toEqual([content, anotherContent])
+    expect(retrievedContent).toEqual([
+      { id: id1, content },
+      { id: id2, content: anotherContent }
+    ])
   })
 
   test('get non existent content', async () => {
@@ -80,81 +83,90 @@ describe('ipfs pinner provider', () => {
   })
 
   test('update content without specifying cid', async () => {
-    await centralizedPinnerProvider.create(did, key, content)
+    const firstCid = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id: firstCid, content }])
 
     const newContent = 'the new one'
-    await centralizedPinnerProvider.update(did, key, newContent)
+    const id = await centralizedPinnerProvider.update(did, key, newContent)
 
     // should get new content
     retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([newContent])
+    expect(retrievedContent).toEqual([{ id, content: newContent }])
   })
 
   test('update unexisting content should add the new one', async () => {
-    await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
 
     const newContent = 'new content'
-    await centralizedPinnerProvider.update(did, 'no exists', newContent)
+    const newId = await centralizedPinnerProvider.update(did, 'no exists', newContent)
 
     // should get new content and also old one, because was not deleted
     retrievedContent = await centralizedPinnerProvider.get(did, 'no exists')
-    expect(retrievedContent).toEqual([newContent])
+    expect(retrievedContent).toEqual([{ id: newId, content: newContent }])
 
     retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
   })
 
   test('update unexisting content specifyng cid should add the new one', async () => {
-    const cid = await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
 
     const newContent = 'new content'
-    await centralizedPinnerProvider.update(did, 'no exists', newContent, cid)
+    const newId = await centralizedPinnerProvider.update(did, 'no exists', newContent, id)
 
     // should get new content and also old one, because was not deleted
     retrievedContent = await centralizedPinnerProvider.get(did, 'no exists')
-    expect(retrievedContent).toEqual([newContent])
+    expect(retrievedContent).toEqual([{ id: newId, content: newContent }])
 
     retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
   })
 
   test('update content specifying cid, should delete only one content', async () => {
     const remainContent = 'this content will not be updateped'
     const cidToupdate = await centralizedPinnerProvider.create(did, key, content)
-    await centralizedPinnerProvider.create(did, key, remainContent)
+    const anotherCid = await centralizedPinnerProvider.create(did, key, remainContent)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content, remainContent])
+    expect(retrievedContent).toEqual([
+      { id: cidToupdate, content },
+      { id: anotherCid, content: remainContent }
+    ])
 
     const newContent = 'the new one'
-    await centralizedPinnerProvider.update(did, key, newContent, cidToupdate)
+    const updatedCid = await centralizedPinnerProvider.update(did, key, newContent, cidToupdate)
 
     // should get new content
     retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([remainContent, newContent])
+    expect(retrievedContent).toEqual([
+      { id: anotherCid, content: remainContent },
+      { id: updatedCid, content: newContent }
+    ])
   })
 
-  test('update content specifying cid, should delete only one content', async () => {
+  test('delete content specifying cid, should delete only one content', async () => {
     const remainContent = 'this content will not be updateped'
     const cidToDelete = await centralizedPinnerProvider.create(did, key, content)
-    await centralizedPinnerProvider.create(did, key, remainContent)
+    const remainCid = await centralizedPinnerProvider.create(did, key, remainContent)
 
     // should get proper content
     let retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content, remainContent])
+    expect(retrievedContent).toEqual([
+      { id: cidToDelete, content },
+      { id: remainCid, content: remainContent }
+    ])
 
     const deleted = await centralizedPinnerProvider.delete(did, key, cidToDelete)
 
@@ -162,7 +174,7 @@ describe('ipfs pinner provider', () => {
 
     // should get remain content
     retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([remainContent])
+    expect(retrievedContent).toEqual([{ id: remainCid, content: remainContent }])
   })
 
   test('delete unexisting key', async () => {
@@ -178,11 +190,11 @@ describe('ipfs pinner provider', () => {
   })
 
   test('delete content without specifying cid', async () => {
-    await centralizedPinnerProvider.create(did, key, content)
+    const id = await centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
     const retrievedContent = await centralizedPinnerProvider.get(did, key)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual([{ id, content }])
 
     const deleted = await centralizedPinnerProvider.delete(did, key)
 

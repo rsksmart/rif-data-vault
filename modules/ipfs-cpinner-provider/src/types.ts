@@ -3,6 +3,8 @@ export type Key = string
 export type CID = string
 export type Content = string
 
+export type SavedContent = { id: CID, content: Content }
+
 export interface MetadataManager {
   save(did: DID, key: Key, id: CID): Promise<boolean>
   find(did: DID, key: Key): Promise<CID[]>
