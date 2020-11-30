@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 import express from 'express'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 import setupApp, { AuthConfig } from './setup'
 import { loggerFactory } from '@rsksmart/rif-node-utils'
 import { rskDIDFromPrivateKey, rskTestnetDIDFromPrivateKey } from '@rsksmart/rif-id-ethr-did'
@@ -42,6 +43,7 @@ const config: AuthConfig = {
 
 const app = express()
 app.use(bodyParser.json())
+app.use(cors())
 
 createConnection({
   type: 'sqlite',

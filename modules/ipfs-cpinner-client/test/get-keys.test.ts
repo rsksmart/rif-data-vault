@@ -39,9 +39,9 @@ describe('get keys', function (this: {
   })
 
   test('should return an empty array if no keys', async () => {
-    const { did, dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    const { dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
 
-    const keys = await dataVaultClient.getKeys({ did })
+    const keys = await dataVaultClient.getKeys()
 
     expect(keys).toEqual([])
   })
@@ -54,7 +54,7 @@ describe('get keys', function (this: {
 
     await this.ipfsPinnerProvider.create(did, key, content)
 
-    const keys = await dataVaultClient.getKeys({ did })
+    const keys = await dataVaultClient.getKeys()
 
     expect(keys).toEqual([key])
   })
