@@ -13,11 +13,6 @@ declare module 'ipfs-http-client' {
     hash: string
   }
 
-  export interface IpfsObject {
-    path: string
-    content?: Buffer
-  }
-
   export interface IpfsPinResult {
     pins: Pins
     progress: number
@@ -25,7 +20,7 @@ declare module 'ipfs-http-client' {
 
   export interface IpfsHttpClient {
     add (data: Buffer | File | Readable): Promise<IpfsResult>
-    get (path: CidAddress): AsyncGenerator<IpfsObject>
+    cat (path: CidAddress): AsyncGenerator<Uint8Array>
     pin: {
       ls (cid: CidAddress): Promise<IpfsPinResult[]>
       add (cid: CidAddress): Promise<IpfsPinResult>

@@ -85,7 +85,7 @@ describe('swap content', function (this: {
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
 
-    expect(expected).toEqual([newContent])
+    expect(expected[0].content).toEqual(newContent)
     expect(id).not.toEqual(originalCid)
   })
 
@@ -100,13 +100,14 @@ describe('swap content', function (this: {
     await this.ipfsPinnerProvider.create(this.did, key, secondContent)
 
     const beforeSwapping = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(beforeSwapping).toEqual([firstContent, secondContent])
+    expect(beforeSwapping[0].content).toEqual(firstContent)
+    expect(beforeSwapping[1].content).toEqual(secondContent)
 
     const newContent = 'this is the new content'
     await client.swap({ key, content: newContent })
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(expected).toEqual([newContent])
+    expect(expected[0].content).toEqual(newContent)
   })
 
   test('should swap only the content associated to the given id if present', async () => {
@@ -120,13 +121,15 @@ describe('swap content', function (this: {
     await this.ipfsPinnerProvider.create(this.did, key, secondContent)
 
     const beforeSwapping = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(beforeSwapping).toEqual([firstContent, secondContent])
+    expect(beforeSwapping[0].content).toEqual(firstContent)
+    expect(beforeSwapping[1].content).toEqual(secondContent)
 
     const newContent = 'this is the new content'
     await client.swap({ key, content: newContent, id: cid1 })
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(expected).toEqual([secondContent, newContent])
+    expect(expected[0].content).toEqual(secondContent)
+    expect(expected[1].content).toEqual(newContent)
   })
 
   test('should refresh the token if necessary', async () => {
@@ -147,6 +150,7 @@ describe('swap content', function (this: {
     await client.swap({ key, content: newContent, id: cid2 })
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(expected).toEqual([newContent, newContent])
+    expect(expected[0].content).toEqual(newContent)
+    expect(expected[1].content).toEqual(newContent)
   })
 })

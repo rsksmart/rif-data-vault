@@ -6,7 +6,7 @@ jest.setTimeout(12000)
 
 // this are integration tests
 
-describe('sandbox environment', function (this: {
+describe.skip('sandbox environment', function (this: {
   did: string
 }) {
   const setup = async (): Promise<DataVaultWebClient> => {
@@ -15,8 +15,8 @@ describe('sandbox environment', function (this: {
     const rpcPersonalSign = clientIdentity.rpcPersonalSign
 
     // COMPLETE WITH YOUR SANDBOX ENVIRONMENT VALUES
-    const serviceDid = 'did:ethr:rsk:testnet:0x285B30492a3F444d78f75261A35cB292Fc8F41A6'
-    const serviceUrl = 'http://ec2-3-131-142-122.us-east-2.compute.amazonaws.com:5107'
+    const serviceDid = ''
+    const serviceUrl = ''
 
     return new DataVaultWebClient({ serviceUrl, did: this.did, rpcPersonalSign, serviceDid })
   }
@@ -53,11 +53,11 @@ describe('sandbox environment', function (this: {
     const key = `AKey${Date.now()}`
     const content = `the content ${Date.now()}`
 
-    await client.create({ key, content })
+    const { id } = await client.create({ key, content })
 
     const values = await client.get({ did: this.did, key })
 
-    expect(values).toEqual([content])
+    expect(values).toEqual([{ id, content }])
   })
 
   test('should swap content', async () => {

@@ -83,7 +83,7 @@ describe('create content', function (this: {
 
     const actualContent = await this.ipfsPinnerProvider.get(this.did, key)
 
-    expect(actualContent).toEqual([content])
+    expect(actualContent[0].content).toEqual(content)
   })
 
   test('should refresh the access token if necessary', async () => {
@@ -102,10 +102,10 @@ describe('create content', function (this: {
     await client.create({ key: key2, content: content2 })
 
     const actualContent1 = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(actualContent1).toEqual([content])
+    expect(actualContent1[0].content).toEqual(content)
 
     const actualContent2 = await this.ipfsPinnerProvider.get(this.did, key2)
-    expect(actualContent2).toEqual([content2])
+    expect(actualContent2[0].content).toEqual(content2)
   })
 
   // TODO: Test that doing a login before reduces the execution time

@@ -97,7 +97,8 @@ describe('delete content', function (this: {
     await this.ipfsPinnerProvider.create(this.did, key, anotherContent)
 
     const retrievedBeforeDelete = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(retrievedBeforeDelete).toEqual([content, anotherContent])
+    expect(retrievedBeforeDelete[0].content).toEqual(content)
+    expect(retrievedBeforeDelete[1].content).toEqual(anotherContent)
 
     const deleted = await client.delete({ key })
     expect(deleted).toBe(true)
@@ -115,13 +116,14 @@ describe('delete content', function (this: {
     const id = await this.ipfsPinnerProvider.create(this.did, key, anotherContent)
 
     const retrievedBeforeDelete = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(retrievedBeforeDelete).toEqual([content, anotherContent])
+    expect(retrievedBeforeDelete[0].content).toEqual(content)
+    expect(retrievedBeforeDelete[1].content).toEqual(anotherContent)
 
     const deleted = await client.delete({ key, id })
     expect(deleted).toBe(true)
 
     const retrievedAfterDelete = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(retrievedAfterDelete).toEqual([content])
+    expect(retrievedAfterDelete[0].content).toEqual(content)
   })
 
   test('should delete only the content associated to the given key', async () => {
@@ -144,7 +146,7 @@ describe('delete content', function (this: {
     expect(retrieved1AfterDelete).toEqual([])
 
     const retrieved2AfterDelete = await this.ipfsPinnerProvider.get(this.did, key2)
-    expect(retrieved2AfterDelete).toEqual([content2])
+    expect(retrieved2AfterDelete[0].content).toEqual(content2)
   })
 
   test('should refresh the access token if necessary', async () => {
