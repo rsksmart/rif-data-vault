@@ -32,6 +32,6 @@ describe('ipfs client', () => {
     expect(cid).toBeTruthy()
 
     const retrievedContent = await ipfsClient.get(cid)
-    expect(retrievedContent).toEqual([content])
+    expect(retrievedContent).toEqual(content)
   })
 })

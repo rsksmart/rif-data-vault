@@ -23,7 +23,11 @@ export default class IpfsPinnerProvider {
   async get (did: DID, key: Key): Promise<SavedContent[]> {
     const cids = await this.metadataManager.find(did, key)
 
-    return Promise.all(cids.map(cid => this.ipfsClient.get(cid).then(([content]) => ({ id: cid, content }))))
+    return Promise.all(
+      cids.map(
+        cid => this.ipfsClient.get(cid).then(content => ({ id: cid, content }))
+      )
+    )
   }
 
   async getKeys (did: DID): Promise<Key[]> {

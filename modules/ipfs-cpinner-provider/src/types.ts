@@ -14,7 +14,7 @@ export interface MetadataManager {
 
 export interface IpfsClient {
   put(content: Content): Promise<CID>
-  get(cid: CID): Promise<Content[]>
+  get(cid: CID): Promise<Content>
 }
 
 export interface IpfsPinner {
