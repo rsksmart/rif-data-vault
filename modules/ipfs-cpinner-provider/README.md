@@ -55,7 +55,7 @@ const content = 'the content'
 
 const cid: string = await ipfsPinnerProvider.create(did, key, content)
 
-const cids: string[] = await ipfsPinnerProvider.get(did, key)
+const files: { id: string, content: string }[] = await ipfsPinnerProvider.get(did, key)
 
 const keys: string[] = await ipfsPinnerProvider.getKeys(did)
 

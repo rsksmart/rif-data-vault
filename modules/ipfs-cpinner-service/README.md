@@ -77,7 +77,7 @@ GET /keys/:did -> { keys: string[] }
 Get all files of a given `did` and `key`
 
 ```
-GET /content/:did/:key -> { content: string[] } (get files)
+GET /content/:did/:key -> [{ id: string, content: string }] (get files)
 ```
 
 ## Advanced usage
