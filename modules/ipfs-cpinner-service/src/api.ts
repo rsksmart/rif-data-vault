@@ -14,7 +14,7 @@ export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logg
 
     const content = await provider.get(did, key)
 
-    res.status(200).json({ content })
+    res.status(200).json(content)
   })
 }
 

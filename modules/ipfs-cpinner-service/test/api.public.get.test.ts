@@ -8,23 +8,14 @@ import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cp
 async function testContentIsAccessible (
   app: Express,
   database: string,
-  { did, key }: { did: string, key: string },
-  arrange: (ipfsPinnerProvider: IpfsPinnerProvider) => Promise<any>,
-  expectedContent: string[]
+  arrangeAndTest: (ipfsPinnerProvider: IpfsPinnerProvider) => Promise<any>
 ) {
   // setup
   const dbConnection = await createSqliteConnection(database)
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
   setupPublicApi(app, ipfsPinnerProvider, mockedLogger)
 
-  // arrange
-  await arrange(ipfsPinnerProvider)
-
-  // act
-  const { body } = await request(app).get(`/content/${did}/${key}`).expect(200)
-
-  // assert
-  expect(body.content).toEqual(expectedContent)
+  await arrangeAndTest(ipfsPinnerProvider)
 
   return dbConnection
 }
@@ -33,14 +24,21 @@ const testSingleContentIsAccessible = (
   app: Express,
   database: string,
   { did, key, content }: { did: string, key: string, content: string }
-) => testContentIsAccessible(
-  app,
-  database,
-  { did, key },
-  (ipfsPinnerProvider: IpfsPinnerProvider) => ipfsPinnerProvider.create(did, key, content),
-  [content]
-)
+) => {
+  const arrangeAndTest = async (ipfsPinnerProvider: IpfsPinnerProvider) => {
+    const id = await ipfsPinnerProvider.create(did, key, content)
 
+    const { body } = await request(app).get(`/content/${did}/${key}`).expect(200)
+
+    expect(body).toEqual([{ id, content }])
+  }
+
+  return testContentIsAccessible(
+    app,
+    database,
+    arrangeAndTest
+  )
+}
 describe('GET', function (this: {
   database: string,
   dbConnection: Connection,
@@ -99,12 +97,16 @@ describe('GET', function (this: {
       const did = 'did:ethr:rsk:testnet:0xf3d8a97f31d81ac42073e3c085c6dadd83cd1a79'
       const key = 'AnotherKey'
 
+      const arrangeAndTest = async () => {
+        const { body } = await request(this.app).get(`/content/${did}/${key}`).expect(200)
+
+        expect(body).toEqual([])
+      }
+
       this.dbConnection = await testContentIsAccessible(
         this.app,
         this.database,
-        { did, key },
-        async () => { }, // no op
-        []
+        arrangeAndTest
       )
     })
 
@@ -116,15 +118,22 @@ describe('GET', function (this: {
       const content1 = 'This is the content'
       const content2 = 'This is another content'
 
+      const arrangeAndTest = async (ipfsPinnerProvider: IpfsPinnerProvider) => {
+        const id1 = await ipfsPinnerProvider.create(did, key, content1)
+        const id2 = await ipfsPinnerProvider.create(did, key, content2)
+
+        const { body } = await request(this.app).get(`/content/${did}/${key}`).expect(200)
+
+        expect(body).toEqual([
+          { id: id1, content: content1 },
+          { id: id2, content: content2 }
+        ])
+      }
+
       this.dbConnection = await testContentIsAccessible(
         this.app,
         this.database,
-        { did, key },
-        async (ipfsPinnerProvider: IpfsPinnerProvider) => {
-          await ipfsPinnerProvider.create(did, key, content1)
-          await ipfsPinnerProvider.create(did, key, content2)
-        },
-        [content1, content2]
+        arrangeAndTest
       )
     })
   })

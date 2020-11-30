@@ -66,7 +66,7 @@ describe('PUT', function (this: {
         await putAndGetResponseBody(key, content)
 
         const actualContent = await this.provider.get(this.did, key)
-        expect(actualContent).toEqual([content])
+        expect(actualContent[0].content).toEqual(content)
       })
 
       test('should replace existing content associated to the given key', async () => {
@@ -86,7 +86,7 @@ describe('PUT', function (this: {
         expect(body.id).not.toEqual(firstCid)
 
         const actualContent = await this.provider.get(this.did, key)
-        expect(actualContent).toEqual([newContent])
+        expect(actualContent[0].content).toEqual(newContent)
       })
     })
 
@@ -112,7 +112,7 @@ describe('PUT', function (this: {
         expect(body.id).not.toEqual(secondCid)
 
         const actualContent = await this.provider.get(this.did, key)
-        expect(actualContent).toEqual([newContent])
+        expect(actualContent[0].content).toEqual(newContent)
       })
     })
   })
@@ -142,7 +142,7 @@ describe('PUT', function (this: {
 
         const actualContent = await this.provider.get(this.did, key)
 
-        expect(actualContent).toEqual([content])
+        expect(actualContent[0].content).toEqual(content)
       })
 
       test('should replace existing content associated to the given key and id', async () => {
@@ -162,7 +162,7 @@ describe('PUT', function (this: {
         expect(body.id).not.toEqual(firstCid)
 
         const actualContent = await this.provider.get(this.did, key)
-        expect(actualContent).toEqual([newContent])
+        expect(actualContent[0].content).toEqual(newContent)
       })
     })
 
@@ -188,7 +188,8 @@ describe('PUT', function (this: {
         expect(body.id).not.toEqual(secondCid)
 
         const actualContent = await this.provider.get(this.did, key)
-        expect(actualContent).toEqual([firstContent, newContent])
+        expect(actualContent[0].content).toEqual(firstContent)
+        expect(actualContent[1].content).toEqual(newContent)
       })
     })
   })

@@ -64,7 +64,7 @@ describe('POST', function (this: {
       await postContentAndGetResponseBody(key, content)
 
       const actualContent = await this.provider.get(this.did, key)
-      expect(actualContent).toEqual([content])
+      expect(actualContent[0].content).toEqual(content)
     })
   })
 
@@ -81,7 +81,8 @@ describe('POST', function (this: {
       await request(this.app).post(`/content/${key}`).send({ content: content2 }).expect(201)
 
       const actualContent = await this.provider.get(this.did, key)
-      expect(actualContent).toEqual([content1, content2])
+      expect(actualContent[0].content).toEqual(content1)
+      expect(actualContent[1].content).toEqual(content2)
     })
 
     test('should save different content for the same key for different dids', async () => {
@@ -100,10 +101,10 @@ describe('POST', function (this: {
       await request(this.app).post(`/content/${key}`).send({ content: content2 }).expect(201)
 
       const actualContentForDid1 = await this.provider.get(firstDid, key)
-      expect(actualContentForDid1).toEqual([content1])
+      expect(actualContentForDid1[0].content).toEqual(content1)
 
       const actualContentForDid2 = await this.provider.get(anotherDid, key)
-      expect(actualContentForDid2).toEqual([content2])
+      expect(actualContentForDid2[0].content).toEqual(content2)
     })
 
     test('should save different content for different keys for different dids', async () => {
@@ -128,10 +129,10 @@ describe('POST', function (this: {
 
       // did 1
       let actualContent = await this.provider.get(firstDid, key1)
-      expect(actualContent).toEqual([content1])
+      expect(actualContent[0].content).toEqual(content1)
 
       actualContent = await this.provider.get(firstDid, key2)
-      expect(actualContent).toEqual([content2])
+      expect(actualContent[0].content).toEqual(content2)
 
       actualContent = await this.provider.get(firstDid, key3)
       expect(actualContent).toEqual([])
@@ -141,10 +142,10 @@ describe('POST', function (this: {
       expect(actualContent).toEqual([])
 
       actualContent = await this.provider.get(anotherDid, key2)
-      expect(actualContent).toEqual([content2])
+      expect(actualContent[0].content).toEqual(content2)
 
       actualContent = await this.provider.get(anotherDid, key3)
-      expect(actualContent).toEqual([content3])
+      expect(actualContent[0].content).toEqual(content3)
     })
   })
 })

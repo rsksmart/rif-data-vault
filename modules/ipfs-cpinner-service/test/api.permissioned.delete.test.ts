@@ -122,7 +122,7 @@ describe('PUT', function (this: {
         await request(this.app).delete(`/content/${key}/${idToDelete}`).expect(200)
 
         const retrievedContent = await this.provider.get(this.did, key)
-        expect(retrievedContent).toEqual([content1])
+        expect(retrievedContent[0].content).toEqual(content1)
       })
     })
   })
