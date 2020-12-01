@@ -6,7 +6,7 @@ import {
   AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload
 } from './types'
 
 const ClientKeyValueStorageFactory = {
@@ -25,7 +25,7 @@ export default class {
     this.authManager = authManagerFactory(config, this.storage)
   }
 
-  get ({ did, key }: GetContentPayload): Promise<string[]> {
+  get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
   }
