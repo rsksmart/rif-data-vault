@@ -2,7 +2,7 @@ import express, { Express } from 'express'
 import { setupPermissionedApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
-import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from './util'
 import { ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
 
 describe('GET /keys', function (this: {
@@ -17,7 +17,8 @@ describe('GET /keys', function (this: {
     this.database = 'test-1.service.get-keys.sqlite'
 
     this.dbConnection = await createSqliteConnection(this.database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
+    const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
+
     setupPermissionedApi(this.app, ipfsPinnerProvider, mockedLogger)
 
     const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
@@ -31,7 +32,7 @@ describe('GET /keys', function (this: {
     this.database = 'test-2.service.get-keys.sqlite'
 
     this.dbConnection = await createSqliteConnection(this.database)
-    const ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
+    const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
     setupPermissionedApi(this.app, ipfsPinnerProvider, mockedLogger)
 
     const did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'

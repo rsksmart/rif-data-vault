@@ -2,7 +2,7 @@ import express, { Express } from 'express'
 import { setupPublicApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
-import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from './util'
 import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
 
 async function testContentIsAccessible (
@@ -12,7 +12,7 @@ async function testContentIsAccessible (
 ) {
   // setup
   const dbConnection = await createSqliteConnection(database)
-  const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
+  const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl })
   setupPublicApi(app, ipfsPinnerProvider, mockedLogger)
 
   await arrangeAndTest(ipfsPinnerProvider)

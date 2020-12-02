@@ -45,6 +45,8 @@ const app = express()
 app.use(bodyParser.json())
 app.use(cors())
 
+const ipfsApiUrl = `http://${env.ipfsHost}:${env.ipfsPort}`
+
 createConnection({
   type: 'sqlite',
   database: env.database,
@@ -52,7 +54,7 @@ createConnection({
   logging: false,
   dropSchema: true,
   synchronize: true
-}).then((dbConnection: Connection) => ipfsPinnerProviderFactory(dbConnection, `http://${env.ipfsHost}:${env.ipfsPort}`))
+}).then((dbConnection: Connection) => ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl }))
   .then(ipfsPinnerProvider => setupApp(app, ipfsPinnerProvider, config, logger))
   .then(() => {
     const port = process.env.DATA_VAULT_PORT || 5107

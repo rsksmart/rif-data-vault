@@ -3,7 +3,7 @@ import { ipfsPinnerProviderFactory, IpfsPinnerProvider } from '@rsksmart/ipfs-cp
 import setupApi, { AuthConfig } from '../src/setup'
 import request from 'supertest'
 import { Connection } from 'typeorm'
-import { challengeResponseFactory, createSqliteConnection, deleteDatabase, identityFactory, ipfsEndpoint, mockedLogger } from './util'
+import { challengeResponseFactory, createSqliteConnection, deleteDatabase, identityFactory, ipfsApiUrl, mockedLogger } from './util'
 import bodyParser from 'body-parser'
 
 jest.setTimeout(10000)
@@ -31,7 +31,7 @@ describe('setup api with authentication', function (this: {
 
     this.dbName = 'setup-1.dv-service.sqlite'
     this.dbConnection = await createSqliteConnection(this.dbName)
-    this.ipfsPinnerProvider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
+    this.ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
     this.clientDid = userIdentity.identity.did
     setupApi(this.app, this.ipfsPinnerProvider, this.config, mockedLogger)
 
