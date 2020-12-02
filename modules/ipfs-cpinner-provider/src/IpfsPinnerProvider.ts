@@ -56,7 +56,7 @@ export default class IpfsPinnerProvider {
     const availableStorage = this.maxStorage - usedStorage // may be lower than 0
 
     if (contentToAddSize > availableStorage) {
-      const contentToDeleteSize = await this.getUsedStorageByDidKeyAndCid(did, key, cid)
+      const contentToDeleteSize = await this.metadataManager.getUsedStorageByDidKeyAndCid(did, key, cid)
 
       if (contentToAddSize > availableStorage + contentToDeleteSize) throw new Error(MAX_STORAGE_REACHED)
     }
@@ -86,9 +86,5 @@ export default class IpfsPinnerProvider {
 
   private getContentSize (content: Content): number {
     return Buffer.from(content).byteLength
-  }
-
-  private getUsedStorageByDidKeyAndCid (did: DID, key: Key, cid?: CID): Promise<number> {
-    return this.metadataManager.getUsedStorageByDidKeyAndCid(did, key, cid)
   }
 }
