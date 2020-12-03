@@ -5,7 +5,9 @@ import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from
 import { setupPermissionedApi } from '../src/api'
 import bodyParser from 'body-parser'
 import { Connection } from 'typeorm'
+import { MAX_STORAGE_REACHED } from '../src/constants'
 
+const maxStorage = 10000
 describe('POST', function (this: {
   app: Express,
   did: string
@@ -16,7 +18,7 @@ describe('POST', function (this: {
 }) {
   const setup = async () => {
     this.dbConnection = await createSqliteConnection(this.dbName)
-    this.provider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
+    this.provider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl, maxStorage })
 
     setupPermissionedApi(this.app, this.provider, mockedLogger)
   }
@@ -65,6 +67,18 @@ describe('POST', function (this: {
 
       const actualContent = await this.provider.get(this.did, key)
       expect(actualContent[0].content).toEqual(content)
+    })
+
+    test('should respond with a 400 if exceed maxStorage', async () => {
+      this.dbName = 'post-6.ipfs-dv-service.sqlite'
+      await setup()
+
+      const key = 'WillExceed'
+      const content = 'a'.repeat(maxStorage + 10)
+
+      const res = await request(this.app).post(`/content/${key}`).send({ content }).expect(400)
+
+      expect(res.text).toEqual(MAX_STORAGE_REACHED)
     })
   })
 

@@ -18,7 +18,8 @@ const env = {
   rpcUrl: process.env.RPC_URL || 'https://did.testnet.rsk.co:4444',
   networkName: process.env.NETWORK_NAME || 'rsk:testnet',
   ipfsHost: process.env.IPFS_HOST || 'localhost',
-  ipfsPort: process.env.IPFS_PORT || 5001
+  ipfsPort: process.env.IPFS_PORT || 5001,
+  maxStorage: process.env.MAX_STORAGE || 1000000
 }
 
 const logger = loggerFactory({
@@ -54,7 +55,7 @@ createConnection({
   logging: false,
   dropSchema: true,
   synchronize: true
-}).then((dbConnection: Connection) => ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl }))
+}).then((dbConnection: Connection) => ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: env.maxStorage }))
   .then(ipfsPinnerProvider => setupApp(app, ipfsPinnerProvider, config, logger))
   .then(() => {
     const port = process.env.DATA_VAULT_PORT || 5107
