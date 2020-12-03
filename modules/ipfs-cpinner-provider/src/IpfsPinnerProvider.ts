@@ -77,6 +77,10 @@ export default class IpfsPinnerProvider {
     return available >= 0 ? available : 0
   }
 
+  getUsedStorage (did: DID): Promise<number> {
+    return this.metadataManager.getUsedStorage(did)
+  }
+
   private async deleteByCid (did: DID, key: Key, cid: CID): Promise<boolean> {
     const removed = await this.metadataManager.delete(did, key, cid)
     if (removed) return this.ipfsPinner.unpin(cid)

@@ -44,6 +44,22 @@ describe('ipfs pinner provider', function (this: {
 
   afterAll(() => deleteDatabase(this.dbConnection, database))
 
+  describe('getUsedStorage', () => {
+    it('should return zero if nothing created', async () => {
+      const used = await this.centralizedPinnerProvider.getUsedStorage(did)
+
+      expect(used).toBe(0)
+    })
+
+    it('should return the just created contentSize', async () => {
+      await this.centralizedPinnerProvider.create(did, key, maxStorageContent)
+
+      const used = await this.centralizedPinnerProvider.getUsedStorage(did)
+
+      expect(used).toBe(maxStorage)
+    })
+  })
+
   describe('getAvailableStorage', () => {
     test('should return the maxStorage if no content has been saved for the given did', async () => {
       const available = await this.centralizedPinnerProvider.getAvailableStorage(did)
