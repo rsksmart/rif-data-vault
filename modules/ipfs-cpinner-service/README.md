@@ -80,6 +80,12 @@ Get all files of a given `did` and `key`
 GET /content/:did/:key -> [{ id: string, content: string }] (get files)
 ```
 
+Get storage availability information (needs authentication)
+
+```
+GET /storage -> { used: number, available: number }
+```
+
 ## Advanced usage
 
 See our [documentation](https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-service)
@@ -107,6 +113,7 @@ NETWORK_NAME=rsk:testnet or rsk
 IPFS_PORT= port of an http IPFS node api
 IPFS_HOST=host of an IPFS node api
 CHALLENGE_SECRET=secret used to create deterministic challenges
+MAX_STORAGE=max storage available by did
 ```
 
 Default values:
@@ -119,6 +126,7 @@ DB_FILE=./db/new-data-vault.sqlite
 NETWORK_NAME=rsk:testnet
 IPFS_HOST=localhost
 IPFS_PORT=5001
+MAX_STORAGE=1000000
 ```
 
 Example:
