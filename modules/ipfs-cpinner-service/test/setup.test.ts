@@ -65,10 +65,10 @@ describe('setup api with authentication', function (this: {
   })
 
   describe('GET /keys/:did', () => {
-    test('should respond 401 with no access token', () => request(this.app).get(`/keys/${this.clientDid}`).expect(401))
+    test('should respond 401 with no access token', () => request(this.app).get('/keys').expect(401))
 
     test('should respond 200 with access token', () => request(this.app)
-      .get(`/keys/${this.clientDid}`)
+      .get('/keys')
       .set('Authorization', `DIDAuth ${this.accessToken}`)
       .expect(200)
       .then(response => {

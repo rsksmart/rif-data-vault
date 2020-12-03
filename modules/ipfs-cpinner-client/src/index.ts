@@ -32,11 +32,11 @@ export default class {
   }
 
   getKeys (): Promise<string[]> {
-    const { serviceUrl, did } = this.config
+    const { serviceUrl } = this.config
 
     return this.getAccessToken()
       .then(accessToken => axios.get(
-        `${serviceUrl}/keys/${did}`,
+        `${serviceUrl}/keys`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200 && !!res.data && res.data.keys)
