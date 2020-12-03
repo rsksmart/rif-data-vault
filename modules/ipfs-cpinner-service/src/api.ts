@@ -44,8 +44,8 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
     }
   })
 
-  app.get('/keys/:did', async (req: AuthenticatedRequest, res: Response) => {
-    const { did } = req.params
+  app.get('/keys', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
 
     logger.info(`Retrieving keys from ${did}`)
 

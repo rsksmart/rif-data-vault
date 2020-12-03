@@ -9,7 +9,6 @@ import bodyParser from 'body-parser'
 describe('PUT', function (this: {
   app: Express,
   did: string
-  middleware: (req, res, next) => any,
   dbConnection: Connection,
   dbName: string,
   provider: IpfsPinnerProvider
@@ -23,13 +22,13 @@ describe('PUT', function (this: {
 
   beforeEach(() => {
     this.did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
-    this.middleware = (req, res, next) => {
+    const middleware = (req, res, next) => {
       req.user = { did: this.did }
       next()
     }
     this.app = express()
     this.app.use(bodyParser.json())
-    this.app.use(this.middleware)
+    this.app.use(middleware)
   })
 
   afterEach(() => deleteDatabase(this.dbConnection, this.dbName))
