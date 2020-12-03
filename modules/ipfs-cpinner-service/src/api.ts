@@ -19,6 +19,17 @@ export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logg
 }
 
 export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
+  app.get('/storage', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
+
+    logger.info(`Retrieving storage information from ${did}`)
+
+    const used = await provider.getUsedStorage(did)
+    const available = await provider.getAvailableStorage(did)
+
+    res.status(200).json({ used, available })
+  })
+
   app.get('/keys/:did', async (req, res) => {
     const { did } = req.params
 
