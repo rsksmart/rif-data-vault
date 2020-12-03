@@ -6,7 +6,7 @@ import {
   AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse, GetContentResponsePayload
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation
 } from './types'
 
 const ClientKeyValueStorageFactory = {
@@ -39,6 +39,17 @@ export default class {
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200 && !!res.data && res.data.keys)
+  }
+
+  getStorageInformation (): Promise<StorageInformation> {
+    const { serviceUrl } = this.config
+
+    return this.getAccessToken()
+      .then(accessToken => axios.get(
+        `${serviceUrl}/storage`,
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 200 && res.data)
   }
 
   create (payload: CreateContentPayload): Promise<CreateContentResponse> {

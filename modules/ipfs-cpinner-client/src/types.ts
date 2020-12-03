@@ -6,6 +6,7 @@ export type LoginResponse = { accessToken: string, refreshToken: string }
 export type DeleteTokenPayload = { key: string, id?: string }
 export type SwapContentPayload = { key: string, content: string, id?: string }
 export type SwapContentResponse = { id: string }
+export type StorageInformation = { used: number, available: number }
 
 export interface ClientKeyValueStorage {
   get (key: string): Promise<string>
