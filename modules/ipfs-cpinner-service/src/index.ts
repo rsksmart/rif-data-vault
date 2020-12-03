@@ -19,7 +19,7 @@ const env = {
   networkName: process.env.NETWORK_NAME || 'rsk:testnet',
   ipfsHost: process.env.IPFS_HOST || 'localhost',
   ipfsPort: process.env.IPFS_PORT || 5001,
-  maxStorage: process.env.MAX_STORAGE || 1000000
+  maxStorage: Number(process.env.MAX_STORAGE) || 1000000
 }
 
 const logger = loggerFactory({
