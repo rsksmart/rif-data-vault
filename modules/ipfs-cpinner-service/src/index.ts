@@ -57,7 +57,7 @@ createConnection({
   database: env.database,
   entities: Entities,
   logging: false,
-  dropSchema: true,
+  dropSchema: false,
   synchronize: true
 }).then((dbConnection: Connection) => ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: env.maxStorage }))
   .then(ipfsPinnerProvider => setupApp(app, ipfsPinnerProvider, config, logger))
