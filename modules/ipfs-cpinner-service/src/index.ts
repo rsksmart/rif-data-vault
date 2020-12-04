@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import setupApp, { AuthConfig } from './setup'
@@ -48,6 +48,10 @@ app.use(cors())
 
 const ipfsApiUrl = `http://${env.ipfsHost}:${env.ipfsPort}`
 
+app.get('/__health', (req: Request, res: Response) => {
+  res.status(200).end('OK')
+})
+
 createConnection({
   type: 'sqlite',
   database: env.database,
@@ -61,3 +65,4 @@ createConnection({
     const port = process.env.DATA_VAULT_PORT || 5107
     app.listen(port, () => logger.info(`Data vault service service started on port ${port}`))
   })
+  .catch(err => logger.error('Caught error when starting the service', err))
