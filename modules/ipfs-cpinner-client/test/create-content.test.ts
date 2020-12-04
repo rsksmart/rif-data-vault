@@ -4,8 +4,8 @@ import { Server } from 'http'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
-import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient } from './util'
-
+import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient, testMaxStorage } from './util'
+import { MAX_STORAGE_REACHED } from '../src/constants'
 jest.setTimeout(12000)
 
 describe('create content', function (this: {
@@ -106,6 +106,15 @@ describe('create content', function (this: {
 
     const actualContent2 = await this.ipfsPinnerProvider.get(this.did, key2)
     expect(actualContent2[0].content).toEqual(content2)
+  })
+
+  test('should throw an error if max storage reached', async () => {
+    const client = await setup()
+
+    const key = 'KeyTest6'
+    const content = 'a'.repeat(testMaxStorage + 10)
+
+    expect(() => client.create({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
   })
 
   // TODO: Test that doing a login before reduces the execution time

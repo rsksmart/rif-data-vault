@@ -2,10 +2,11 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 
 @Entity()
 export default class IpfsMetadata {
-  constructor (did: string, key: string, cid: string) {
+  constructor (did: string, key: string, cid: string, contentSize: number) {
     this.did = did
     this.key = key
     this.cid = cid
+    this.contentSize = contentSize
   }
 
   @PrimaryGeneratedColumn()
@@ -19,4 +20,7 @@ export default class IpfsMetadata {
 
   @Column('text')
   cid!: string;
+
+  @Column('integer')
+  contentSize!: number;
 }

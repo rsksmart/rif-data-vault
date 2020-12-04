@@ -55,13 +55,15 @@ export const deleteDatabase = (connection: Connection, database: string) => conn
   if (fs.existsSync(database)) fs.unlinkSync(database)
 })
 
+export const testTimestamp = 1603300440000
+export const testMaxStorage = 1000
+
 export const startService = async (dbName: string, port?: number): Promise<{
   server: Server,
   serviceUrl: string,
   serviceDid: string,
   ipfsPinnerProvider: IpfsPinnerProvider,
   dbConnection: Connection,
-  dbConnectionPromise: Promise<Connection>
 }> => {
   if (!port) port = 4600
   const serviceUrl = `http://localhost:${port}`
@@ -84,18 +86,15 @@ export const startService = async (dbName: string, port?: number): Promise<{
     serviceSigner: serviceIdentity.signer
   }
 
-  const dbConnectionPromise = createSqliteConnection(dbName)
-  const dbConnection = await dbConnectionPromise
-  const ipfsEndpoint = 'http://localhost:5001'
-  const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
+  const dbConnection = await createSqliteConnection(dbName)
+  const ipfsApiUrl = 'http://localhost:5001'
+  const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: testMaxStorage })
   setupApi(app, ipfsPinnerProvider, config, mockedLogger)
 
   const server = app.listen(port)
 
-  return { server, ipfsPinnerProvider, serviceUrl, dbConnection, dbConnectionPromise, serviceDid }
+  return { server, ipfsPinnerProvider, serviceUrl, dbConnection, serviceDid }
 }
-
-export const testTimestamp = 1603300440000
 
 export const customStorageFactory = (): ClientKeyValueStorage => {
   const store: any = {}

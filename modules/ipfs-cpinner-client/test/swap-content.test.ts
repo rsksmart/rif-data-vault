@@ -1,10 +1,11 @@
-import { startService, setupDataVaultClient, deleteDatabase, testTimestamp, resetDatabase } from './util'
+import { startService, setupDataVaultClient, deleteDatabase, testTimestamp, resetDatabase, testMaxStorage } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import ipfsHash from 'ipfs-only-hash'
 import localStorageMockFactory from './localStorageMockFactory'
+import { MAX_STORAGE_REACHED } from '../src/constants'
 
 jest.setTimeout(10000)
 
@@ -152,5 +153,14 @@ describe('swap content', function (this: {
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
     expect(expected[0].content).toEqual(newContent)
     expect(expected[1].content).toEqual(newContent)
+  })
+
+  test('should throw an error if max storage reached', async () => {
+    const client = await setup()
+
+    const key = 'TheKey8'
+    const content = '8'.repeat(testMaxStorage + 10)
+
+    expect(() => client.swap({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
   })
 })

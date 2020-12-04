@@ -3,9 +3,9 @@ import fs from 'fs'
 
 export { createSqliteConnection } from '../src'
 
-export const resetDatabase = async (dbConnection: Promise<Connection>) => {
-  await (await dbConnection).dropDatabase()
-  await (await dbConnection).synchronize()
+export const resetDatabase = async (dbConnection: Connection) => {
+  await dbConnection.dropDatabase()
+  await dbConnection.synchronize()
 }
 
 export const deleteDatabase = (connection: Connection, database: string) => connection.close().then(() => {

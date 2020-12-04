@@ -1,29 +1,31 @@
 import { IpfsPinnerProvider, createSqliteConnection, ipfsPinnerProviderFactory } from '../src'
 import ipfsHash from 'ipfs-only-hash'
-import fs from 'fs'
-import { getRandomString } from './util'
+import { deleteDatabase, getRandomString } from './util'
+import { Connection } from 'typeorm'
+import { DEFAULT_IPFS_API } from '../src/constants'
 
 const database = './ipfs-pinner-provider-factory.ipfsPinnerProvider.test.sqlite'
 
-describe('ipfs pinner provider', () => {
-  let centralizedPinnerProvider: IpfsPinnerProvider
-
+describe('ipfs pinner provider', function (this: {
+  connection: Connection,
+  centralizedPinnerProvider: IpfsPinnerProvider
+}) {
   const did = 'did:ethr:rsk:12345678'
 
   beforeAll(async () => {
-    const connection = await createSqliteConnection(database)
-    centralizedPinnerProvider = await ipfsPinnerProviderFactory(connection, 'http://localhost:5001')
+    this.connection = await createSqliteConnection(database)
+    this.centralizedPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection: this.connection, ipfsApiUrl: DEFAULT_IPFS_API })
   })
 
-  afterAll(() => fs.unlinkSync(database))
+  afterAll(() => deleteDatabase(this.connection, database))
 
   test('get keys', async () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    await centralizedPinnerProvider.create(did, key, content)
+    await this.centralizedPinnerProvider.create(did, key, content)
 
-    const retrievedContent = await centralizedPinnerProvider.getKeys(did)
+    const retrievedContent = await this.centralizedPinnerProvider.getKeys(did)
     expect(retrievedContent).toEqual([key])
   })
 
@@ -31,7 +33,7 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    const cid = await centralizedPinnerProvider.create(did, key, content)
+    const cid = await this.centralizedPinnerProvider.create(did, key, content)
 
     const expectedCid = await ipfsHash.of(Buffer.from(content))
 
@@ -42,9 +44,9 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    const id = await centralizedPinnerProvider.create(did, key, content)
+    const id = await this.centralizedPinnerProvider.create(did, key, content)
 
-    const retrievedContent = await centralizedPinnerProvider.get(did, key)
+    const retrievedContent = await this.centralizedPinnerProvider.get(did, key)
 
     expect(retrievedContent).toEqual([{ id, content }])
   })
@@ -53,17 +55,17 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    const id = await centralizedPinnerProvider.create(did, key, content)
+    const id = await this.centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
-    const retrievedContent = await centralizedPinnerProvider.get(did, key)
+    const retrievedContent = await this.centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([{ id, content }])
 
     const anotherContent = 'another'
-    const newCid = await centralizedPinnerProvider.update(did, key, anotherContent)
+    const newCid = await this.centralizedPinnerProvider.update(did, key, anotherContent)
 
     // should get proper content
-    const retrievedNewContent = await centralizedPinnerProvider.get(did, key)
+    const retrievedNewContent = await this.centralizedPinnerProvider.get(did, key)
     expect(retrievedNewContent).toEqual([{ id: newCid, content: anotherContent }])
   })
 
@@ -71,13 +73,13 @@ describe('ipfs pinner provider', () => {
     const key = getRandomString()
     const content = getRandomString()
 
-    const id = await centralizedPinnerProvider.create(did, key, content)
+    const id = await this.centralizedPinnerProvider.create(did, key, content)
 
     // should get proper content
-    const retrievedContent = await centralizedPinnerProvider.get(did, key)
+    const retrievedContent = await this.centralizedPinnerProvider.get(did, key)
     expect(retrievedContent).toEqual([{ id, content }])
 
-    const deleted = await centralizedPinnerProvider.delete(did, key)
+    const deleted = await this.centralizedPinnerProvider.delete(did, key)
 
     expect(deleted).toBeTruthy()
   })

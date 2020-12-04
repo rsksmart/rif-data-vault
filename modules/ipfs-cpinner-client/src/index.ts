@@ -1,12 +1,12 @@
 import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
 import authManagerFactory from './auth-manager'
-import { ACCESS_TOKEN_KEY } from './constants'
+import { ACCESS_TOKEN_KEY, AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse, GetContentResponsePayload
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation
 } from './types'
 
 const ClientKeyValueStorageFactory = {
@@ -28,17 +28,31 @@ export default class {
   get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
+      .catch(this.errorHandler)
   }
 
   getKeys (): Promise<string[]> {
-    const { serviceUrl, did } = this.config
+    const { serviceUrl } = this.config
 
     return this.getAccessToken()
       .then(accessToken => axios.get(
-        `${serviceUrl}/keys/${did}`,
+        `${serviceUrl}/keys`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200 && !!res.data && res.data.keys)
+      .catch(this.errorHandler)
+  }
+
+  getStorageInformation (): Promise<StorageInformation> {
+    const { serviceUrl } = this.config
+
+    return this.getAccessToken()
+      .then(accessToken => axios.get(
+        `${serviceUrl}/storage`,
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 200 && res.data)
+      .catch(this.errorHandler)
   }
 
   create (payload: CreateContentPayload): Promise<CreateContentResponse> {
@@ -52,9 +66,10 @@ export default class {
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 201 && res.data)
+      .catch(this.errorHandler)
   }
 
-  delete (payload: DeleteTokenPayload): Promise<boolean> {
+  delete (payload: DeleteTokenPayload): Promise<boolean | void> {
     const { key, id } = payload
     const { serviceUrl } = this.config
     const path = id ? `${key}/${id}` : key
@@ -65,6 +80,7 @@ export default class {
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200)
+      .catch(this.errorHandler)
   }
 
   swap (payload: SwapContentPayload): Promise<SwapContentResponse> {
@@ -79,6 +95,7 @@ export default class {
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200 && res.data)
+      .catch(this.errorHandler)
   }
 
   private async getAccessToken (): Promise<string> {
@@ -93,6 +110,21 @@ export default class {
     }
 
     return accessToken
+  }
+
+  private errorHandler (err) {
+    if (!err.response) throw err // not axios related
+
+    const { status, data } = err.response
+
+    switch (status) {
+      case 500: throw new Error(UNKNOWN_ERROR)
+      case 401: throw new Error(AUTHENTICATION_ERROR)
+      case 400:
+        if (data === SERVICE_MAX_STORAGE_REACHED) throw new Error(MAX_STORAGE_REACHED)
+        throw new Error(data)
+      default: throw err
+    }
   }
 }
 

@@ -1,22 +1,23 @@
 import express, { Express } from 'express'
 import request from 'supertest'
 import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
-import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from './util'
 import { setupPermissionedApi } from '../src/api'
 import bodyParser from 'body-parser'
 import { Connection } from 'typeorm'
+import { MAX_STORAGE_REACHED } from '../src/constants'
 
+const maxStorage = 10000
 describe('POST', function (this: {
   app: Express,
   did: string
-  middleware: (req, res, next) => any,
   dbConnection: Connection,
   dbName: string,
   provider: IpfsPinnerProvider
 }) {
   const setup = async () => {
     this.dbConnection = await createSqliteConnection(this.dbName)
-    this.provider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
+    this.provider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl, maxStorage })
 
     setupPermissionedApi(this.app, this.provider, mockedLogger)
   }
@@ -31,13 +32,13 @@ describe('POST', function (this: {
 
   beforeEach(() => {
     this.did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
-    this.middleware = (req, res, next) => {
+    const middleware = (req, res, next) => {
       req.user = { did: this.did }
       next()
     }
     this.app = express()
     this.app.use(bodyParser.json())
-    this.app.use(this.middleware)
+    this.app.use(middleware)
   })
 
   afterEach(() => deleteDatabase(this.dbConnection, this.dbName))
@@ -65,6 +66,18 @@ describe('POST', function (this: {
 
       const actualContent = await this.provider.get(this.did, key)
       expect(actualContent[0].content).toEqual(content)
+    })
+
+    test('should respond with a 400 if exceed maxStorage', async () => {
+      this.dbName = 'post-6.ipfs-dv-service.sqlite'
+      await setup()
+
+      const key = 'WillExceed'
+      const content = 'a'.repeat(maxStorage + 10)
+
+      const res = await request(this.app).post(`/content/${key}`).send({ content }).expect(400)
+
+      expect(res.text).toEqual(MAX_STORAGE_REACHED)
     })
   })
 
