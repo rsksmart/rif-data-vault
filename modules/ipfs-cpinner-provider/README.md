@@ -71,6 +71,8 @@ const deleted: boolean = await ipfsPinnerProvider.delete(did, key)
 const deleted: boolean = await ipfsPinnerProvider.delete(did, key, cid) // cid can be specified if there is more than one content associated to the given did and key
 
 const availableStorage: number = await ipfsPinnerProvider.getAvailableStorage(did) // return the amount of bytes available to store value associated to the given did
+
+const usedStorage: number = await ipfsPinnerProvider.getUsedStorage(did) // return the amount of bytes used to store value associated to the given did
 ```
 
 See our [documentation](https://developers.rsk.co/rif/identity/) for advanced usage.
