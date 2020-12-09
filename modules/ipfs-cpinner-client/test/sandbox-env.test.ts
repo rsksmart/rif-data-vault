@@ -4,7 +4,7 @@ import localStorageMockFactory from './localStorageMockFactory'
 
 jest.setTimeout(12000)
 
-// this are integration tests
+// these are integration tests
 
 describe.skip('sandbox environment', function (this: {
   did: string
@@ -45,6 +45,20 @@ describe.skip('sandbox environment', function (this: {
     const keys = await client.getKeys()
 
     expect(keys).toEqual([key])
+  })
+
+  test('should get storage information', async () => {
+    const client = await setup()
+
+    const key = 'AKey'
+    const content = 'the content'
+
+    await client.create({ key, content })
+
+    const storage = await client.getStorageInformation()
+
+    expect(storage.available).toEqual(1000000 - 11)
+    expect(storage.used).toEqual(11)
   })
 
   test('should get a content', async () => {
