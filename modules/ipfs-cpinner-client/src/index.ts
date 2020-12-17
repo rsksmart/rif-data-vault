@@ -28,7 +28,7 @@ export default class {
     this.encryptionManager = encryptionManager(config.getEncryptionPublicKey, config.decrypt)
   }
 
-  async get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
+  get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
       .then(encrypted => Promise.all(encrypted.map(({ id, content }) => this.encryptionManager.decrypt(content).then(decrypted => ({ id, content: decrypted })))))
@@ -59,7 +59,7 @@ export default class {
       .catch(this.errorHandler)
   }
 
-  async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
+  create (payload: CreateContentPayload): Promise<CreateContentResponse> {
     const { content, key } = payload
     const { serviceUrl } = this.config
 
