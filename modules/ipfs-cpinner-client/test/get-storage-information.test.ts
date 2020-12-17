@@ -5,7 +5,7 @@ import { Connection } from 'typeorm'
 import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
 
-describe('get keys', function (this: {
+describe('get storage information', function (this: {
   server: Server,
   dbConnection: Connection,
   ipfsPinnerProvider: IpfsPinnerProvider,
@@ -15,7 +15,7 @@ describe('get keys', function (this: {
   const dbName = 'get-keys.sqlite'
 
   beforeAll(async () => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4607)
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4608)
     this.server = server
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection

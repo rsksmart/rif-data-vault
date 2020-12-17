@@ -18,10 +18,21 @@ export interface AuthenticationManager {
   refreshAccessToken(): Promise<LoginResponse>
 }
 
+export interface EncryptionManager {
+  encrypt(data: string): Promise<string>
+  decrypt(data: string): Promise<string>
+}
+
+export type GetEncryptionPublicKeyFn = () => Promise<string>
+export type DecryptFn = (data: string) => Promise<string>
+type RPCPersonalSignFn = (data: string) => Promise<string>
+
 export type Config = {
   serviceUrl: string
   serviceDid?: string
   did?: string
-  rpcPersonalSign?: (data: string) => Promise<string>
+  rpcPersonalSign?: RPCPersonalSignFn
+  decrypt?: DecryptFn
+  getEncryptionPublicKey?: GetEncryptionPublicKeyFn
   storage?: ClientKeyValueStorage
 }

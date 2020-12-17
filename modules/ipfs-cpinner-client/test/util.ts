@@ -9,9 +9,10 @@ import bodyParser from 'body-parser'
 import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
 import { hashPersonalMessage, ecsign, toRpcSig } from 'ethereumjs-util'
-import { ClientKeyValueStorage } from '../src/types'
+import { ClientKeyValueStorage, DecryptFn, GetEncryptionPublicKeyFn } from '../src/types'
 import DataVaultWebClient from '../src'
 import authManagerFactory from '../src/auth-manager'
+import { decrypt } from 'eth-sig-util'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
@@ -112,7 +113,14 @@ export const setupDataVaultClient = async (serviceUrl: string, serviceDid: strin
   const { rpcPersonalSign, did } = await identityFactory()
 
   return {
-    dataVaultClient: new DataVaultWebClient({ serviceUrl, did: did, rpcPersonalSign, serviceDid }),
+    dataVaultClient: new DataVaultWebClient({
+      serviceUrl,
+      did: did,
+      rpcPersonalSign,
+      serviceDid,
+      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+      decrypt: decryptTestFn
+    }),
     did
   }
 }
@@ -130,4 +138,15 @@ export const setupAuthManager = async (serviceUrl: string, serviceDid: string) =
     did,
     storage
   }
+}
+
+const testEncPrivateKey = '1e38556769bb9a789ff84f4fb5b5336e0e8f1c5915fe382ec04ce913e2ed9893'
+const testEncPublicKey = 'tBteRrjwd8jW4HXP5z0EqOMyjNcY3rini6/mJaTEBWg='
+
+export const getEncryptionPublicKeyTestFn: GetEncryptionPublicKeyFn = (encPubKey?: string) => Promise.resolve(encPubKey || testEncPublicKey)
+
+export const decryptTestFn: DecryptFn = (hexa: string): Promise<string> => {
+  const cipher = JSON.parse(Buffer.from(hexa.substr(2), 'hex').toString('utf8'))
+
+  return Promise.resolve(decrypt(cipher, testEncPrivateKey))
 }

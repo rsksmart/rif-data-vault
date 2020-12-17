@@ -2,11 +2,12 @@ import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
 import authManagerFactory from './auth-manager'
 import { ACCESS_TOKEN_KEY, AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
+import encryptionManager from './encryption-manager'
 import {
   AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, EncryptionManager
 } from './types'
 
 const ClientKeyValueStorageFactory = {
@@ -19,16 +20,19 @@ const ClientKeyValueStorageFactory = {
 export default class {
   private storage: ClientKeyValueStorage
   private authManager: AuthenticationManager
+  private encryptionManager: EncryptionManager
 
   constructor (private config: Config) {
     this.storage = config.storage || ClientKeyValueStorageFactory.fromLocalStorage()
     this.authManager = authManagerFactory(config, this.storage)
+    this.encryptionManager = encryptionManager(config.getEncryptionPublicKey, config.decrypt)
   }
 
-  get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
+  async get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
       .then(res => res.status === 200 && res.data)
-      .catch(this.errorHandler)
+      .then(encrypted => Promise.all(encrypted.map(({ id, content }) => this.encryptionManager.decrypt(content).then(decrypted => ({ id, content: decrypted })))))
+      // .catch(this.errorHandler)
   }
 
   getKeys (): Promise<string[]> {
@@ -55,14 +59,14 @@ export default class {
       .catch(this.errorHandler)
   }
 
-  create (payload: CreateContentPayload): Promise<CreateContentResponse> {
+  async create (payload: CreateContentPayload): Promise<CreateContentResponse> {
     const { content, key } = payload
     const { serviceUrl } = this.config
 
-    return this.getAccessToken()
-      .then(accessToken => axios.post(
+    return Promise.all([this.getAccessToken(), this.encryptionManager.encrypt(content)])
+      .then(([accessToken, encrypted]) => axios.post(
         `${serviceUrl}/content/${key}`,
-        { content },
+        { content: encrypted },
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 201 && res.data)
@@ -88,10 +92,10 @@ export default class {
     const { serviceUrl } = this.config
 
     const path = id ? `${key}/${id}` : key
-    return this.getAccessToken()
-      .then(accessToken => axios.put(
+    return Promise.all([this.getAccessToken(), this.encryptionManager.encrypt(content)])
+      .then(([accessToken, encrypted]) => axios.put(
         `${serviceUrl}/content/${path}`,
-        { content },
+        { content: encrypted },
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200 && res.data)
