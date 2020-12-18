@@ -28,11 +28,14 @@ export default class {
     this.encryptionManager = encryptionManager(config.getEncryptionPublicKey, config.decrypt)
   }
 
-  get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
-    return axios.get(`${this.config.serviceUrl}/content/${did}/${key}`)
-      .then(res => res.status === 200 && res.data)
-      .then(encrypted => Promise.all(encrypted.map(({ id, content }) => this.encryptionManager.decrypt(content).then(decrypted => ({ id, content: decrypted })))))
-      // .catch(this.errorHandler)
+  async get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
+    try {
+      const encrypted = await axios.get(`${this.config.serviceUrl}/content/${did}/${key}`).then(res => res.status === 200 && res.data)
+
+      return Promise.all(encrypted.map(({ id, content }) => this.encryptionManager.decrypt(content).then(decrypted => ({ id, content: decrypted }))))
+    } catch (err) {
+      this.errorHandler(err)
+    }
   }
 
   getKeys (): Promise<string[]> {
