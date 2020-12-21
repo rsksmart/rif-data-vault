@@ -1,21 +1,25 @@
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import DataVaultWebClient from '../src'
-import { deleteDatabase, resetDatabase, startService } from './util'
+import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
+import { EncryptionManager } from '../src/types'
+import encryptionManagerFactory from '../src/encryption-manager'
 
 describe('get', function (this: {
   server: Server,
   dbConnection: Connection,
   ipfsPinnerProvider: IpfsPinnerProvider,
-  serviceUrl: string
+  serviceUrl: string,
+  encryptionManager: EncryptionManager
 }) {
   const dbName = 'get.sqlite'
 
   const setupAndAddFile = async (did: string, key: string, file: string): Promise<{ client: DataVaultWebClient, id: string }> => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, decrypt: decryptTestFn })
 
-    const id = await this.ipfsPinnerProvider.create(did, key, file)
+    const encrypted = await this.encryptionManager.encrypt(file)
+    const id = await this.ipfsPinnerProvider.create(did, key, encrypted)
 
     return { client, id }
   }
@@ -26,6 +30,7 @@ describe('get', function (this: {
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection
     this.serviceUrl = serviceUrl
+    this.encryptionManager = encryptionManagerFactory(getEncryptionPublicKeyTestFn, decryptTestFn)
   })
 
   afterAll(async () => {
@@ -44,13 +49,14 @@ describe('get', function (this: {
   })
 
   test('should return an existing content in a form of array', async () => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, decrypt: decryptTestFn })
 
     const did = 'did:ethr:rsk:0x123456789'
     const key = 'ASavedContent'
     const file = 'hello world'
+    const encrypted = await this.encryptionManager.encrypt(file)
 
-    await this.ipfsPinnerProvider.create(did, key, file)
+    await this.ipfsPinnerProvider.create(did, key, encrypted)
 
     const content = await client.get({ did, key })
 
@@ -76,7 +82,9 @@ describe('get', function (this: {
     const did = 'did:ethr:rsk:0x123456abcdef'
 
     const { client, id } = await setupAndAddFile(did, key, file1)
-    const id2 = await this.ipfsPinnerProvider.create(did, key, file2)
+
+    const encrypted2 = await this.encryptionManager.encrypt(file2)
+    const id2 = await this.ipfsPinnerProvider.create(did, key, encrypted2)
 
     const content = await client.get({ did, key })
     expect(content).toEqual([

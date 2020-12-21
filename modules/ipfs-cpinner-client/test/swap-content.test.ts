@@ -1,4 +1,4 @@
-import { startService, setupDataVaultClient, deleteDatabase, testTimestamp, resetDatabase, testMaxStorage } from './util'
+import { startService, setupDataVaultClient, deleteDatabase, testTimestamp, resetDatabase, testMaxStorage, getEncryptionPublicKeyTestFn, decryptTestFn } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
@@ -6,6 +6,8 @@ import MockDate from 'mockdate'
 import ipfsHash from 'ipfs-only-hash'
 import localStorageMockFactory from './localStorageMockFactory'
 import { MAX_STORAGE_REACHED } from '../src/constants'
+import { EncryptionManager } from '../src/types'
+import encryptionManagerFactory from '../src/encryption-manager'
 
 jest.setTimeout(10000)
 
@@ -15,7 +17,8 @@ describe('swap content', function (this: {
   did: string,
   ipfsPinnerProvider: IpfsPinnerProvider,
   serviceUrl: string,
-  serviceDid: string
+  serviceDid: string,
+  encryptionManager: EncryptionManager
 }) {
   const dbName = 'swap.sqlite'
 
@@ -32,6 +35,7 @@ describe('swap content', function (this: {
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.serviceUrl = serviceUrl
     this.serviceDid = serviceDid
+    this.encryptionManager = encryptionManagerFactory(getEncryptionPublicKeyTestFn, decryptTestFn)
   })
 
   afterAll(async () => {
@@ -68,7 +72,9 @@ describe('swap content', function (this: {
 
     const { id } = await client.swap({ key, content })
 
-    const expected = await ipfsHash.of(Buffer.from(content))
+    const encrypted = await this.ipfsPinnerProvider.get(this.did, key)
+
+    const expected = await ipfsHash.of(Buffer.from(encrypted[0].content))
 
     expect(id).toEqual(expected)
   })
@@ -78,15 +84,14 @@ describe('swap content', function (this: {
 
     const key = 'TheKey4'
     const content = 'the content 4'
-
     const originalCid = await this.ipfsPinnerProvider.create(this.did, key, content)
 
     const newContent = 'this is the new content'
     const { id } = await client.swap({ key, content: newContent })
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
-
-    expect(expected[0].content).toEqual(newContent)
+    const decrypted = await this.encryptionManager.decrypt(expected[0].content)
+    expect(decrypted).toEqual(newContent)
     expect(id).not.toEqual(originalCid)
   })
 
@@ -107,8 +112,9 @@ describe('swap content', function (this: {
     const newContent = 'this is the new content'
     await client.swap({ key, content: newContent })
 
-    const expected = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(expected[0].content).toEqual(newContent)
+    const expectedEncrypted = await this.ipfsPinnerProvider.get(this.did, key)
+    const expectedDecrypted = await this.encryptionManager.decrypt(expectedEncrypted[0].content)
+    expect(expectedDecrypted).toEqual(newContent)
   })
 
   test('should swap only the content associated to the given id if present', async () => {
@@ -117,20 +123,25 @@ describe('swap content', function (this: {
     const key = 'TheKey6'
     const firstContent = 'the content 6'
     const secondContent = 'another content 6'
+    const encrypted1 = await this.encryptionManager.encrypt(firstContent)
+    const encrypted2 = await this.encryptionManager.encrypt(secondContent)
 
-    const cid1 = await this.ipfsPinnerProvider.create(this.did, key, firstContent)
-    await this.ipfsPinnerProvider.create(this.did, key, secondContent)
+    const cid1 = await this.ipfsPinnerProvider.create(this.did, key, encrypted1)
+    await this.ipfsPinnerProvider.create(this.did, key, encrypted2)
 
     const beforeSwapping = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(beforeSwapping[0].content).toEqual(firstContent)
-    expect(beforeSwapping[1].content).toEqual(secondContent)
+    expect(beforeSwapping[0].content).toEqual(encrypted1)
+    expect(beforeSwapping[1].content).toEqual(encrypted2)
 
     const newContent = 'this is the new content'
     await client.swap({ key, content: newContent, id: cid1 })
 
-    const expected = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(expected[0].content).toEqual(secondContent)
-    expect(expected[1].content).toEqual(newContent)
+    const expectedEncrypted = await this.ipfsPinnerProvider.get(this.did, key)
+    const expected1Decrypted = await this.encryptionManager.decrypt(expectedEncrypted[0].content)
+    const expected2Decrypted = await this.encryptionManager.decrypt(expectedEncrypted[1].content)
+
+    expect(expected1Decrypted).toEqual(secondContent)
+    expect(expected2Decrypted).toEqual(newContent)
   })
 
   test('should refresh the token if necessary', async () => {
@@ -151,8 +162,10 @@ describe('swap content', function (this: {
     await client.swap({ key, content: newContent, id: cid2 })
 
     const expected = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(expected[0].content).toEqual(newContent)
-    expect(expected[1].content).toEqual(newContent)
+    const decrypted1 = await this.encryptionManager.decrypt(expected[0].content)
+    const decrypted2 = await this.encryptionManager.decrypt(expected[1].content)
+    expect(decrypted1).toEqual(newContent)
+    expect(decrypted2).toEqual(newContent)
   })
 
   test('should throw an error if max storage reached', async () => {

@@ -43,6 +43,8 @@
   },
   "dependencies": {
     "axios": "^0.21.0",
-    "did-jwt": "^4.6.2"
+    "buffer": "^6.0.3",
+    "did-jwt": "^4.6.2",
+    "eth-sig-util": "^3.0.0"
   }
 }

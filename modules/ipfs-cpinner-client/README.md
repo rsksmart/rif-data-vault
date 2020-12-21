@@ -21,6 +21,8 @@ A Web Client to simplify the way the services provided by the IPFS Centralized D
 
 - Stores the authentication credentials in the given storage 
 
+- Encrypts/decrypts data prior to save/return using the user wallet provider
+
 ## Quick Usage
 
 ```typescript
@@ -33,9 +35,13 @@ const storage: ClientKeyValueStorage = myCustomStorage
 const serviceDid = 'did:ethr:rsk:0x123456789....abc'
 const address = '0xabcdef....123' // user's address
 const did = `did:ethr:rsk:${address}`
-const rpcPersonalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] }) // this is an example with Metamask
 
-const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, storage })
+// these are examples with Metamask
+const rpcPersonalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] })
+const decrypt = (hexCypher: string) => window.ethereum.request({ method: 'eth_decrypt', params: [hexCypher, address] })
+const getEncryptionPublicKey = () => window.ethereum.request.request({ method: 'eth_getEncryptionPublicKey', params: [address] })
+
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, storage, getEncryptionPublicKey, decrypt })
 ```
 
 ### Get
@@ -43,7 +49,7 @@ const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, servic
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl })
+const client = new DataVaultWebClient({ serviceUrl, decrypt })
 
 const key = 'EmailCredential'
 
@@ -78,7 +84,7 @@ console.log(`Available: ${storage.available}`)
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, getEncryptionPublicKey })
 
 const key = 'MyKey'
 const content = 'this is my content'
@@ -91,7 +97,7 @@ const id = await client.create({ key, content })
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, getEncryptionPublicKey })
 
 const key = 'MyKey'
 const content = 'this is my content'

@@ -4,8 +4,11 @@ import { Server } from 'http'
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
-import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient, testMaxStorage } from './util'
+import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient, testMaxStorage, getEncryptionPublicKeyTestFn, decryptTestFn } from './util'
 import { MAX_STORAGE_REACHED } from '../src/constants'
+import encryptionManagerFactory from '../src/encryption-manager'
+import { EncryptionManager } from '../src/types'
+
 jest.setTimeout(12000)
 
 describe('create content', function (this: {
@@ -14,7 +17,8 @@ describe('create content', function (this: {
   did: string,
   ipfsPinnerProvider: IpfsPinnerProvider,
   serviceUrl: string,
-  serviceDid: string
+  serviceDid: string,
+  encryptionManager: EncryptionManager
 }) {
   const dbName = 'create.sqlite'
 
@@ -32,6 +36,7 @@ describe('create content', function (this: {
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.serviceUrl = serviceUrl
     this.serviceDid = serviceDid
+    this.encryptionManager = encryptionManagerFactory(getEncryptionPublicKeyTestFn, decryptTestFn)
   })
 
   afterAll(async () => {
@@ -68,12 +73,13 @@ describe('create content', function (this: {
 
     const { id } = await client.create({ key, content })
 
-    const expected = await ipfsHash.of(Buffer.from(content))
+    const actualContent = await this.ipfsPinnerProvider.get(this.did, key)
+    const expected = await ipfsHash.of(Buffer.from(actualContent[0].content))
 
     expect(id).toEqual(expected)
   })
 
-  test('should save the content in the service', async () => {
+  test('should save the encrypted content in the service', async () => {
     const client = await setup()
 
     const key = 'AnotherKeyTest4'
@@ -83,7 +89,9 @@ describe('create content', function (this: {
 
     const actualContent = await this.ipfsPinnerProvider.get(this.did, key)
 
-    expect(actualContent[0].content).toEqual(content)
+    const decrypted = await this.encryptionManager.decrypt(actualContent[0].content)
+
+    expect(decrypted).toEqual(content)
   })
 
   test('should refresh the access token if necessary', async () => {
@@ -102,10 +110,14 @@ describe('create content', function (this: {
     await client.create({ key: key2, content: content2 })
 
     const actualContent1 = await this.ipfsPinnerProvider.get(this.did, key)
-    expect(actualContent1[0].content).toEqual(content)
+    const decrypted1 = await this.encryptionManager.decrypt(actualContent1[0].content)
+
+    expect(decrypted1).toEqual(content)
 
     const actualContent2 = await this.ipfsPinnerProvider.get(this.did, key2)
-    expect(actualContent2[0].content).toEqual(content2)
+    const decrypted2 = await this.encryptionManager.decrypt(actualContent2[0].content)
+
+    expect(decrypted2).toEqual(content2)
   })
 
   test('should throw an error if max storage reached', async () => {
