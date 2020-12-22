@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   node: circleci/node@1.1.6
+  codecov: codecov/codecov@1.0.2
 
 commands:
   install-ipfs:
@@ -46,6 +47,8 @@ jobs:
             - run: npm run build
             - run: npm run lint:ci
             - run: npm run test:ci
+            - codecov/upload:
+                file: ./reports/coverage-final.json
             - store_test_results:
                 path: ./reports/
             - store_artifacts:
