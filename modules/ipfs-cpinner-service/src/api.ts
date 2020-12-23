@@ -53,6 +53,16 @@ export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider
       .catch(err => errorHandler(err, req, res))
   })
 
+  app.get('/backup', async (req: AuthenticatedRequest, res) => {
+    const { did } = req.user
+
+    logger.info(`Retrieving backup from ${did}`)
+
+    return provider.getBackup(did)
+      .then(backup => res.status(200).json(backup))
+      .catch(err => errorHandler(err, req, res))
+  })
+
   app.post('/content/:key', (req: AuthenticatedRequest, res: Response) => {
     const { did } = req.user
     const { key } = req.params
