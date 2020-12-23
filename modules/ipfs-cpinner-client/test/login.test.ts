@@ -49,20 +49,21 @@ describe('login', function (this: {
   test('should fail if no did', async () => {
     const authManager = authManagerFactory({ serviceUrl: this.serviceUrl }, customStorageFactory())
 
-    expect(() => authManager.login()).rejects.toThrowError(NO_DID)
+    expect(() => authManager.getAccessToken()).rejects.toThrowError(NO_DID)
   })
 
   test('should fail if no signer', async () => {
     this.did = 'did:ethr:rsk:0x123456789'
     const authManager = authManagerFactory({ serviceUrl: this.serviceUrl, did: this.did }, customStorageFactory())
 
-    expect(() => authManager.login()).rejects.toThrowError(NO_SIGNER)
+    expect(() => authManager.getAccessToken()).rejects.toThrowError(NO_SIGNER)
   })
 
   test('should return an access token and refresh token', async () => {
     const authManager = await setupComplete()
 
-    const { accessToken, refreshToken } = await authManager.login()
+    await authManager.getAccessToken()
+    const { accessToken, refreshToken } = await authManager.storedTokens()
 
     expect(accessToken).toBeTruthy()
     expect(refreshToken).toBeTruthy()
@@ -71,7 +72,7 @@ describe('login', function (this: {
   test('should receive an access token and the subject must be the client did', async () => {
     const authManager = await setupComplete()
 
-    const { accessToken } = await authManager.login()
+    const accessToken = await authManager.getAccessToken()
 
     expect(accessToken).toBeTruthy()
 
@@ -83,7 +84,7 @@ describe('login', function (this: {
   test('should receive an access token issued by the service did', async () => {
     const authManager = await setupComplete()
 
-    const { accessToken } = await authManager.login()
+    const accessToken = await authManager.getAccessToken()
 
     expect(accessToken).toBeTruthy()
 
@@ -95,7 +96,8 @@ describe('login', function (this: {
   test('should save the tokens in the storage', async () => {
     const authManager = await setupComplete()
 
-    const { accessToken, refreshToken } = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const { accessToken, refreshToken } = await authManager.storedTokens()
 
     const actualAccessToken = await this.storage.get(ACCESS_TOKEN_KEY)
     const actualRefreshToken = await this.storage.get(REFRESH_TOKEN_KEY)
