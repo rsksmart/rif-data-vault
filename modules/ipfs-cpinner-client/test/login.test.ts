@@ -15,14 +15,12 @@ describe('login', function (this: {
   dbConnection: Connection,
   serviceDid: string,
   serviceUrl: string,
-  storage: ClientKeyValueStorage
 }) {
   const dbName = 'login.sqlite'
 
   const setupComplete = () => setupAuthManager(this.serviceUrl, this.serviceDid)
     .then(({ authManager, did, storage }) => {
       this.did = did
-      this.storage = storage
       return authManager
     })
 
@@ -99,10 +97,47 @@ describe('login', function (this: {
     await authManager.getAccessToken()
     const { accessToken, refreshToken } = await authManager.storedTokens()
 
-    const actualAccessToken = await this.storage.get(ACCESS_TOKEN_KEY)
-    const actualRefreshToken = await this.storage.get(REFRESH_TOKEN_KEY)
+    const actualTokens = await authManager.storedTokens()
 
-    expect(actualAccessToken).toEqual(accessToken)
-    expect(actualRefreshToken).toEqual(refreshToken)
+    expect(actualTokens.accessToken).toEqual(accessToken)
+    expect(actualTokens.refreshToken).toEqual(refreshToken)
   })
+
+  test('should refresh the access token if it is expired', async () => {
+    const authManager = await setupComplete()
+
+    await authManager.getAccessToken()
+    const loginTokens = await authManager.storedTokens()
+    expect(loginTokens.accessToken).toBeTruthy()
+    expect(loginTokens.refreshToken).toBeTruthy()
+
+    MockDate.set(testTimestamp + 1 * 60 * 60 * 1000) // add 1 hour, access token should be expired
+
+    await authManager.getAccessToken()
+    const refreshTokens = await authManager.storedTokens()
+    expect(refreshTokens.accessToken).toBeTruthy()
+    expect(refreshTokens.refreshToken).toBeTruthy()
+
+    expect(refreshTokens.accessToken).not.toEqual(loginTokens.accessToken)
+    expect(refreshTokens.refreshToken).not.toEqual(loginTokens.refreshToken)
+  })
+
+  test('should refresh (by doing a new login) even if the refresh token is expired', async () => {
+    const authManager = await setupComplete()
+
+    await authManager.getAccessToken()
+    const loginTokens = await authManager.storedTokens()
+    expect(loginTokens.accessToken).toBeTruthy()
+    expect(loginTokens.refreshToken).toBeTruthy()
+
+    MockDate.set(testTimestamp + 10 * 24 * 60 * 60 * 1000) // add 10 days, refresh token should be expired
+
+    await authManager.getAccessToken()
+    const refreshTokens = await authManager.storedTokens()
+    expect(refreshTokens.accessToken).toBeTruthy()
+    expect(refreshTokens.refreshToken).toBeTruthy()
+
+    expect(refreshTokens.accessToken).not.toEqual(loginTokens.accessToken)
+    expect(refreshTokens.refreshToken).not.toEqual(loginTokens.refreshToken)
+  }, 10000)
 })
