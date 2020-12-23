@@ -9,7 +9,7 @@ import authManagerFactory from '../src/auth-manager'
 
 jest.setTimeout(7000)
 
-describe('auth manager', function (this: {
+describe('login', function (this: {
   did: string,
   server: Server,
   dbConnection: Connection,
