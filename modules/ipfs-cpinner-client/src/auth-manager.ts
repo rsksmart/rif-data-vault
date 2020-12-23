@@ -1,6 +1,7 @@
 import { NO_DID, NO_SIGNER, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, NO_SERVICE_DID } from './constants'
 import { ClientKeyValueStorage, LoginResponse, Config } from './types'
 import axios from 'axios'
+import { decodeJWT } from 'did-jwt'
 
 export default (config: Config, storage: ClientKeyValueStorage) => {
   const login = async (): Promise<LoginResponse> => {
@@ -58,5 +59,26 @@ export default (config: Config, storage: ClientKeyValueStorage) => {
     return rpcPersonalSign(message).then(sig => ({ did, sig }))
   }
 
-  return { login, refreshAccessToken }
+  const getAccessToken = async () => {
+    const accessToken = await storage.get(ACCESS_TOKEN_KEY)
+
+    if (!accessToken) return login().then(tokens => tokens.accessToken)
+
+    const { payload } = decodeJWT(accessToken)
+
+    if (payload.exp <= Math.floor(Date.now() / 1000)) {
+      return refreshAccessToken().then(tokens => tokens.accessToken)
+    }
+
+    return accessToken
+  }
+
+  const storedTokens = async () => {
+    return {
+      accessToken: await storage.get(ACCESS_TOKEN_KEY),
+      refreshToken: await storage.get(REFRESH_TOKEN_KEY)
+    }
+  }
+
+  return { getAccessToken, storedTokens }
 }

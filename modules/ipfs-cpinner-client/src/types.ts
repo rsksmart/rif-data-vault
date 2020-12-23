@@ -13,11 +13,6 @@ export interface ClientKeyValueStorage {
   set (key: string, value: string): Promise<void>
 }
 
-export interface AuthenticationManager {
-  login(): Promise<LoginResponse>
-  refreshAccessToken(): Promise<LoginResponse>
-}
-
 export interface EncryptionManager {
   encrypt(data: string): Promise<string>
   decrypt(data: string): Promise<string>

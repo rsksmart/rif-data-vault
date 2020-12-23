@@ -1,10 +1,8 @@
 import axios from 'axios'
-import { decodeJWT } from 'did-jwt'
 import authManagerFactory from './auth-manager'
-import { ACCESS_TOKEN_KEY, AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
+import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import encryptionManager from './encryption-manager'
 import {
-  AuthenticationManager,
   ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
   SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, EncryptionManager
@@ -19,7 +17,7 @@ const ClientKeyValueStorageFactory = {
 
 export default class {
   private storage: ClientKeyValueStorage
-  private authManager: AuthenticationManager
+  private authManager: ReturnType<typeof authManagerFactory>
   private encryptionManager: EncryptionManager
 
   constructor (private config: Config) {
@@ -41,7 +39,7 @@ export default class {
   getKeys (): Promise<string[]> {
     const { serviceUrl } = this.config
 
-    return this.getAccessToken()
+    return this.authManager.getAccessToken()
       .then(accessToken => axios.get(
         `${serviceUrl}/keys`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
@@ -53,7 +51,7 @@ export default class {
   getStorageInformation (): Promise<StorageInformation> {
     const { serviceUrl } = this.config
 
-    return this.getAccessToken()
+    return this.authManager.getAccessToken()
       .then(accessToken => axios.get(
         `${serviceUrl}/storage`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
@@ -66,7 +64,7 @@ export default class {
     const { content, key } = payload
     const { serviceUrl } = this.config
 
-    return Promise.all([this.getAccessToken(), this.encryptionManager.encrypt(content)])
+    return Promise.all([this.authManager.getAccessToken(), this.encryptionManager.encrypt(content)])
       .then(([accessToken, encrypted]) => axios.post(
         `${serviceUrl}/content/${key}`,
         { content: encrypted },
@@ -81,7 +79,7 @@ export default class {
     const { serviceUrl } = this.config
     const path = id ? `${key}/${id}` : key
 
-    return this.getAccessToken()
+    return this.authManager.getAccessToken()
       .then(accessToken => axios.delete(
         `${serviceUrl}/content/${path}`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
@@ -95,7 +93,7 @@ export default class {
     const { serviceUrl } = this.config
 
     const path = id ? `${key}/${id}` : key
-    return Promise.all([this.getAccessToken(), this.encryptionManager.encrypt(content)])
+    return Promise.all([this.authManager.getAccessToken(), this.encryptionManager.encrypt(content)])
       .then(([accessToken, encrypted]) => axios.put(
         `${serviceUrl}/content/${path}`,
         { content: encrypted },
@@ -103,20 +101,6 @@ export default class {
       )
       .then(res => res.status === 200 && res.data)
       .catch(this.errorHandler)
-  }
-
-  private async getAccessToken (): Promise<string> {
-    const accessToken = await this.storage.get(ACCESS_TOKEN_KEY)
-
-    if (!accessToken) return this.authManager.login().then(tokens => tokens.accessToken)
-
-    const { payload } = decodeJWT(accessToken)
-
-    if (payload.exp <= Math.floor(Date.now() / 1000)) {
-      return this.authManager.refreshAccessToken().then(tokens => tokens.accessToken)
-    }
-
-    return accessToken
   }
 
   private errorHandler (err) {

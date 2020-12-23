@@ -49,20 +49,21 @@ describe('refresh access token', function (this: {
   test('should throw an error if no did', async () => {
     const authManager = await authManagerFactory({ serviceUrl: this.serviceUrl }, customStorageFactory())
 
-    expect(() => authManager.refreshAccessToken()).rejects.toThrow(NO_DID)
+    expect(authManager.getAccessToken()).rejects.toThrow(NO_DID)
   })
 
   test('should throw an error if no signer', async () => {
     const did = 'did:ethr:rsk:0x123456789'
     const authManager = await authManagerFactory({ serviceUrl: this.serviceUrl, did }, customStorageFactory())
 
-    await expect(() => authManager.refreshAccessToken()).rejects.toThrowError(NO_SIGNER)
+    await expect(authManager.getAccessToken()).rejects.toThrowError(NO_SIGNER)
   })
 
   test('should throw return accessToken and refreshToken', async () => {
     const authManager = await setupComplete()
 
-    const { accessToken, refreshToken } = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const { accessToken, refreshToken } = await authManager.storedTokens()
 
     expect(accessToken).toBeTruthy()
     expect(refreshToken).toBeTruthy()
@@ -71,7 +72,8 @@ describe('refresh access token', function (this: {
   test('should save the tokens in the given storage', async () => {
     const authManager = await setupComplete()
 
-    const { accessToken, refreshToken } = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const { accessToken, refreshToken } = await authManager.storedTokens()
 
     const actualAccessToken = await this.storage.get(ACCESS_TOKEN_KEY)
     const actualRefreshToken = await this.storage.get(REFRESH_TOKEN_KEY)
@@ -83,13 +85,15 @@ describe('refresh access token', function (this: {
   test('should refresh the access token if it is expired', async () => {
     const authManager = await setupComplete()
 
-    const loginTokens = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const loginTokens = await authManager.storedTokens()
     expect(loginTokens.accessToken).toBeTruthy()
     expect(loginTokens.refreshToken).toBeTruthy()
 
     MockDate.set(testTimestamp + 1 * 60 * 60 * 1000) // add 1 hour, access token should be expired
 
-    const refreshTokens = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const refreshTokens = await authManager.storedTokens()
     expect(refreshTokens.accessToken).toBeTruthy()
     expect(refreshTokens.refreshToken).toBeTruthy()
 
@@ -100,13 +104,15 @@ describe('refresh access token', function (this: {
   test('should refresh (by doing a new login) even if the refresh token is expired', async () => {
     const authManager = await setupComplete()
 
-    const loginTokens = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const loginTokens = await authManager.storedTokens()
     expect(loginTokens.accessToken).toBeTruthy()
     expect(loginTokens.refreshToken).toBeTruthy()
 
     MockDate.set(testTimestamp + 10 * 24 * 60 * 60 * 1000) // add 10 days, refresh token should be expired
 
-    const refreshTokens = await authManager.refreshAccessToken()
+    await authManager.getAccessToken()
+    const refreshTokens = await authManager.storedTokens()
     expect(refreshTokens.accessToken).toBeTruthy()
     expect(refreshTokens.refreshToken).toBeTruthy()
 
