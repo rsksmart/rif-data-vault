@@ -133,7 +133,7 @@ export const setupAuthManager = async (serviceUrl: string, serviceDid: string) =
 
   return {
     authManager: authManagerFactory(
-      { serviceUrl, did, personalSign, serviceDid, storage },
+      { serviceUrl, did, personalSign, serviceDid, storage }
     ),
     did,
     storage
