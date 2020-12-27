@@ -1,9 +1,8 @@
-import { ClientKeyValueStorage } from '../src/types'
 import { decodeJWT } from 'did-jwt'
 import { deleteDatabase, startService, testTimestamp, customStorageFactory, resetDatabase, setupAuthManager } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
-import { ACCESS_TOKEN_KEY, NO_DID, NO_SIGNER, REFRESH_TOKEN_KEY } from '../src/constants'
+import { NO_DID, NO_SIGNER } from '../src/constants'
 import MockDate from 'mockdate'
 import authManagerFactory from '../src/auth-manager'
 
@@ -19,7 +18,7 @@ describe('login', function (this: {
   const dbName = 'login.sqlite'
 
   const setupComplete = () => setupAuthManager(this.serviceUrl, this.serviceDid)
-    .then(({ authManager, did, storage }) => {
+    .then(({ authManager, did }) => {
       this.did = did
       return authManager
     })
