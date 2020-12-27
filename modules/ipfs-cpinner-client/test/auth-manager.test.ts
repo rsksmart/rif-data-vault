@@ -2,7 +2,7 @@ import { decodeJWT } from 'did-jwt'
 import { deleteDatabase, startService, testTimestamp, customStorageFactory, resetDatabase, setupAuthManager } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
-import { NO_DID, NO_SIGNER } from '../src/constants'
+import { NO_DID, NO_SIGNER } from '../src/auth-manager/constants'
 import MockDate from 'mockdate'
 import authManagerFactory from '../src/auth-manager'
 

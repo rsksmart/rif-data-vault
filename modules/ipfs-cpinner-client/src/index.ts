@@ -3,10 +3,11 @@ import authManagerFactory from './auth-manager'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import encryptionManager from './encryption-manager'
 import {
-  ClientKeyValueStorage, CreateContentPayload, CreateContentResponse,
+  CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
   SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, EncryptionManager
 } from './types'
+import { ClientKeyValueStorage } from './auth-manager/types'
 
 const ClientKeyValueStorageFactory = {
   fromLocalStorage: (): ClientKeyValueStorage => ({
