@@ -44,14 +44,14 @@ describe('login', function (this: {
   })
 
   test('should fail if no did', async () => {
-    const authManager = authManagerFactory({ serviceUrl: this.serviceUrl }, customStorageFactory())
+    const authManager = authManagerFactory({ serviceUrl: this.serviceUrl, storage: customStorageFactory() })
 
     expect(() => authManager.getAccessToken()).rejects.toThrowError(NO_DID)
   })
 
   test('should fail if no signer', async () => {
     this.did = 'did:ethr:rsk:0x123456789'
-    const authManager = authManagerFactory({ serviceUrl: this.serviceUrl, did: this.did }, customStorageFactory())
+    const authManager = authManagerFactory({ serviceUrl: this.serviceUrl, did: this.did, storage: customStorageFactory() })
 
     expect(() => authManager.getAccessToken()).rejects.toThrowError(NO_SIGNER)
   })

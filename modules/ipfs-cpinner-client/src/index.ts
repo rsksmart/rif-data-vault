@@ -9,21 +9,12 @@ import {
 } from './types'
 import { ClientKeyValueStorage } from './auth-manager/types'
 
-const ClientKeyValueStorageFactory = {
-  fromLocalStorage: (): ClientKeyValueStorage => ({
-    get: (key: string) => Promise.resolve(localStorage.getItem(key)),
-    set: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value))
-  })
-}
-
 export default class {
-  private storage: ClientKeyValueStorage
   private authManager: ReturnType<typeof authManagerFactory>
   private encryptionManager: EncryptionManager
 
   constructor (private config: Config) {
-    this.storage = config.storage || ClientKeyValueStorageFactory.fromLocalStorage()
-    this.authManager = authManagerFactory(config, this.storage)
+    this.authManager = authManagerFactory(config)
     this.encryptionManager = encryptionManager(config.getEncryptionPublicKey, config.decrypt)
   }
 
