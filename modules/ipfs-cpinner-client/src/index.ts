@@ -5,9 +5,10 @@ import encryptionManager from './encryption-manager'
 import {
   CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, EncryptionManager
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation
 } from './types'
 import { ClientKeyValueStorage } from './auth-manager/types'
+import { EncryptionManager } from './encryption-manager/types'
 
 export default class {
   private authManager: ReturnType<typeof authManagerFactory>
