@@ -12,13 +12,12 @@ describe.skip('sandbox environment', function (this: {
   const setup = async (): Promise<DataVaultWebClient> => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
-    const rpcPersonalSign = clientIdentity.rpcPersonalSign
 
     // COMPLETE WITH YOUR SANDBOX ENVIRONMENT VALUES
-    const serviceDid = ''
+    // const serviceDid = ''
     const serviceUrl = ''
 
-    return new DataVaultWebClient({ serviceUrl, did: this.did, rpcPersonalSign, serviceDid })
+    return new DataVaultWebClient({ serviceUrl, ...clientIdentity })
   }
 
   beforeEach(() => { global.localStorage = localStorageMockFactory() })

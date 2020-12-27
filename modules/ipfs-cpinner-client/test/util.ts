@@ -9,7 +9,8 @@ import bodyParser from 'body-parser'
 import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
 import { hashPersonalMessage, ecsign, toRpcSig } from 'ethereumjs-util'
-import { ClientKeyValueStorage, DecryptFn, GetEncryptionPublicKeyFn } from '../src/types'
+import { DecryptFn, GetEncryptionPublicKeyFn } from '../src/types'
+import { ClientKeyValueStorage } from '../src/auth-manager/types'
 import DataVaultWebClient from '../src'
 import authManagerFactory from '../src/auth-manager'
 import { decrypt } from 'eth-sig-util'
@@ -25,7 +26,7 @@ export const identityFactory = async () => {
 
   return {
     did: rskDIDFromPrivateKey()(privateKey).did,
-    rpcPersonalSign: (data: string) => {
+    personalSign: (data: string) => {
       const messageDigest = hashPersonalMessage(Buffer.from(data))
 
       const ecdsaSignature = ecsign(
@@ -110,13 +111,13 @@ export const customStorageFactory = (): ClientKeyValueStorage => {
 }
 
 export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string): Promise<{ dataVaultClient: DataVaultWebClient, did: string }> => {
-  const { rpcPersonalSign, did } = await identityFactory()
+  const { personalSign, did } = await identityFactory()
 
   return {
     dataVaultClient: new DataVaultWebClient({
       serviceUrl,
       did: did,
-      rpcPersonalSign,
+      personalSign,
       serviceDid,
       getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
       decrypt: decryptTestFn
@@ -126,14 +127,13 @@ export const setupDataVaultClient = async (serviceUrl: string, serviceDid: strin
 }
 
 export const setupAuthManager = async (serviceUrl: string, serviceDid: string) => {
-  const { rpcPersonalSign, did } = await identityFactory()
+  const { personalSign, did } = await identityFactory()
 
   const storage = customStorageFactory()
 
   return {
     authManager: authManagerFactory(
-      { serviceUrl, did, rpcPersonalSign, serviceDid },
-      storage
+      { serviceUrl, did, personalSign, serviceDid, storage },
     ),
     did,
     storage

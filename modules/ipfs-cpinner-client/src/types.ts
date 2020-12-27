@@ -1,4 +1,4 @@
-import { ClientKeyValueStorage, RPCPersonalSignFn } from './auth-manager/types'
+import { DIDAuthConfig } from './auth-manager/types'
 
 export type GetContentPayload = { did: string, key: string }
 export type GetContentResponsePayload = { id: string, content: string }
@@ -17,12 +17,7 @@ export interface EncryptionManager {
 export type GetEncryptionPublicKeyFn = () => Promise<string>
 export type DecryptFn = (data: string) => Promise<string>
 
-export type Config = {
-  serviceUrl: string
-  serviceDid?: string
-  did?: string
-  rpcPersonalSign?: RPCPersonalSignFn
+export type Config = DIDAuthConfig & {
   decrypt?: DecryptFn
   getEncryptionPublicKey?: GetEncryptionPublicKeyFn
-  storage?: ClientKeyValueStorage
 }

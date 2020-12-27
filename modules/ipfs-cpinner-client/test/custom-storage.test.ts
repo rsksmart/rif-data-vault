@@ -16,14 +16,11 @@ describe('custom storage', function (this: {
 
   const setup = async (): Promise<DataVaultWebClient> => {
     const clientIdentity = await identityFactory()
-    const did = clientIdentity.did
-    const rpcPersonalSign = clientIdentity.rpcPersonalSign
 
     return new DataVaultWebClient(
       {
         serviceUrl: this.serviceUrl,
-        did,
-        rpcPersonalSign,
+        ...clientIdentity,
         serviceDid: this.serviceDid,
         storage: customStorageFactory(),
         getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
