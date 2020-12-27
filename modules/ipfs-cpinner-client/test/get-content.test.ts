@@ -3,7 +3,7 @@ import DataVaultWebClient from '../src'
 import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
-import { EncryptionManager } from '../src/types'
+import { EncryptionManager } from '../src/encryption-manager/types'
 import encryptionManagerFactory from '../src/encryption-manager'
 
 describe('get', function (this: {
