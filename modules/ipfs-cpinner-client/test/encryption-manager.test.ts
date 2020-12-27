@@ -1,7 +1,7 @@
 import encryptionManagerFactory from '../src/encryption-manager'
 import { EthEncryptedData } from 'eth-sig-util'
 import { decryptTestFn, getEncryptionPublicKeyTestFn } from './util'
-import { NO_DECRYPT_FN, NO_GET_ENCRYPTION_PUBLIC_KEY_FN } from '../src/constants'
+import { NO_DECRYPT_FN, NO_GET_ENCRYPTION_PUBLIC_KEY_FN } from '../src/encryption-manager/constants'
 
 describe('', function (this: {
 
