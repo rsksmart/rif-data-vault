@@ -79,6 +79,19 @@ console.log(`Used: ${storage.used}`)
 console.log(`Available: ${storage.available}`)
 ```
 
+### Get backup information
+
+```typescript
+import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
+
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
+
+const backup = await client.getBackup()
+
+console.log('This is the keys and cids you have stored in the DV')
+console.log(backup)
+```
+
 ### Create
 
 ```typescript

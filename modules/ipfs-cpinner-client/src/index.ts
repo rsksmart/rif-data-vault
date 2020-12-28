@@ -5,7 +5,7 @@ import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED,
 import {
   CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, Backup
 } from './types'
 
 export default class {
@@ -50,6 +50,18 @@ export default class {
     return this.authManager.getAccessToken()
       .then(accessToken => axios.get(
         `${serviceUrl}/storage`,
+        { headers: { Authorization: `DIDAuth ${accessToken}` } })
+      )
+      .then(res => res.status === 200 && res.data)
+      .catch(this.errorHandler)
+  }
+
+  getBackup (): Promise<Backup> {
+    const { serviceUrl } = this.config
+
+    return this.getAccessToken()
+      .then(accessToken => axios.get(
+        `${serviceUrl}/backup`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
       )
       .then(res => res.status === 200 && res.data)
