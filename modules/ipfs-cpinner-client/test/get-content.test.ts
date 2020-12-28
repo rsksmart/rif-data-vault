@@ -1,9 +1,11 @@
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import DataVaultWebClient from '../src'
-import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, startService } from './util'
+import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, setupDataVaultClient, startService, testTimestamp } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import EncryptionManager from '../src/encryption-manager'
+import MockDate from 'mockdate'
+import localStorageMockFactory from './localStorageMockFactory'
 
 describe('get', function (this: {
   server: Server,
@@ -11,26 +13,21 @@ describe('get', function (this: {
   ipfsPinnerProvider: IpfsPinnerProvider,
   serviceUrl: string,
   encryptionManager: EncryptionManager
+  serviceDid: string
 }) {
   const dbName = 'get.sqlite'
 
   const setupAndAddFile = async (did: string, key: string, file: string): Promise<{ client: DataVaultWebClient, id: string }> => {
-    const client = new DataVaultWebClient({
-      serviceUrl: this.serviceUrl,
-      encryptionManager: new EncryptionManager({
-        getEncryptionPublicKey: undefined,
-        decrypt: decryptTestFn
-      })
-    })
+    const { dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
 
     const encrypted = await this.encryptionManager.encrypt(file)
     const id = await this.ipfsPinnerProvider.create(did, key, encrypted)
 
-    return { client, id }
+    return { client: dataVaultClient, id }
   }
 
   beforeAll(async () => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection } = await startService(dbName, 4600)
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4600)
     this.server = server
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection
@@ -39,6 +36,7 @@ describe('get', function (this: {
       getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
       decrypt: decryptTestFn
     })
+    this.serviceDid = serviceDid
   })
 
   afterAll(async () => {
@@ -46,18 +44,18 @@ describe('get', function (this: {
     await deleteDatabase(this.dbConnection, dbName)
   })
 
+  beforeEach(() => {
+    MockDate.set(testTimestamp)
+    global.localStorage = localStorageMockFactory()
+  })
+
   afterEach(async () => {
+    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 
   test('should return an existing content in a form of array', async () => {
-    const client = new DataVaultWebClient({
-      serviceUrl: this.serviceUrl,
-      encryptionManager: new EncryptionManager({
-        getEncryptionPublicKey: undefined,
-        decrypt: decryptTestFn
-      })
-    })
+    const { dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
 
     const did = 'did:ethr:rsk:0x123456789'
     const key = 'ASavedContent'
@@ -66,7 +64,7 @@ describe('get', function (this: {
 
     await this.ipfsPinnerProvider.create(did, key, encrypted)
 
-    const content = await client.get({ did, key })
+    const content = await dataVaultClient.get({ did, key })
 
     expect(content).toBeTruthy()
     expect(content).toBeInstanceOf(Array)
@@ -102,18 +100,12 @@ describe('get', function (this: {
   })
 
   test('should return an empty array if the key has not content associated', async () => {
-    const client = new DataVaultWebClient({
-      serviceUrl: this.serviceUrl,
-      encryptionManager: new EncryptionManager({
-        getEncryptionPublicKey: undefined,
-        decrypt: undefined
-      })
-    })
+    const { dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
 
     const key = 'DoNotExist'
     const did = 'did:ethr:rsk:0x123456abcdef'
 
-    const content = await client.get({ did, key })
+    const content = await dataVaultClient.get({ did, key })
     expect(content).toEqual([])
   })
 })
