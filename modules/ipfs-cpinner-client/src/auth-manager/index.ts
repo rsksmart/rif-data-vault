@@ -2,9 +2,10 @@ import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants'
 import { LocalStorage } from './store'
-import { LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore } from './types'
+import { LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore, DIDAuthStoreConfig, DIDAuthServiceConfig } from './types'
+import { Web3Provider } from '../web3provider/types'
 
-export default class {
+class AuthManager {
   store: KeyValueStore
   did: string
   serviceUrl: string
@@ -83,4 +84,18 @@ export default class {
     accessToken,
     refreshToken
   }))
+
+  static fromWeb3Provider (config: DIDAuthServiceConfig & DIDAuthStoreConfig, provider: Web3Provider) {
+    return provider.request({
+      method: 'eth_accounts'
+    }).then(accounts => new AuthManager({
+      ...config,
+      personalSign: (data: string) => provider.request({
+        method: 'personal_sign',
+        params: [accounts[0], data]
+      })
+    }))
+  }
 }
+
+export default AuthManager
