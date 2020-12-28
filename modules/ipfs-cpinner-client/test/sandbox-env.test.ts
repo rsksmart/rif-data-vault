@@ -1,9 +1,8 @@
 import DataVaultWebClient from '../src'
-import { identityFactory } from './util'
+import { identityFactory, getEncryptionPublicKeyTestFn, decryptTestFn, customStorageFactory } from './util'
 import localStorageMockFactory from './localStorageMockFactory'
 import AuthManager from '../src/auth-manager'
 import EncryptionManager from '../src/encryption-manager'
-import { getEncryptionPublicKeyTestFn, decryptTestFn, customStorageFactory } from './util'
 
 jest.setTimeout(12000)
 
