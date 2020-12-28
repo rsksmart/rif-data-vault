@@ -1,5 +1,5 @@
 import express, { Express } from 'express'
-import { setupPublicApi } from '../src/api'
+import { setupPermissionedApi } from '../src/api'
 import request from 'supertest'
 import { Connection } from 'typeorm'
 import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from './util'
@@ -13,7 +13,7 @@ async function testContentIsAccessible (
   // setup
   const dbConnection = await createSqliteConnection(database)
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl })
-  setupPublicApi(app, ipfsPinnerProvider, mockedLogger)
+  setupPermissionedApi(app, ipfsPinnerProvider, mockedLogger)
 
   await arrangeAndTest(ipfsPinnerProvider)
 
