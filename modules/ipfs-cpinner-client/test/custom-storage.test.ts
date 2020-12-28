@@ -15,18 +15,16 @@ describe('custom storage', function (this: {
   const dbName = 'custom-storage.sqlite'
 
   const setup = async (): Promise<DataVaultWebClient> => {
-    const clientIdentity = await identityFactory()
+    const { did, personalSign } = await identityFactory()
 
-    return new DataVaultWebClient(
-      {
-        serviceUrl: this.serviceUrl,
-        ...clientIdentity,
-        serviceDid: this.serviceDid,
-        storage: customStorageFactory(),
-        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
-        decrypt: decryptTestFn
-      }
-    )
+    return new DataVaultWebClient({
+      did,
+      serviceUrl: this.serviceUrl,
+      store: customStorageFactory(),
+      personalSign,
+      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+      decrypt: decryptTestFn
+    })
   }
 
   beforeAll(async () => {
