@@ -6,8 +6,7 @@ import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
 import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient, testMaxStorage, getEncryptionPublicKeyTestFn, decryptTestFn } from './util'
 import { MAX_STORAGE_REACHED } from '../src/constants'
-import encryptionManagerFactory from '../src/encryption-manager'
-import { EncryptionManager } from '../src/encryption-manager/types'
+import EncryptionManager from '../src/encryption-manager'
 
 jest.setTimeout(12000)
 
@@ -36,7 +35,10 @@ describe('create content', function (this: {
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.serviceUrl = serviceUrl
     this.serviceDid = serviceDid
-    this.encryptionManager = encryptionManagerFactory(getEncryptionPublicKeyTestFn, decryptTestFn)
+    this.encryptionManager = new EncryptionManager({
+      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+      decrypt: decryptTestFn
+    })
   })
 
   afterAll(async () => {
