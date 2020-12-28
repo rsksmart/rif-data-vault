@@ -6,8 +6,7 @@ import MockDate from 'mockdate'
 import ipfsHash from 'ipfs-only-hash'
 import localStorageMockFactory from './localStorageMockFactory'
 import { MAX_STORAGE_REACHED } from '../src/constants'
-import { EncryptionManager } from '../src/encryption-manager/types'
-import encryptionManagerFactory from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager'
 
 jest.setTimeout(10000)
 
@@ -35,7 +34,10 @@ describe('swap content', function (this: {
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.serviceUrl = serviceUrl
     this.serviceDid = serviceDid
-    this.encryptionManager = encryptionManagerFactory(getEncryptionPublicKeyTestFn, decryptTestFn)
+    this.encryptionManager = new EncryptionManager({
+      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+      decrypt: decryptTestFn
+    })
   })
 
   afterAll(async () => {
