@@ -4,6 +4,7 @@ import { Server } from 'http'
 import { Connection } from 'typeorm'
 import MockDate from 'mockdate'
 import AuthManager from '../src/auth-manager'
+import { Provider } from './web3-provider'
 
 jest.setTimeout(7000)
 
@@ -13,12 +14,14 @@ describe('login', function (this: {
   dbConnection: Connection,
   serviceDid: string,
   serviceUrl: string,
+  privateKey: Buffer
 }) {
   const dbName = 'login.sqlite'
 
   const setupComplete = () => setupAuthManager(this.serviceUrl, this.serviceDid)
-    .then(({ authManager, did }) => {
+    .then(({ authManager, did, privateKey }) => {
       this.did = did
+      this.privateKey = privateKey
       return authManager
     })
 
@@ -43,14 +46,14 @@ describe('login', function (this: {
   })
 
   test('should fail if no did', async () => {
-    const authManager = new AuthManager({ serviceUrl: this.serviceUrl, store: customStorageFactory() })
+    const authManager = new AuthManager({ did: undefined, personalSign: undefined, serviceUrl: this.serviceUrl, store: customStorageFactory() })
 
     expect(() => authManager.getAccessToken()).rejects.toThrowError()
   })
 
   test('should fail if no signer', async () => {
     this.did = 'did:ethr:rsk:0x123456789'
-    const authManager = new AuthManager({ serviceUrl: this.serviceUrl, did: this.did, store: customStorageFactory() })
+    const authManager = new AuthManager({ serviceUrl: this.serviceUrl, did: this.did, personalSign: undefined, store: customStorageFactory() })
 
     expect(() => authManager.getAccessToken()).rejects.toThrowError()
   })
@@ -138,4 +141,17 @@ describe('login', function (this: {
     expect(refreshTokens.accessToken).not.toEqual(loginTokens.accessToken)
     expect(refreshTokens.refreshToken).not.toEqual(loginTokens.refreshToken)
   }, 10000)
+
+  test('should create auth manager from web3 provider', async () => {
+    const provider = new Provider(this.privateKey, this.did.split(':').slice(-1)[0])
+    const authManager = await AuthManager.fromWeb3Provider({
+      did: this.did,
+      serviceUrl: this.serviceUrl,
+      store: customStorageFactory()
+    }, provider)
+
+    const accessToken = await authManager.getAccessToken()
+
+    expect(accessToken).toBeTruthy()
+  })
 })

@@ -17,25 +17,28 @@ import AuthManager from '../src/auth-manager'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
+export const createPersonalSign = (privateKey: Buffer) => (data: string) => {
+  const messageDigest = hashPersonalMessage(Buffer.from(data))
+
+  const ecdsaSignature = ecsign(
+    messageDigest,
+    privateKey
+  )
+
+  return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
+}
+
 export const identityFactory = async () => {
   const mnemonic = generateMnemonic(12)
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-  const privateKey = hdKey.derive(0).privateKey.toString('hex')
+  const privateKey = hdKey.derive(0).privateKey
 
   return {
-    did: rskDIDFromPrivateKey()(privateKey).did,
-    personalSign: (data: string) => {
-      const messageDigest = hashPersonalMessage(Buffer.from(data))
-
-      const ecdsaSignature = ecsign(
-        messageDigest,
-        Buffer.from(privateKey, 'hex')
-      )
-
-      return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
-    }
+    did: rskDIDFromPrivateKey()(privateKey.toString('hex')).did,
+    privateKey,
+    personalSign: createPersonalSign(privateKey)
   }
 }
 
@@ -111,7 +114,7 @@ export const customStorageFactory = (): KeyValueStore => {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string): Promise<{ dataVaultClient: DataVaultWebClient, did: string }> => {
+export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string) => {
   const { personalSign, did } = await identityFactory()
 
   return {
@@ -128,7 +131,7 @@ export const setupDataVaultClient = async (serviceUrl: string, serviceDid: strin
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const setupAuthManager = async (serviceUrl: string, serviceDid: string) => {
-  const { personalSign, did } = await identityFactory()
+  const { personalSign, did, privateKey } = await identityFactory()
 
   const store = customStorageFactory()
 
@@ -137,6 +140,7 @@ export const setupAuthManager = async (serviceUrl: string, serviceDid: string) =
       { serviceUrl, did, personalSign, store }
     ),
     did,
+    privateKey,
     store
   }
 }
