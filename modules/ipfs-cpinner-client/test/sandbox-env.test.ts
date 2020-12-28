@@ -1,6 +1,9 @@
 import DataVaultWebClient from '../src'
 import { identityFactory } from './util'
 import localStorageMockFactory from './localStorageMockFactory'
+import AuthManager from '../src/auth-manager'
+import EncryptionManager from '../src/encryption-manager'
+import { getEncryptionPublicKeyTestFn, decryptTestFn, customStorageFactory } from './util'
 
 jest.setTimeout(12000)
 
@@ -17,7 +20,19 @@ describe.skip('sandbox environment', function (this: {
     // const serviceDid = ''
     const serviceUrl = ''
 
-    return new DataVaultWebClient({ serviceUrl, ...clientIdentity })
+    return new DataVaultWebClient({
+      serviceUrl,
+      authManager: new AuthManager({
+        did: this.did,
+        serviceUrl: serviceUrl,
+        personalSign: clientIdentity.personalSign,
+        store: customStorageFactory()
+      }),
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+        decrypt: decryptTestFn
+      })
+    })
   }
 
   beforeEach(() => { global.localStorage = localStorageMockFactory() })

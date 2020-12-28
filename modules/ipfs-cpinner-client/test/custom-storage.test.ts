@@ -3,6 +3,8 @@ import { Connection } from 'typeorm'
 import { Server } from 'http'
 import { customStorageFactory, decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import MockDate from 'mockdate'
+import AuthManager from '../src/auth-manager'
+import EncryptionManager from '../src/encryption-manager'
 
 jest.setTimeout(12000)
 
@@ -18,12 +20,17 @@ describe('custom storage', function (this: {
     const { did, personalSign } = await identityFactory()
 
     return new DataVaultWebClient({
-      did,
       serviceUrl: this.serviceUrl,
-      store: customStorageFactory(),
-      personalSign,
-      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
-      decrypt: decryptTestFn
+      authManager: new AuthManager({
+        did,
+        serviceUrl: this.serviceUrl,
+        personalSign,
+        store: customStorageFactory()
+      }),
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+        decrypt: decryptTestFn
+      })
     })
   }
 
