@@ -3,8 +3,7 @@ import DataVaultWebClient from '../src'
 import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
-import { EncryptionManager } from '../src/encryption-manager/types'
-import encryptionManagerFactory from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager'
 
 describe('get', function (this: {
   server: Server,
@@ -30,7 +29,10 @@ describe('get', function (this: {
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection
     this.serviceUrl = serviceUrl
-    this.encryptionManager = encryptionManagerFactory(getEncryptionPublicKeyTestFn, decryptTestFn)
+    this.encryptionManager = new EncryptionManager({
+      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+      decrypt: decryptTestFn
+    })
   })
 
   afterAll(async () => {
@@ -42,14 +44,8 @@ describe('get', function (this: {
     await resetDatabase(this.dbConnection)
   })
 
-  test('should instantiate the library with a serviceUrl', async () => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
-
-    expect(client).toBeTruthy()
-  })
-
   test('should return an existing content in a form of array', async () => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, decrypt: decryptTestFn })
+    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, decrypt: decryptTestFn, getEncryptionPublicKey: undefined })
 
     const did = 'did:ethr:rsk:0x123456789'
     const key = 'ASavedContent'

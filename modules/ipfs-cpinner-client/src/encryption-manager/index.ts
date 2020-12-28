@@ -1,20 +1,33 @@
 import { encrypt as ethEncrypt } from 'eth-sig-util'
-import { NO_DECRYPT_FN, NO_GET_ENCRYPTION_PUBLIC_KEY_FN } from './constants'
-import { DecryptFn, EncryptionManager, GetEncryptionPublicKeyFn } from './types'
+import { Web3Provider } from '../web3provider/types'
+import { DecryptFn, EncryptionManagerConfig, GetEncryptionPublicKeyFn } from './types'
 
-export default (getEncryptionPublicKey: GetEncryptionPublicKeyFn, decryptFn: DecryptFn): EncryptionManager => {
-  return {
-    encrypt: (data: string): Promise<string> => {
-      if (!getEncryptionPublicKey) throw new Error(NO_GET_ENCRYPTION_PUBLIC_KEY_FN)
+class EncryptionManager {
+  getEncryptionPublicKey: GetEncryptionPublicKeyFn
+  public decrypt: DecryptFn
+  constructor ({ getEncryptionPublicKey, decrypt }: EncryptionManagerConfig) {
+    this.getEncryptionPublicKey = getEncryptionPublicKey
+    this.decrypt = decrypt
+  }
 
-      return getEncryptionPublicKey()
-        .then(publicKey => ethEncrypt(publicKey, { data }, 'x25519-xsalsa20-poly1305'))
-        .then(cipher => `0x${Buffer.from(JSON.stringify(cipher), 'utf8').toString('hex')}`)
-    },
+  public encrypt = (data: string): Promise<string> => this.getEncryptionPublicKey()
+    .then(publicKey => ethEncrypt(publicKey, { data }, 'x25519-xsalsa20-poly1305'))
+    .then(cipher => `0x${Buffer.from(JSON.stringify(cipher), 'utf8').toString('hex')}`)
 
-    decrypt: (hexa: string): Promise<string> => {
-      if (!decryptFn) throw new Error(NO_DECRYPT_FN)
-      return decryptFn(hexa)
-    }
+  static fromWeb3Provider (provider: Web3Provider) {
+    return provider.request({
+      method: 'eth_accounts'
+    }).then(accounts => new EncryptionManager({
+      getEncryptionPublicKey: () => provider.request({
+        method: 'eth_getEncryptionPublicKey',
+        params: [accounts[0]]
+      }),
+      decrypt: (cipher: string) => provider.request({
+        method: 'eth_decrypt',
+        params: [cipher, accounts[0]]
+      })
+    }))
   }
 }
+
+export default EncryptionManager

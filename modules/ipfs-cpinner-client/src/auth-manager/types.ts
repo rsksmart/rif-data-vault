@@ -8,14 +8,14 @@ export interface KeyValueStore {
 }
 
 export type DIDAuthServiceConfig = {
-  did: string
   serviceUrl: string
   // TODO: unused, if we verify challenge request we should use it to assert signer, otherwise remove it
   // serviceDid?: string
 }
 
 export type DIDAuthClientConfig = {
-  personalSign: PersonalSign
+  did?: string
+  personalSign?: PersonalSign
 }
 
 export type DIDAuthStoreConfig = {
