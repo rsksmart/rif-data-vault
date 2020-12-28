@@ -10,10 +10,10 @@ import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
 import { hashPersonalMessage, ecsign, toRpcSig } from 'ethereumjs-util'
 import { DecryptFn, GetEncryptionPublicKeyFn } from '../src/encryption-manager/types'
-import { ClientKeyValueStorage } from '../src/auth-manager/types'
+import { KeyValueStore } from '../src/auth-manager/types'
 import DataVaultWebClient from '../src'
-import authManagerFactory from '../src/auth-manager'
 import { decrypt } from 'eth-sig-util'
+import AuthManager from '../src/auth-manager'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
@@ -98,7 +98,7 @@ export const startService = async (dbName: string, port?: number): Promise<{
   return { server, ipfsPinnerProvider, serviceUrl, dbConnection, serviceDid }
 }
 
-export const customStorageFactory = (): ClientKeyValueStorage => {
+export const customStorageFactory = (): KeyValueStore => {
   const store: any = {}
   return {
     get: async (key: string) => {
@@ -110,15 +110,15 @@ export const customStorageFactory = (): ClientKeyValueStorage => {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string): Promise<{ dataVaultClient: DataVaultWebClient, did: string }> => {
   const { personalSign, did } = await identityFactory()
 
   return {
     dataVaultClient: new DataVaultWebClient({
       serviceUrl,
-      did: did,
+      did,
       personalSign,
-      serviceDid,
       getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
       decrypt: decryptTestFn
     }),
@@ -126,17 +126,18 @@ export const setupDataVaultClient = async (serviceUrl: string, serviceDid: strin
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const setupAuthManager = async (serviceUrl: string, serviceDid: string) => {
   const { personalSign, did } = await identityFactory()
 
-  const storage = customStorageFactory()
+  const store = customStorageFactory()
 
   return {
-    authManager: authManagerFactory(
-      { serviceUrl, did, personalSign, serviceDid, storage }
+    authManager: new AuthManager(
+      { serviceUrl, did, personalSign, store }
     ),
     did,
-    storage
+    store
   }
 }
 
