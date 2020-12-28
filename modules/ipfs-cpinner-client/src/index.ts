@@ -13,8 +13,8 @@ export default class {
   private encryptionManager: EncryptionManager
 
   constructor (private config: Config) {
-    this.authManager = new AuthManager(config)
-    this.encryptionManager = new EncryptionManager(config)
+    this.authManager = config.authManager
+    this.encryptionManager = config.encryptionManager
   }
 
   async get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {

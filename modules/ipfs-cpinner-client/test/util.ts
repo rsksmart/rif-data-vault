@@ -14,6 +14,7 @@ import { KeyValueStore } from '../src/auth-manager/types'
 import DataVaultWebClient from '../src'
 import { decrypt } from 'eth-sig-util'
 import AuthManager from '../src/auth-manager'
+import EncryptionManager from '../src/encryption-manager'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
 
@@ -120,10 +121,16 @@ export const setupDataVaultClient = async (serviceUrl: string, serviceDid: strin
   return {
     dataVaultClient: new DataVaultWebClient({
       serviceUrl,
-      did,
-      personalSign,
-      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
-      decrypt: decryptTestFn
+      authManager: new AuthManager({
+        serviceUrl,
+        did,
+        personalSign,
+        store: customStorageFactory()
+      }),
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+        decrypt: decryptTestFn
+      })
     }),
     did
   }
