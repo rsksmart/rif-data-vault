@@ -1,88 +1,86 @@
 import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
-import { NO_DID, NO_SIGNER, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants'
-import { ClientKeyValueStorage, LoginResponse, DIDAuthConfig } from './types'
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants'
+import { LocalStorage } from './store'
+import { LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore } from './types'
 
-const storageFromLocalStorage = (): ClientKeyValueStorage => ({
-  get: (key: string) => Promise.resolve(localStorage.getItem(key)),
-  set: (key: string, value: string) => Promise.resolve(localStorage.setItem(key, value))
-})
+export default class {
+  store: KeyValueStore
+  did: string
+  serviceUrl: string
+  personalSign: PersonalSign
 
-export default (config: DIDAuthConfig) => {
-  // storage
-  const storage = config.storage || storageFromLocalStorage()
+  constructor (config: DIDAuthConfig) {
+    this.store = config.store || new LocalStorage()
+    this.did = config.did
+    this.serviceUrl = config.serviceUrl
+    this.personalSign = config.personalSign
+  }
 
-  const storeTokens = async ({ accessToken, refreshToken }: { accessToken: string, refreshToken: string }) => {
+  // store
+  private storeTokens = async ({ accessToken, refreshToken }: { accessToken: string, refreshToken: string }) => {
     await Promise.all([
-      storage.set(ACCESS_TOKEN_KEY, accessToken),
-      storage.set(REFRESH_TOKEN_KEY, refreshToken)
+      this.store.set(ACCESS_TOKEN_KEY, accessToken),
+      this.store.set(REFRESH_TOKEN_KEY, refreshToken)
     ])
 
     return { accessToken, refreshToken }
   }
 
-  const getStoredAccessToken = () => storage.get(ACCESS_TOKEN_KEY)
-  const getStoredRefreshToken = () => storage.get(REFRESH_TOKEN_KEY)
+  private getStoredAccessToken = () => this.store.get(ACCESS_TOKEN_KEY)
+  private getStoredRefreshToken = () => this.store.get(REFRESH_TOKEN_KEY)
 
   // did auth challenge-response authentication
-  const { did, serviceUrl, personalSign } = config
-
-  const getChallenge = async (): Promise<string> => axios.get(`${serviceUrl}/request-auth/${did}`)
+  private getChallenge = (): Promise<string> => axios.get(`${this.serviceUrl}/request-auth/${this.did}`)
     .then(res => res.status === 200 && !!res.data && res.data.challenge)
 
-  const signChallenge = (challenge: string) => {
-    if (!did) throw new Error(NO_DID)
-    if (!personalSign) throw new Error(NO_SIGNER)
+  private signChallenge = (challenge: string) => this.personalSign(
+    `Login to ${this.serviceUrl}\nVerification code: ${challenge}`
+  ).then(sig => ({ did: this.did, sig }))
 
-    const message = `Login to ${serviceUrl}\nVerification code: ${challenge}`
-
-    return personalSign(message).then(sig => ({ did, sig }))
-  }
-
-  const login: () => Promise<LoginResponse> = () => getChallenge()
-    .then(signChallenge)
-    .then(signature => axios.post(`${serviceUrl}/auth`, { response: signature }))
+  private login = (): Promise<LoginResponse> => this.getChallenge()
+    .then(this.signChallenge)
+    .then(signature => axios.post(`${this.serviceUrl}/auth`, { response: signature }))
     .then(res => res.status === 200 && res.data)
-    .then(storeTokens)
+    .then(this.storeTokens)
 
-  const refreshAccessToken = async (): Promise<LoginResponse> => {
-    const refreshToken = await storage.get(REFRESH_TOKEN_KEY)
+  private async refreshAccessToken (): Promise<LoginResponse> {
+    const refreshToken = await this.getStoredRefreshToken()
 
-    if (!refreshToken) return login()
+    if (!refreshToken) return this.login()
 
-    return axios.post(`${serviceUrl}/refresh-token`, { refreshToken })
+    return axios.post(`${this.serviceUrl}/refresh-token`, { refreshToken })
       .then(res => res.status === 200 && res.data)
-      .then(storeTokens)
+      .then(this.storeTokens)
       .catch(err => {
         if (err.response.status !== 401) throw err
 
         // if it is expired, do another login
-        return login()
+        return this.login()
       })
   }
 
   // api
-  const getAccessToken = async () => {
-    const accessToken = await storage.get(ACCESS_TOKEN_KEY)
+  public async getAccessToken () {
+    const accessToken = await this.getStoredAccessToken()
 
-    if (!accessToken) return login().then(tokens => tokens.accessToken)
+    if (!accessToken) return this.login().then(tokens => tokens.accessToken)
 
     // TODO: should we verify?
     const { payload } = decodeJWT(accessToken)
 
     if (payload.exp <= Math.floor(Date.now() / 1000)) {
-      return refreshAccessToken().then(tokens => tokens.accessToken)
+      return this.refreshAccessToken().then(tokens => tokens.accessToken)
     }
 
     return accessToken
   }
 
-  const storedTokens = async () => {
-    return {
-      accessToken: await getStoredAccessToken(),
-      refreshToken: await getStoredRefreshToken()
-    }
-  }
-
-  return { getAccessToken, storedTokens }
+  public storedTokens = () => Promise.all([
+    this.getStoredAccessToken(),
+    this.getStoredRefreshToken()
+  ]).then(([accessToken, refreshToken]) => ({
+    accessToken,
+    refreshToken
+  }))
 }
