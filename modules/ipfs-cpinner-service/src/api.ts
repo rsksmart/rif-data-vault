@@ -17,8 +17,9 @@ const errorHandlerFactory = (logger: Logger) => (err: Error, req: Request, res: 
 export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
   const errorHandler = errorHandlerFactory(logger)
 
-  app.get('/content/:did/:key', async (req: Request, res: Response) => {
-    const { did, key } = req.params
+  app.get('/content/:key', async (req: AuthenticatedRequest, res: Response) => {
+    const { key } = req.params
+    const { did } = req.user
 
     logger.info(`Retrieving content from ${did}. Key: ${key}`)
 

@@ -1,7 +1,6 @@
 import AuthManager from './auth-manager'
 import EncryptionManager from './encryption-manager'
-
-export type GetContentPayload = { did: string, key: string }
+export type GetContentPayload = { key: string }
 export type GetContentResponsePayload = { id: string, content: string }
 export type CreateContentPayload = { key: string, content: string }
 export type CreateContentResponse = { id: string }
