@@ -20,7 +20,8 @@ describe('get', function (this: {
       encryptionManager: new EncryptionManager({
         getEncryptionPublicKey: undefined,
         decrypt: decryptTestFn
-      })})
+      })
+    })
 
     const encrypted = await this.encryptionManager.encrypt(file)
     const id = await this.ipfsPinnerProvider.create(did, key, encrypted)
