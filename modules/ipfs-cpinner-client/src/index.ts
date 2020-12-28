@@ -1,7 +1,6 @@
 import axios from 'axios'
 import AuthManager from './auth-manager'
-import encryptionManager from './encryption-manager'
-import { EncryptionManager } from './encryption-manager/types'
+import EncryptionManager from './encryption-manager'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   CreateContentPayload, CreateContentResponse,
@@ -15,7 +14,7 @@ export default class {
 
   constructor (private config: Config) {
     this.authManager = new AuthManager(config)
-    this.encryptionManager = encryptionManager(config.getEncryptionPublicKey, config.decrypt)
+    this.encryptionManager = new EncryptionManager(config)
   }
 
   async get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
