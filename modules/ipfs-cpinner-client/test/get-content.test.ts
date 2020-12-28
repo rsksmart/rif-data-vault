@@ -15,7 +15,12 @@ describe('get', function (this: {
   const dbName = 'get.sqlite'
 
   const setupAndAddFile = async (did: string, key: string, file: string): Promise<{ client: DataVaultWebClient, id: string }> => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, decrypt: decryptTestFn })
+    const client = new DataVaultWebClient({
+      serviceUrl: this.serviceUrl,
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: undefined,
+        decrypt: decryptTestFn
+      })})
 
     const encrypted = await this.encryptionManager.encrypt(file)
     const id = await this.ipfsPinnerProvider.create(did, key, encrypted)
@@ -45,7 +50,13 @@ describe('get', function (this: {
   })
 
   test('should return an existing content in a form of array', async () => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl, decrypt: decryptTestFn, getEncryptionPublicKey: undefined })
+    const client = new DataVaultWebClient({
+      serviceUrl: this.serviceUrl,
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: undefined,
+        decrypt: decryptTestFn
+      })
+    })
 
     const did = 'did:ethr:rsk:0x123456789'
     const key = 'ASavedContent'
@@ -90,7 +101,13 @@ describe('get', function (this: {
   })
 
   test('should return an empty array if the key has not content associated', async () => {
-    const client = new DataVaultWebClient({ serviceUrl: this.serviceUrl })
+    const client = new DataVaultWebClient({
+      serviceUrl: this.serviceUrl,
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: undefined,
+        decrypt: undefined
+      })
+    })
 
     const key = 'DoNotExist'
     const did = 'did:ethr:rsk:0x123456abcdef'
