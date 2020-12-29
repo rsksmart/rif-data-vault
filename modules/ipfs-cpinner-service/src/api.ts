@@ -14,9 +14,12 @@ const errorHandlerFactory = (logger: Logger) => (err: Error, req: Request, res: 
   return res.status(500).send()
 }
 
-export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
-  app.get('/content/:did/:key', async (req: Request, res: Response) => {
-    const { did, key } = req.params
+export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
+  const errorHandler = errorHandlerFactory(logger)
+
+  app.get('/content/:key', async (req: AuthenticatedRequest, res: Response) => {
+    const { key } = req.params
+    const { did } = req.user
 
     logger.info(`Retrieving content from ${did}. Key: ${key}`)
 
@@ -24,10 +27,6 @@ export function setupPublicApi (app: Express, provider: IpfsPinnerProvider, logg
       .then(content => res.status(200).json(content))
       .catch(err => errorHandlerFactory(logger)(err, req, res))
   })
-}
-
-export function setupPermissionedApi (app: Express, provider: IpfsPinnerProvider, logger?: Logger) {
-  const errorHandler = errorHandlerFactory(logger)
 
   app.get('/storage', async (req: AuthenticatedRequest, res: Response) => {
     const { did } = req.user

@@ -68,19 +68,19 @@ DELETE /content/:key/:id -> { }
 
 ### Accessing content
 
-Get all keys of a given `did` (needs authentication)
+Get all keys of a given `did`
 
 ```
 GET /keys/:did -> { keys: string[] }
 ```
 
-Get all files of a given `did` and `key`
+Get all files by `key` of the logged `did`
 
 ```
-GET /content/:did/:key -> [{ id: string, content: string }] (get files)
+GET /content//:key -> [{ id: string, content: string }] (get files)
 ```
 
-Get storage availability information (needs authentication)
+Get storage availability information
 
 ```
 GET /storage -> { used: number, available: number }

@@ -49,7 +49,7 @@ const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, servic
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, decrypt })
+const client = new DataVaultWebClient({ serviceUrl, decrypt, did, rpcPersonalSign })
 
 const key = 'EmailCredential'
 

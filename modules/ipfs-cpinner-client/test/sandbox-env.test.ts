@@ -82,7 +82,7 @@ describe.skip('sandbox environment', function (this: {
 
     const { id } = await client.create({ key, content })
 
-    const values = await client.get({ did: this.did, key })
+    const values = await client.get({ key })
 
     expect(values).toEqual([{ id, content }])
   })

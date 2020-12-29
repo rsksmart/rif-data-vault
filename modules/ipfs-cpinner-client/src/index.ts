@@ -17,9 +17,14 @@ export default class {
     this.encryptionManager = config.encryptionManager
   }
 
-  async get ({ did, key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
+  async get ({ key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     try {
-      const encrypted = await axios.get(`${this.config.serviceUrl}/content/${did}/${key}`).then(res => res.status === 200 && res.data)
+      const encrypted = await this.authManager.getAccessToken()
+        .then(accessToken => axios.get(
+          `${this.config.serviceUrl}/content/${key}`,
+          { headers: { Authorization: `DIDAuth ${accessToken}` } })
+        )
+        .then(res => res.status === 200 && res.data)
 
       return Promise.all(encrypted.map(({ id, content }) => this.encryptionManager.decrypt(content).then(decrypted => ({ id, content: decrypted }))))
     } catch (err) {

@@ -50,7 +50,13 @@ describe('setup api with authentication', function (this: {
   const id = 'QmcPCC6iCzJMUQyby8eR4Csx6X7e7Xjfi4cmZnvDTVGZvd'
 
   describe('GET /content/:did/:key', () => {
-    test('should respond 200 with no access token', () => request(this.app).get(`/content/${this.clientDid}/${key}`).expect(200))
+    test('should respond 401 with no access token', () => request(this.app).get(`/content/${key}`).expect(401))
+
+    test('should respond 200 with access token', () => request(this.app)
+      .get(`/content/${key}`)
+      .set('Authorization', `DIDAuth ${this.accessToken}`)
+      .expect(200)
+    )
   })
 
   describe('POST /:key', () => {
