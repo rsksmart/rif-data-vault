@@ -19,7 +19,7 @@ export default class {
 
   async get ({ key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     try {
-      const encrypted = await this.getAccessToken()
+      const encrypted = await this.authManager.getAccessToken()
         .then(accessToken => axios.get(
           `${this.config.serviceUrl}/content/${key}`,
           { headers: { Authorization: `DIDAuth ${accessToken}` } })
