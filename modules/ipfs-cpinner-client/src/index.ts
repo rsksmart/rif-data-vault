@@ -59,7 +59,7 @@ export default class {
   getBackup (): Promise<Backup> {
     const { serviceUrl } = this.config
 
-    return this.getAccessToken()
+    return this.authManager.getAccessToken()
       .then(accessToken => axios.get(
         `${serviceUrl}/backup`,
         { headers: { Authorization: `DIDAuth ${accessToken}` } })
