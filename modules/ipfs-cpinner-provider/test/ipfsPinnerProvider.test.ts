@@ -224,4 +224,15 @@ describe('ipfs pinner provider', function (this: {
 
     expect(keys).toEqual([key, anotherKey])
   })
+
+  test('get backup with more than one key and content', async () => {
+    const anotherKey = 'another key'
+
+    const id1 = await this.centralizedPinnerProvider.create(did, key, content)
+    const id2 = await this.centralizedPinnerProvider.create(did, anotherKey, content)
+
+    const data = await this.centralizedPinnerProvider.getBackup(did)
+
+    expect(data).toEqual([{ key, id: id1 }, { key: anotherKey, id: id2 }])
+  })
 })

@@ -86,6 +86,12 @@ Get storage availability information
 GET /storage -> { used: number, available: number }
 ```
 
+Get `key: cid` backup of the logged did (needs authentication)
+
+```
+GET /backup -> { key: string, id: string }[]
+```
+
 ## Advanced usage
 
 See our [documentation](https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-service)

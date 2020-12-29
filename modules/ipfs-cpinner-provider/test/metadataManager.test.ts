@@ -170,4 +170,25 @@ describe('metadata manager', function (this: {
     const totalUsedStorage = await this.metadataManager.getUsedStorage(did)
     expect(totalUsedStorage).toEqual(contentSize + anotherContentSize)
   })
+
+  test('should get empty array when getting a backup if no content created', async () => {
+    const data = await this.metadataManager.getBackupByDid(did)
+
+    expect(data).toEqual([])
+  })
+
+  test('should get an array containing created data when requesting the backup', async () => {
+    await this.metadataManager.save(did, key, cid, contentSize)
+
+    const data = await this.metadataManager.getBackupByDid(did)
+    expect(data).toEqual([{ key, id: cid }])
+  })
+
+  test('should get an array with repeated data if it has been saved twice', async () => {
+    await this.metadataManager.save(did, key, cid, contentSize)
+    await this.metadataManager.save(did, key, cid, contentSize)
+
+    const data = await this.metadataManager.getBackupByDid(did)
+    expect(data).toEqual([{ key, id: cid }, { key, id: cid }])
+  })
 })

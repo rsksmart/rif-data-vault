@@ -8,6 +8,7 @@ export type DeleteTokenPayload = { key: string, id?: string }
 export type SwapContentPayload = { key: string, content: string, id?: string }
 export type SwapContentResponse = { id: string }
 export type StorageInformation = { used: number, available: number }
+export type Backup = { key: string, id: string }[]
 
 export type Config = {
   serviceUrl: string

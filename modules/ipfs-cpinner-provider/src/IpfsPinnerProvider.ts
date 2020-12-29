@@ -1,6 +1,6 @@
 import { MAX_STORAGE_REACHED } from './constants'
 import {
-  Content, CID, DID, IpfsPinner, Key, MetadataManager, IpfsClient, SavedContent
+  Content, CID, DID, IpfsPinner, Key, MetadataManager, IpfsClient, SavedContent, Backup
 } from './types'
 
 export default class IpfsPinnerProvider {
@@ -79,6 +79,10 @@ export default class IpfsPinnerProvider {
 
   getUsedStorage (did: DID): Promise<number> {
     return this.metadataManager.getUsedStorage(did)
+  }
+
+  getBackup (did: DID): Promise<Backup> {
+    return this.metadataManager.getBackupByDid(did)
   }
 
   private async deleteByCid (did: DID, key: Key, cid: CID): Promise<boolean> {

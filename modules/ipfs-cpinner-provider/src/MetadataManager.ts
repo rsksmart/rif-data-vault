@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm'
 import IpfsMetadata from './entities/ipfs-metadata'
-import { CID, MetadataManager, DID, Key } from './types'
+import { CID, MetadataManager, DID, Key, Backup } from './types'
 
 export default class implements MetadataManager {
   // eslint-disable-next-line no-useless-constructor
@@ -52,5 +52,12 @@ export default class implements MetadataManager {
       where: searchCriteria,
       select: ['contentSize']
     }).then((entries: { contentSize: number }[]) => entries.map(e => e.contentSize).reduce((a, b) => a + b, 0))
+  }
+
+  getBackupByDid (did: string): Promise<Backup> {
+    return this.repository.find({
+      where: { did },
+      select: ['key', 'cid']
+    }).then((entries: IpfsMetadata[]) => entries.map(({ key, cid }) => ({ key, id: cid })))
   }
 }
