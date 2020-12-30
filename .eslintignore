@@ -1,3 +1,4 @@
 /modules/**/node_modules
 /modules/**/lib
 /modules/**/dist
+/modules/ipfs-cpinner-client/webpack.config.js
