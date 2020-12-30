@@ -16,7 +16,6 @@ describe.skip('sandbox environment', function (this: {
     this.did = clientIdentity.did
 
     // COMPLETE WITH YOUR SANDBOX ENVIRONMENT VALUES
-    // const serviceDid = ''
     const serviceUrl = ''
 
     return new DataVaultWebClient({
@@ -66,12 +65,17 @@ describe.skip('sandbox environment', function (this: {
     const key = 'AKey'
     const content = 'the content'
 
+    const storageBeforeCreate = await client.getStorageInformation()
+
+    expect(storageBeforeCreate.available).toEqual(1000000)
+    expect(storageBeforeCreate.used).toEqual(0)
+
     await client.create({ key, content })
 
-    const storage = await client.getStorageInformation()
+    const storageAfterCreate = await client.getStorageInformation()
 
-    expect(storage.available).toEqual(1000000 - 11)
-    expect(storage.used).toEqual(11)
+    expect(storageAfterCreate.available).toBeLessThan(1000000)
+    expect(storageAfterCreate.used).toBeGreaterThan(0)
   })
 
   test('should get a content', async () => {
