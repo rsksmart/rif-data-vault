@@ -5,6 +5,9 @@ node_modules
 tsconfig.tsbuildinfo
 lib
 
+# webpack
+dist
+
 # jest
 reports
 junit.xml
