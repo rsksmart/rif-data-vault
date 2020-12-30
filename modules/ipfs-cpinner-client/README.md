@@ -26,10 +26,9 @@ A Web Client to simplify the way the services provided by the IPFS Centralized D
 ## Quick Usage
 
 ```typescript
-import DataVaultWebClient, { ClientKeyValueStorage } from '@rsksmart/ipfs-cpinner-client'
+import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
 const serviceUrl = 'http://your-ipfs-cpinner-service.com'
-const storage: ClientKeyValueStorage = myCustomStorage
 
 // the following fields are required just to perform write operations
 const serviceDid = 'did:ethr:rsk:0x123456789....abc'
@@ -37,12 +36,18 @@ const address = '0xabcdef....123' // user's address
 const did = `did:ethr:rsk:${address}`
 
 // these are examples with Metamask
-const rpcPersonalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] })
+const personalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] })
 const decrypt = (hexCypher: string) => window.ethereum.request({ method: 'eth_decrypt', params: [hexCypher, address] })
 const getEncryptionPublicKey = () => window.ethereum.request.request({ method: 'eth_getEncryptionPublicKey', params: [address] })
 
-const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, storage, getEncryptionPublicKey, decrypt })
+const client = new DataVaultWebClient({
+  serviceUrl,
+  authManager: new AuthManager({ did, serviceUrl, personalSign }),
+  encryptionManager: new EncryptionManager({ getEncryptionPublicKey, decrypt  })
+})
 ```
+
+> Note: this approach use the browser `localStorage` as the package store. Please refer to the [documentation](https://developers.rsk.co/rif/identity/data-vault/architecture/client/) to check custom storage options.
 
 ### Get
 
@@ -132,7 +137,7 @@ await client.delete({ key })
 
 ## Advanced usage 
 
-See our [documentation](https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-client)
+See our [documentation](https://developers.rsk.co/rif/identity/data-vault/architecture/client/)
 
 ## Open work
 
