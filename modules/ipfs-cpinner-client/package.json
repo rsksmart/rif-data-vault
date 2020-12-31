@@ -40,7 +40,7 @@
     "sqlite3": "^5.0.0",
     "ts-loader": "^8.0.12",
     "typeorm": "0.2.28",
-    "webpack": "^5.11.1",
+    "webpack": "^4.44.2",
     "webpack-cli": "^4.3.0",
     "winston": "^3.3.3"
   },

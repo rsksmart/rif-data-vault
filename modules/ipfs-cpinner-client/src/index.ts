@@ -8,7 +8,7 @@ import {
   SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, Backup
 } from './types'
 
-export default class {
+class IPFSCpinnerClient {
   private authManager: AuthManager
   private encryptionManager: EncryptionManager
 
@@ -126,3 +126,6 @@ export default class {
     }
   }
 }
+
+export default IPFSCpinnerClient
+export { AuthManager, EncryptionManager }
