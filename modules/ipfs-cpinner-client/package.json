@@ -1,8 +1,8 @@
 {
   "name": "@rsksmart/ipfs-cpinner-client",
-  "version": "0.1.1-beta.6",
+  "version": "0.1.1-beta.7",
   "description": "RIF Data Vault - IPFS centralized pinner client",
-  "main": "dist/index.js",
+  "main": "dist/bundle.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "webpack"
