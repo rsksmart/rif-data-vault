@@ -45,7 +45,7 @@
     "winston": "^3.3.3"
   },
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "buffer": "^6.0.3",
     "did-jwt": "^4.6.2",
     "eth-sig-util": "^3.0.0"
