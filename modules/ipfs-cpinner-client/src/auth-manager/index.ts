@@ -21,15 +21,15 @@ class AuthManager {
   // store
   private storeTokens = async ({ accessToken, refreshToken }: { accessToken: string, refreshToken: string }) => {
     await Promise.all([
-      this.store.set(ACCESS_TOKEN_KEY, accessToken),
-      this.store.set(REFRESH_TOKEN_KEY, refreshToken)
+      this.store.set(`${ACCESS_TOKEN_KEY}-${this.did}`, accessToken),
+      this.store.set(`${REFRESH_TOKEN_KEY}-${this.did}`, refreshToken)
     ])
 
     return { accessToken, refreshToken }
   }
 
-  private getStoredAccessToken = () => this.store.get(ACCESS_TOKEN_KEY)
-  private getStoredRefreshToken = () => this.store.get(REFRESH_TOKEN_KEY)
+  private getStoredAccessToken = () => this.store.get(`${ACCESS_TOKEN_KEY}-${this.did}`)
+  private getStoredRefreshToken = () => this.store.get(`${REFRESH_TOKEN_KEY}-${this.did}`)
 
   // did auth challenge-response authentication
   private getChallenge = (): Promise<string> => axios.get(`${this.serviceUrl}/request-auth/${this.did}`)
