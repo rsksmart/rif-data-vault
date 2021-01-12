@@ -1,5 +1,5 @@
 import { decodeJWT } from 'did-jwt'
-import { deleteDatabase, startService, testTimestamp, customStorageFactory, resetDatabase, setupAuthManager } from './util'
+import { deleteDatabase, startService, testTimestamp, customStorageFactory, resetDatabase, setupAuthManager, identityFactory } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import MockDate from 'mockdate'
@@ -153,5 +153,26 @@ describe('login', function (this: {
     const accessToken = await authManager.getAccessToken()
 
     expect(accessToken).toBeTruthy()
+  })
+
+  test('should allow to login with different dids using the same storage', async () => {
+    const identity1 = await identityFactory()
+    const identity2 = await identityFactory()
+
+    const store = customStorageFactory()
+
+    // login with both authManagers
+    const authManager1 = new AuthManager({ ...identity1, serviceUrl: this.serviceUrl, store })
+    await authManager1.getAccessToken()
+
+    const authManager2 = new AuthManager({ ...identity2, serviceUrl: this.serviceUrl, store })
+    await authManager2.getAccessToken()
+
+    // retrieve tokens from both authManagers
+    const actualTokens1 = await authManager1.storedTokens()
+    const actualTokens2 = await authManager2.storedTokens()
+
+    expect(actualTokens1.accessToken).not.toEqual(actualTokens2.accessToken)
+    expect(actualTokens1.refreshToken).not.toEqual(actualTokens2.refreshToken)
   })
 })
