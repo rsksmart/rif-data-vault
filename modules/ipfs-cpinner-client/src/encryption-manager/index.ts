@@ -4,10 +4,25 @@ import { DecryptFn, EncryptionManagerConfig, GetEncryptionPublicKeyFn } from './
 
 class EncryptionManager {
   getEncryptionPublicKey: GetEncryptionPublicKeyFn
-  public decrypt: DecryptFn
+  private decryptInWallet: DecryptFn
   constructor ({ getEncryptionPublicKey, decrypt }: EncryptionManagerConfig) {
     this.getEncryptionPublicKey = getEncryptionPublicKey
-    this.decrypt = decrypt
+    this.decryptInWallet = decrypt
+  }
+
+  public decrypt = (data: string): Promise<string> => {
+    const hexaRegex = /^0x[0-9a-fA-F]+$/
+
+    // if not an hexadecimal, it means it is not encrypted, return the same data
+    if (!this.decryptInWallet || !hexaRegex.test(data)) return Promise.resolve(data)
+
+    const cipherText = Buffer.from(data.substr(2), 'hex').toString('utf8')
+
+    // we assume that if the text contains "version":"x25519-xsalsa20-poly1305", it is a cipherText that can be decrypted in a wallet.
+    // more information in https://docs.metamask.io/guide/rpc-api.html#eth-getencryptionpublickey
+    if (cipherText.indexOf('"version":"x25519-xsalsa20-poly1305"') > 0) return this.decryptInWallet(data)
+
+    return Promise.resolve(data)
   }
 
   public encrypt = (data: string): Promise<string> => this.getEncryptionPublicKey()
