@@ -2,12 +2,13 @@ version: "3"
 
 services:
     rif-identity-data-vault-ipfs:
-        image: rif-identity-data-vault-ipfs:${DOCKER_TAG:-latest}
-        build:
-            context: .
-            dockerfile: Dockerfile.ipfs
+        image: ipfs/go-ipfs:v0.7.0
+        volumes:
+            - "ipfs-repo:/data/ipfs"
         ports:
-            - "5002:5001"
+            - 5002:5001
+        expose:
+            - 5001
         networks:
             - rif-identity-data-vault
 
@@ -15,7 +16,7 @@ services:
         image: rif-identity-data-vault-service:${DOCKER_TAG:-latest}
         build:
             context: .
-            dockerfile: Dockerfile.dataVault
+            dockerfile: Dockerfile
         env_file: .env
         volumes:
             - "/var/db/rif-identity/new-data-vault:/app/db"
@@ -24,6 +25,9 @@ services:
             - "5107:5107"
         networks:
             - rif-identity-data-vault
+
+volumes:
+    ipfs-repo:
 
 networks:
     rif-identity-data-vault:
