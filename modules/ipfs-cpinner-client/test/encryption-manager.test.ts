@@ -86,13 +86,35 @@ describe('decrypt', () => {
     expect(mockedFn.mock.calls.length).toBe(1)
   })
 
-  test('should throw an error if no function to decrypt', async () => {
-    const { decrypt } = new EncryptionManager({
+  test('should return the received string if it is an hexa but there is not function to decrypt', async () => {
+    const { encrypt, decrypt } = new EncryptionManager({
       getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
       decrypt: undefined
     })
 
-    expect(() => decrypt('Will fail')).toThrowError()
+    const content = 'Will return this text encrypted'
+    const encryptedHex = await encrypt(content)
+    const decrypted = await decrypt(encryptedHex)
+
+    expect(decrypted).toEqual(encryptedHex)
+  })
+
+  test('should not decrypt if the data is not an hexadecimal string', async () => {
+    const { decrypt } = new EncryptionManager({ decrypt: decryptTestFn })
+
+    const content = 'This is a test and is not an hexa'
+    const decrypted = await decrypt(content)
+
+    expect(decrypted).toEqual(content)
+  })
+
+  test('should not decrypt if the data is an hexadecimal but it does not represent a ciphertext', async () => {
+    const { decrypt } = new EncryptionManager({ decrypt: decryptTestFn })
+
+    const content = '0x1234567890'
+    const decrypted = await decrypt(content)
+
+    expect(decrypted).toEqual(content)
   })
 
   test('should create auth manager from web3 provider', async () => {
