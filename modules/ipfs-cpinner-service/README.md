@@ -187,7 +187,7 @@ It will create two containers: one for the service and another one with the IPFS
 Make sure that in your `.env` file you have set the IPFS references as the following:
 ```
 IPFS_HOST=rif-identity-data-vault-ipfs
-IPFS_PORT=5002
+IPFS_PORT=5001
 ```
 
 1. From the root of the project:
