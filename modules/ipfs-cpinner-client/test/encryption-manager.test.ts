@@ -5,10 +5,7 @@ import { Provider } from './web3-provider'
 
 describe('encrypt', () => {
   test('should return an hexa', async () => {
-    const { encrypt } = new EncryptionManager({
-      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
-      decrypt: decryptTestFn
-    })
+    const { encrypt } = new EncryptionManager({ getEncryptionPublicKey: getEncryptionPublicKeyTestFn })
     const message = 'Hello my name is Javi'
 
     const encryptedHex = await encrypt(message)
@@ -18,10 +15,8 @@ describe('encrypt', () => {
   })
 
   test('should encrypt using x25519-xsalsa20-poly1305 algorithm', async () => {
-    const { encrypt } = new EncryptionManager({
-      getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
-      decrypt: decryptTestFn
-    })
+    const { encrypt } = new EncryptionManager({ getEncryptionPublicKey: getEncryptionPublicKeyTestFn })
+
     const message = 'Hello world!'
 
     const encryptedHex = await encrypt(message)
@@ -36,10 +31,7 @@ describe('encrypt', () => {
 
   test('should request for the user encryption public key', async () => {
     const mockedFn = jest.fn(getEncryptionPublicKeyTestFn)
-    const { encrypt } = new EncryptionManager({
-      getEncryptionPublicKey: mockedFn,
-      decrypt: decryptTestFn
-    })
+    const { encrypt } = new EncryptionManager({ getEncryptionPublicKey: mockedFn })
 
     const message = 'Hello world again!'
 
@@ -48,13 +40,13 @@ describe('encrypt', () => {
     expect(mockedFn.mock.calls.length).toBe(1)
   })
 
-  test('should throw an error if no function to get the public key', async () => {
-    const { encrypt } = new EncryptionManager({
-      getEncryptionPublicKey: undefined,
-      decrypt: decryptTestFn
-    })
+  test('should do not encrypt the content is no getEncryptionPublicKey function is provided', async () => {
+    const { encrypt } = new EncryptionManager({ getEncryptionPublicKey: undefined })
 
-    expect(() => encrypt('Will fail')).toThrowError()
+    const message = 'This will not be encrypted'
+    const encrypted = await encrypt(message)
+
+    expect(encrypted).toEqual(message)
   })
 })
 

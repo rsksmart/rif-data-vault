@@ -25,9 +25,13 @@ class EncryptionManager {
     return Promise.resolve(data)
   }
 
-  public encrypt = (data: string): Promise<string> => this.getEncryptionPublicKey()
-    .then(publicKey => ethEncrypt(publicKey, { data }, 'x25519-xsalsa20-poly1305'))
-    .then(cipher => `0x${Buffer.from(JSON.stringify(cipher), 'utf8').toString('hex')}`)
+  public encrypt = (data: string): Promise<string> => {
+    if (!this.getEncryptionPublicKey) return Promise.resolve(data)
+
+    return this.getEncryptionPublicKey()
+      .then(publicKey => ethEncrypt(publicKey, { data }, 'x25519-xsalsa20-poly1305'))
+      .then(cipher => `0x${Buffer.from(JSON.stringify(cipher), 'utf8').toString('hex')}`)
+  }
 
   static fromWeb3Provider (provider: Web3Provider) {
     return provider.request({

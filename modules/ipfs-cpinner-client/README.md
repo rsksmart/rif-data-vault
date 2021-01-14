@@ -21,7 +21,9 @@ A Web Client to simplify the way the services provided by the IPFS Centralized D
 
 - Stores the authentication credentials in the given storage 
 
-- Encrypts/decrypts data prior to save/return using the user wallet provider
+- Encrypts content using the user wallet prior to save it in the service - if `getEncryptionPublicKey` function provided
+
+- If retrieving an encrypted content, it decrypts it in the user wallet prior to return it - if proper `decrypt` function provided
 
 ## Quick Usage
 
