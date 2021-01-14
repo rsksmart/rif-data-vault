@@ -187,7 +187,7 @@ It will create two containers: one for the service and another one with the IPFS
 Make sure that in your `.env` file you have set the IPFS references as the following:
 ```
 IPFS_HOST=rif-identity-data-vault-ipfs
-IPFS_PORT=5002
+IPFS_PORT=5001
 ```
 
 1. From the root of the project:
@@ -197,41 +197,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-2. Enable access to IPFS node container port 5002
-
-    ```
-    docker container ls
-    # copy the id of the container named rif-identity-data-vault-ipfs:latest
-    docker exec -it COPIED-ID bash # e.g. 967eb3ce4730
-    cd /root/.ipfs/
-    apt update
-    apt install vim
-    vim config
-    ```
-
-    Update `“Addresses” -> “API”` and open ip4 port. Set `“API”: “/ipv4/0.0.0.0/tcp/5001"`
-
-    Before the update
-    
-    <img src="./img/before_update_ipfs.png" height="200" />
-
-    After the update
-
-    <img src="./img/after_update_ipfs.png" height="200" />
-
-    Save the file and exit the container
-
-    ```
-    exit
-    ```
-
-    Now restart IPFS docker
-
-    ```
-    docker restart COPIED-ID
-    ```
-
-3. Perform a quick health check: submit a GET request to: `http://localhost:5107/request-auth/myDid` and it should respond an HTTP 200 with a `challenge`
+2. Perform a quick health check: submit a GET request to: `http://localhost:5107/request-auth/myDid` and it should respond an HTTP 200 with a `challenge`
 
 ## Test
 
