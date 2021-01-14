@@ -6,9 +6,7 @@ services:
         volumes:
             - "ipfs-repo:/data/ipfs"
         ports:
-            - 5002:5001
-        expose:
-            - 5001
+            - "5002:5001"
         networks:
             - rif-identity-data-vault
 
