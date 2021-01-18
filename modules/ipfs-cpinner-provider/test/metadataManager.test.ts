@@ -8,7 +8,7 @@ describe('metadata manager', function (this: {
   dbConnection: Connection,
   metadataManager: MetadataManager
 }) {
-  const did = 'did:ethr:rsk:12345678'
+  const did = 'did:ethr:rsk:12345678AbCDEf'
   const key = 'a key'
   const cid = 'a cid'
   const contentSize = 10
@@ -40,6 +40,14 @@ describe('metadata manager', function (this: {
     expect(result).toEqual([cid])
   })
 
+  test('gets one metadata with did in lower case', async () => {
+    await this.metadataManager.save(did, key, cid, contentSize)
+
+    const result = await this.metadataManager.find(did.toLocaleLowerCase(), key)
+
+    expect(result).toEqual([cid])
+  })
+
   test('gets two metadata with same key and did', async () => {
     const anotherCid = 'another cid'
 
@@ -52,6 +60,13 @@ describe('metadata manager', function (this: {
 
   test('deletes existing metadata', async () => {
     await this.metadataManager.save(did, key, cid, contentSize)
+    const result = await this.metadataManager.delete(did, key, cid)
+
+    expect(result).toBe(true)
+  })
+
+  test('deletes existing metadata with did in lowerCase', async () => {
+    await this.metadataManager.save(did.toLowerCase(), key, cid, contentSize)
     const result = await this.metadataManager.delete(did, key, cid)
 
     expect(result).toBe(true)
