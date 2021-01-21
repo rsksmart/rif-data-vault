@@ -120,6 +120,7 @@ IPFS_PORT= port of an http IPFS node api
 IPFS_HOST=host of an IPFS node api
 CHALLENGE_SECRET=secret used to create deterministic challenges
 MAX_STORAGE=max storage available by did
+LOGIN_MESSAGE_HEADER=custom login message header to be signed by the user in the login process
 ```
 
 Default values:
@@ -133,6 +134,7 @@ NETWORK_NAME=rsk:testnet
 IPFS_HOST=localhost
 IPFS_PORT=5001
 MAX_STORAGE=1000000
+LOGIN_MESSAGE_HEADER=Are you sure you want to login to the RIF Data Vault?
 ```
 
 Example:
@@ -149,6 +151,7 @@ NETWORK_NAME=rsk:testnet
 IPFS_HOST=localhost
 IPFS_PORT=5001
 CHALLENGE_SECRET=aSecret
+LOGIN_MESSAGE_HEADER=Are you sure you want to login to the RIF Data Vault?
 ```
 
 ### Set up IPFS
