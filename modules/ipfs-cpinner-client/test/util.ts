@@ -89,7 +89,8 @@ export const startService = async (dbName: string, port?: number): Promise<{
     serviceUrl,
     challengeSecret: 'theSecret',
     serviceDid,
-    serviceSigner: serviceIdentity.signer
+    serviceSigner: serviceIdentity.signer,
+    loginMessageHeader: 'Are you sure you want to login to the RIF Data Vault?'
   }
 
   const dbConnection = await createSqliteConnection(dbName)

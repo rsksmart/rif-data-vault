@@ -26,7 +26,8 @@ describe('setup api with authentication', function (this: {
       serviceUrl: 'http://dv.com',
       challengeSecret: 'theSecret',
       serviceDid: serviceIdentity.did,
-      serviceSigner: serviceIdentity.signer
+      serviceSigner: serviceIdentity.signer,
+      loginMessageHeader: 'Are you sure you want to login to the RIF Data Vault?'
     }
 
     this.dbName = 'setup-1.dv-service.sqlite'
@@ -37,7 +38,7 @@ describe('setup api with authentication', function (this: {
 
     const challengeResponse = await request(this.app).get(`/request-auth/${this.clientDid}`).expect(200)
     const { challenge } = challengeResponse.body
-    const signed = await challengeResponseFactory(challenge, this.clientDid, userIdentity.privateKey, this.config.serviceUrl)
+    const signed = await challengeResponseFactory(challenge, this.clientDid, userIdentity.privateKey, this.config.serviceUrl, this.config.loginMessageHeader)
 
     const { body } = await request(this.app).post('/auth').send({ response: signed }).expect(200)
     this.accessToken = body.accessToken

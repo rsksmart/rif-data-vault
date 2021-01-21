@@ -11,11 +11,12 @@ export interface AuthConfig {
   challengeSecret: string
   networkName?: string
   rpcUrl?: string
+  loginMessageHeader?: string
 }
 
 export default function (app: Express, provider: IpfsPinnerProvider, config: AuthConfig, logger?: Logger) {
-  const { serviceDid, serviceSigner, serviceUrl, challengeSecret } = config
-  const authMiddleware = setupAuth({ serviceDid, serviceSigner, serviceUrl, challengeSecret })(app)
+  const { serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader } = config
+  const authMiddleware = setupAuth({ serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader })(app)
 
   app.use(authMiddleware)
 
