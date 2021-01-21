@@ -19,7 +19,8 @@ const env = {
   networkName: process.env.NETWORK_NAME || 'rsk:testnet',
   ipfsHost: process.env.IPFS_HOST || 'localhost',
   ipfsPort: process.env.IPFS_PORT || 5001,
-  maxStorage: Number(process.env.MAX_STORAGE) || 1000000
+  maxStorage: Number(process.env.MAX_STORAGE) || 1000000,
+  loginMessageHeader: process.env.LOGIN_MESSAGE_HEADER || 'Are you sure you want to login to the RIF Data Vault?'
 }
 
 const logger = loggerFactory({
@@ -39,7 +40,8 @@ const config: AuthConfig = {
   serviceUrl: env.serviceUrl,
   challengeSecret: env.challengeSecret,
   networkName: env.networkName,
-  rpcUrl: env.rpcUrl
+  rpcUrl: env.rpcUrl,
+  loginMessageHeader: env.loginMessageHeader
 }
 
 const app = express()

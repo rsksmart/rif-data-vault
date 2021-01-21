@@ -36,7 +36,7 @@ class AuthManager {
     .then(res => res.status === 200 && !!res.data && res.data.challenge)
 
   private signChallenge = (challenge: string) => this.personalSign(
-    `Login to ${this.serviceUrl}\nVerification code: ${challenge}`
+    `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
   ).then(sig => ({ did: this.did, sig }))
 
   private login = (): Promise<LoginResponse> => this.getChallenge()
