@@ -20,6 +20,13 @@
   </a>
 </p>
 
+The Data Vault is a user-centric cloud service. Allows any user with a digital wallet to connect to their own storage cloud, encrypting their information on the client side.
+
+The project consists of 3 modules:
+- [the provider](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-provider) of the data vault service. This module implements the business logic, storing and pining files on IPFS
+- [the service API](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service). It allows modifying the implementation of the provider's messages without modifying the API, keeping the SDK compatible
+- [the SDK](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-client). An npm package that allows you to connect to the Data Vault from the web browser using different web3 wallets
+
 ## Setup
 
 Install dependencies
@@ -31,6 +38,8 @@ npm run build
 ```
 
 Install IPFS CLI. Find your option: https://docs.ipfs.io/how-to/command-line-quick-start/.
+
+> To run an instance of the Data Vault refer to [Data Vault service configuration](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service#configure)
 
 ## Test
 
