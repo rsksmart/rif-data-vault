@@ -5,7 +5,7 @@
   "scripts": {
     "link": "npx lerna link",
     "bootstrap": "npx lerna bootstrap",
-    "setup": "npm run bootstrap && npm run link",
+    "setup": "npm run bootstrap && npm run link && npm run build",
     "build": "npx lerna run build",
     "test": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/*",
     "test:watch": "npx jest modules/*/test --verbose --coverage --collectCoverageFrom=modules/*/src/**/* --watch",
