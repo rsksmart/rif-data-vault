@@ -12,11 +12,12 @@ export interface AuthConfig {
   networkName?: string
   rpcUrl?: string
   loginMessageHeader?: string
+  noCsrfSecure?: boolean
 }
 
 export default function (app: Express, provider: IpfsPinnerProvider, config: AuthConfig, logger?: Logger) {
-  const { serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader } = config
-  const authMiddleware = setupAuth({ serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader })(app)
+  const { serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader, noCsrfSecure } = config
+  const authMiddleware = setupAuth({ serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader, useCookies: true, noCsrfSecure })(app)
 
   app.use(authMiddleware)
 
