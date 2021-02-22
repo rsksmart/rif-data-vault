@@ -1,6 +1,6 @@
 import { EthEncryptedData } from 'eth-sig-util'
 import { decryptTestFn, getEncryptionPublicKeyTestFn } from './util'
-import EncryptionManager from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 import { Provider } from './web3-provider'
 
 describe('encrypt', () => {
