@@ -1,4 +1,4 @@
-import EncryptionManager from '../src/encryption-manager/wtih-signer'
+import EncryptionManager from '../src/encryption-manager/with-signer'
 import { Provider } from './web3-provider'
 
 describe('encryption manager with signer', () => {
