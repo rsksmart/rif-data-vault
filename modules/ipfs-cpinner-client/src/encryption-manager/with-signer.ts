@@ -6,7 +6,7 @@ class EncryptionManager implements IEncryptionManager {
   private key: string
   private macKey: string
 
-  constructor(key: string, macKey: string) {
+  constructor (key: string, macKey: string) {
     this.key = key
     this.macKey = macKey
   }
