@@ -11,15 +11,8 @@ class EncryptionManager implements IEncryptionManager {
     this.macKey = macKey
   }
 
-  encrypt = (data: string) => {
-    const cipher = encrypt(this.key, data, this.macKey)
-    return Promise.resolve(Buffer.from(cipher, 'utf-8').toString('hex'))
-  }
-
-  decrypt = (data: string) => {
-    const cipher = Buffer.from(data, 'hex').toString('utf-8')
-    return Promise.resolve(decrypt(this.key, cipher, this.macKey))
-  }
+  encrypt = (data: string) => Promise.resolve(encrypt(this.key, data, this.macKey))
+  decrypt = (cipher: string) => Promise.resolve(decrypt(this.key, cipher, this.macKey))
 
   static fromWeb3Provider = (provider: Web3Provider) =>
     provider.request({
