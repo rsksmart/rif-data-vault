@@ -6,7 +6,7 @@ import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
 import { deleteDatabase, resetDatabase, startService, testTimestamp, setupDataVaultClient, testMaxStorage, getEncryptionPublicKeyTestFn, decryptTestFn } from './util'
 import { MAX_STORAGE_REACHED } from '../src/constants'
-import EncryptionManager from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 jest.setTimeout(12000)
 

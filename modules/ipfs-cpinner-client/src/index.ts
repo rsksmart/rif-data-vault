@@ -1,6 +1,6 @@
 import axios from 'axios'
 import AuthManager from './auth-manager'
-import EncryptionManager from './encryption-manager'
+import EncryptionManager from './encryption-manager/asymmetric'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   CreateContentPayload, CreateContentResponse,

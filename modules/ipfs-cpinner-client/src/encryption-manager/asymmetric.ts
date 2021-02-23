@@ -1,8 +1,8 @@
 import { encrypt as ethEncrypt } from 'eth-sig-util'
 import { Web3Provider } from '../web3provider/types'
-import { DecryptFn, EncryptionManagerConfig, GetEncryptionPublicKeyFn } from './types'
+import { DecryptFn, EncryptionManagerConfig, GetEncryptionPublicKeyFn, IEncryptionManager } from './types'
 
-class EncryptionManager {
+class EncryptionManager implements IEncryptionManager {
   getEncryptionPublicKey: GetEncryptionPublicKeyFn
   private decryptInWallet: DecryptFn
   constructor ({ getEncryptionPublicKey, decrypt }: EncryptionManagerConfig) {

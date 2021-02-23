@@ -6,7 +6,7 @@ import MockDate from 'mockdate'
 import ipfsHash from 'ipfs-only-hash'
 import localStorageMockFactory from './localStorageMockFactory'
 import { MAX_STORAGE_REACHED } from '../src/constants'
-import EncryptionManager from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 jest.setTimeout(10000)
 

@@ -3,7 +3,7 @@ import DataVaultWebClient from '../src'
 import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, setupDataVaultClient, startService, testTimestamp } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
-import EncryptionManager from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
 

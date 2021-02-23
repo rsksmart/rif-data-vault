@@ -4,7 +4,7 @@ import { Server } from 'http'
 import { customStorageFactory, decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import MockDate from 'mockdate'
 import AuthManager from '../src/auth-manager'
-import EncryptionManager from '../src/encryption-manager'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 jest.setTimeout(12000)
 
