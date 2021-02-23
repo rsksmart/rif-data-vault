@@ -29,7 +29,7 @@ export const generateKeyViaRPC = (provider: Web3Provider, account: string) => pr
 }))
 
 export const encrypt = (key, message, macKey) => {
-  const iv = encHex.stringify(WordArray.random(16))
+  const iv = WordArray.random(16)
 
   const c = AES.encrypt(message, key, { iv: iv, mode: ModeCTR }).toString()
   // do a MAC preventing padding oracle attacks
@@ -39,7 +39,7 @@ export const encrypt = (key, message, macKey) => {
 }
 
 export const decrypt = (key, cipher, macKey) => {
-  const iv = cipher.substring(0, 32)
+  const iv = encHex.parse(cipher.substring(0, 32))
   const c = cipher.substring(32, cipher.length - 64)
   const m = cipher.substring(cipher.length - 64)
 
