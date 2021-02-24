@@ -1,6 +1,5 @@
 import axios from 'axios'
 import AuthManager from './auth-manager'
-import EncryptionManager from './encryption-manager/asymmetric'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   CreateContentPayload, CreateContentResponse,
@@ -8,9 +7,13 @@ import {
   SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, Backup
 } from './types'
 
+import { IEncryptionManager } from './encryption-manager/types'
+import AsymmetricEncryptionManager from './encryption-manager/asymmetric'
+import SignerEncryptionManager from './encryption-manager/with-signer'
+
 class IPFSCpinnerClient {
   private authManager: AuthManager
-  private encryptionManager: EncryptionManager
+  private encryptionManager: IEncryptionManager
 
   constructor (private config: Config) {
     this.authManager = config.authManager
@@ -128,4 +131,4 @@ class IPFSCpinnerClient {
 }
 
 export default IPFSCpinnerClient
-export { AuthManager, EncryptionManager }
+export { AuthManager, AsymmetricEncryptionManager, SignerEncryptionManager }
