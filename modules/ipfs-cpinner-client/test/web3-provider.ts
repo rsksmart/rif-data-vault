@@ -22,8 +22,8 @@ export class Provider implements Web3Provider {
       return Promise.resolve([this.account])
     }
     if (method === 'personal_sign') {
-      this.validateAccount(params[0])
-      return Promise.resolve(this.personalSign(params[1]))
+      this.validateAccount(params[1])
+      return Promise.resolve(this.personalSign(params[0]))
     }
     if (method === 'eth_getEncryptionPublicKey') {
       this.validateAccount(params[0])
