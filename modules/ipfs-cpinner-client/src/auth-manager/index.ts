@@ -92,7 +92,7 @@ class AuthManager {
       ...config,
       personalSign: (data: string) => provider.request({
         method: 'personal_sign',
-        params: [accounts[0], data]
+        params: [data, accounts[0]]
       })
     }))
   }

@@ -38,7 +38,7 @@ const address = '0xabcdef....123' // user's address
 const did = `did:ethr:rsk:${address}`
 
 // these are examples with Metamask
-const personalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] })
+const personalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [data, address] })
 const decrypt = (hexCypher: string) => window.ethereum.request({ method: 'eth_decrypt', params: [hexCypher, address] })
 const getEncryptionPublicKey = () => window.ethereum.request.request({ method: 'eth_getEncryptionPublicKey', params: [address] })
 
