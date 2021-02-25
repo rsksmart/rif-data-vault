@@ -8,10 +8,10 @@ import WordArray from 'crypto-js/lib-typedarrays'
 import { Web3Provider } from '../web3provider/types'
 
 export const generateKeyViaRPC = (provider: Web3Provider, account: string) => provider.request({
-  method: 'personal_sign', params: [account, 'The website wants permission to access and manage your data vault']
+  method: 'personal_sign', params: ['The website wants permission to access and manage your data vault', account]
 }).then(sig => provider.request({
   // make sure the wallet signing is deterministic
-  method: 'personal_sign', params: [account, 'The website wants permission to access and manage your data vault']
+  method: 'personal_sign', params: ['The website wants permission to access and manage your data vault', account]
 }).then(sig2 => {
   if (sig2 !== sig) throw new Error('Sorry, your wallet does not support encryption. You cannot access your Data Vault')
   // Check the size of r and s - // 0x r(32) s(32) v(1)
