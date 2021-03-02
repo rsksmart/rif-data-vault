@@ -45,8 +45,18 @@ const config: AuthConfig = {
 }
 
 const app = express()
+
 app.use(bodyParser.json())
-app.use(cors())
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+  next()
+})
+
+app.use(cors({
+  origin: /http*/g,
+  credentials: true
+}))
 
 const ipfsApiUrl = `http://${env.ipfsHost}:${env.ipfsPort}`
 
