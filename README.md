@@ -27,6 +27,8 @@ The project consists of 3 modules:
 - [the service API](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service). It allows modifying the implementation of the provider's messages without modifying the API, keeping the SDK compatible
 - [the SDK](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-client). An npm package that allows you to connect to the Data Vault from the web browser using different web3 wallets
 
+> The project has a known vulnerability that is being fixed right now. See [#74](https://github.com/rsksmart/rif-data-vault/pull/74).
+
 ## Setup
 
 Install dependencies
