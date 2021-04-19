@@ -15,17 +15,11 @@ const removeExtraCookieAttributes = (cookie: string) => cookie.substr(0, cookie.
 
 // gets csrf token from set-cookie header
 function getCSRFTokenFromResponse(response: any) {
-  let csrfToken = removeExtraCookieAttributes(
-    response.header['set-cookie'].find(h => h.indexOf(CSRF_TOKEN_HEADER_NAME) > -1)
-  )
-
-  csrfToken = csrfToken.substr(CSRF_TOKEN_HEADER_NAME.length + 1, csrfToken.length)
-
-  return csrfToken
+  return response.header['x-csrf-token']
 }
 
 function getAccessTokenHeader(tokens: string[]) {
-  return `${removeExtraCookieAttributes(tokens[1])}; ${removeExtraCookieAttributes(tokens[2])}`
+  return `${removeExtraCookieAttributes(tokens[0])}; ${removeExtraCookieAttributes(tokens[1])}`
 }
 
 jest.setTimeout(10000)
