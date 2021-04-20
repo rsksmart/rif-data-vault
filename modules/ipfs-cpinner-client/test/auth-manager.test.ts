@@ -68,7 +68,7 @@ describe('login', function (this: {
     expect(refreshToken).toBeTruthy()
   })
 
-  test('should receive an access token and the subject must be the client did', async () => {
+  test('should receive an access token and the subject must be the client did and issued by the service', async () => {
     const authManager = await setupComplete()
 
     const accessToken = await authManager.getAccessToken()
@@ -78,17 +78,6 @@ describe('login', function (this: {
     const { payload } = decodeJWT(accessToken)
 
     expect(payload.sub).toEqual(this.did)
-  })
-
-  test('should receive an access token issued by the service did', async () => {
-    const authManager = await setupComplete()
-
-    const accessToken = await authManager.getAccessToken()
-
-    expect(accessToken).toBeTruthy()
-
-    const { payload } = decodeJWT(accessToken)
-
     expect(payload.iss).toEqual(this.serviceDid)
   })
 

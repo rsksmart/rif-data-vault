@@ -10,6 +10,8 @@ class AuthManager {
   did: string
   serviceUrl: string
   personalSign: PersonalSign
+  csrfHeader: string
+  cookies: string[]
 
   constructor (config: DIDAuthConfig) {
     this.store = config.store || new LocalStorage()
@@ -33,7 +35,14 @@ class AuthManager {
 
   // did auth challenge-response authentication
   private getChallenge = (): Promise<string> => axios.get(`${this.serviceUrl}/request-auth/${this.did}`)
-    .then(res => res.status === 200 && !!res.data && res.data.challenge)
+    .then(res => {
+      if (!(res.status === 200 && !!res.data)) throw new Error('Invalid response')
+
+      this.csrfHeader = res.headers['x-csrf-token']
+      this.cookies = res.headers['set-cookie'].map(cookie => cookie.split(';')[0])
+
+      return res.data.challenge
+    })
 
   private signChallenge = (challenge: string) => this.personalSign(
     `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
@@ -41,8 +50,16 @@ class AuthManager {
 
   private login = (): Promise<LoginResponse> => this.getChallenge()
     .then(this.signChallenge)
-    .then(signature => axios.post(`${this.serviceUrl}/auth`, { response: signature }))
-    .then(res => res.status === 200 && res.data)
+    .then(signature => axios.post(`${this.serviceUrl}/auth`, { response: signature }, {
+      headers: {
+        'x-csrf-token': this.csrfHeader,
+        cookie: this.cookies
+      }
+    }))
+    .then(res => res.status === 200 && {
+      accessToken: res.headers['set-cookie'][0].split(';')[0].split('=')[1],
+      refreshToken: res.headers['set-cookie'][1].split(';')[0].split('=')[1]
+    })
     .then(this.storeTokens)
 
   private async refreshAccessToken (): Promise<LoginResponse> {
@@ -50,7 +67,12 @@ class AuthManager {
 
     if (!refreshToken) return this.login()
 
-    return axios.post(`${this.serviceUrl}/refresh-token`, { refreshToken })
+    return axios.post(`${this.serviceUrl}/refresh-token`, {}, {
+      headers: {
+        'x-csrf-token': this.csrfHeader,
+        cookie: `refresh-token-${this.did}=${refreshToken};${this.cookies[0]}`
+      }
+    })
       .then(res => res.status === 200 && res.data)
       .then(this.storeTokens)
       .catch(err => {
@@ -84,6 +106,13 @@ class AuthManager {
     accessToken,
     refreshToken
   }))
+
+  public getHeaders = () => this.getAccessToken()
+    .then(accessToken => ({
+      'x-logged-did': this.did,
+      'x-csrf-token': this.csrfHeader,
+      cookie: `authorization-${this.did}=${accessToken};${this.cookies[0]}`
+    }))
 
   static fromWeb3Provider (config: DIDAuthServiceConfig & DIDAuthStoreConfig, provider: Web3Provider) {
     return provider.request({

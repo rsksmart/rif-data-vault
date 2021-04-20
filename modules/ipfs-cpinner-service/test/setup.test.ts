@@ -1,6 +1,6 @@
-import express, { Express } from 'express'
-import { ipfsPinnerProviderFactory, IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
-import setupApi, { AuthConfig } from '../src/setup'
+import express from 'express'
+import { ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
+import setupApi from '../src/setup'
 import request, { SuperAgentTest } from 'supertest'
 import { Connection } from 'typeorm'
 import { challengeResponseFactory, createSqliteConnection, deleteDatabase, identityFactory, ipfsApiUrl, mockedLogger } from './util'
@@ -14,11 +14,11 @@ const TOKENS_HEADER_NAME = 'Cookie'
 const removeExtraCookieAttributes = (cookie: string) => cookie.substr(0, cookie.indexOf('; Path=/'))
 
 // gets csrf token from set-cookie header
-function getCSRFTokenFromResponse(response: any) {
+function getCSRFTokenFromResponse (response: any) {
   return response.header['x-csrf-token']
 }
 
-function getAccessTokenHeader(tokens: string[]) {
+function getAccessTokenHeader (tokens: string[]) {
   return `${removeExtraCookieAttributes(tokens[0])}; ${removeExtraCookieAttributes(tokens[1])}`
 }
 
@@ -79,7 +79,7 @@ describe('setup api with authentication', function (this: {
     test('should respond 401 with no access token', () => this.agent.get(`/content/${key}`)
       .set(CSRF_TOKEN_HEADER_NAME, this.csrfToken)
       .expect(401)
-  )
+    )
 
     test('should respond 200 with access token', () => this.agent.get(`/content/${key}`)
       .set(CSRF_TOKEN_HEADER_NAME, this.csrfToken)
@@ -141,10 +141,10 @@ describe('setup api with authentication', function (this: {
 
   describe('PUT /:key/:id', () => {
     test('should respond 401 without access token', () => this.agent.put(`/content/${key}/${id}`)
-    .set(CSRF_TOKEN_HEADER_NAME, this.csrfToken)
-    .send({ content })
-    .expect(401)
-  )
+      .set(CSRF_TOKEN_HEADER_NAME, this.csrfToken)
+      .send({ content })
+      .expect(401)
+    )
 
     test('should respond 200 with access token', () => this.agent.put(`/content/${key}/${id}`)
       .send({ content })
