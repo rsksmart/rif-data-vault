@@ -1,4 +1,4 @@
-import AuthManager from './auth-manager/testing'
+import AuthManager from './auth-manager'
 import { IEncryptionManager } from './encryption-manager/types'
 export type GetContentPayload = { key: string }
 export type GetContentResponsePayload = { id: string, content: string }

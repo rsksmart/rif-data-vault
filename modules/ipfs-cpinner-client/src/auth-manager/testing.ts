@@ -2,10 +2,10 @@ import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants'
 import { LocalStorage } from './store'
-import { LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore, DIDAuthStoreConfig, DIDAuthServiceConfig } from './types'
+import { IAuthManager, LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore, DIDAuthStoreConfig, DIDAuthServiceConfig } from './types'
 import { Web3Provider } from '../web3provider/types'
 
-class AuthManager {
+class AuthManager implements IAuthManager {
   store: KeyValueStore
   did: string
   serviceUrl: string

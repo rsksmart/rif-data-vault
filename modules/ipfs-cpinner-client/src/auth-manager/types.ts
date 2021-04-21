@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export type LoginResponse = { accessToken: string, refreshToken: string }
 
 export type PersonalSign = (data: string) => Promise<string>
@@ -23,3 +25,10 @@ export type DIDAuthStoreConfig = {
 }
 
 export type DIDAuthConfig = DIDAuthServiceConfig & DIDAuthClientConfig & DIDAuthStoreConfig
+
+export interface IAuthManager {
+  get: typeof axios.get
+  post: typeof axios.post
+  delete: typeof axios.delete
+  put: typeof axios.put
+}

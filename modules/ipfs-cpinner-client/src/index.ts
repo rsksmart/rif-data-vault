@@ -1,4 +1,4 @@
-import AuthManager from './auth-manager/testing'
+import AuthManager from './auth-manager'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   CreateContentPayload, CreateContentResponse,
