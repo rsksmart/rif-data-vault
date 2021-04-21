@@ -3,7 +3,7 @@ import { deleteDatabase, startService, testTimestamp, customStorageFactory, rese
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import MockDate from 'mockdate'
-import AuthManager from '../src/auth-manager'
+import AuthManager from '../src/auth-manager/testing'
 import { Provider } from './web3-provider'
 
 jest.setTimeout(7000)

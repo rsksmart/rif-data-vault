@@ -3,7 +3,7 @@ import { Connection } from 'typeorm'
 import { Server } from 'http'
 import { customStorageFactory, decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import MockDate from 'mockdate'
-import AuthManager from '../src/auth-manager'
+import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 jest.setTimeout(12000)
