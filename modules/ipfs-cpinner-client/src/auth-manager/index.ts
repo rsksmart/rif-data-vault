@@ -114,6 +114,18 @@ class AuthManager {
       cookie: `authorization-${this.did}=${accessToken};${this.cookies[0]}`
     }))
 
+  public get: typeof axios.get = (...args) => this.getHeaders()
+    .then(headers => axios.get(args[0], { headers }))
+
+  public post: typeof axios.post = (...args) => this.getHeaders()
+    .then(headers => axios.post(args[0], args[1], { headers }))
+
+  public delete: typeof axios.delete = (...args) => this.getHeaders()
+    .then(headers => axios.delete(args[0], { headers }))
+
+  public put: typeof axios.put = (...args) => this.getHeaders()
+    .then(headers => axios.put(args[0], args[1], { headers }))
+
   static fromWeb3Provider (config: DIDAuthServiceConfig & DIDAuthStoreConfig, provider: Web3Provider) {
     return provider.request({
       method: 'eth_accounts'

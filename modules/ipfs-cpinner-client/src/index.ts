@@ -1,4 +1,3 @@
-import axios from 'axios'
 import AuthManager from './auth-manager'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
@@ -22,8 +21,7 @@ class IPFSCpinnerClient {
 
   async get ({ key }: GetContentPayload): Promise<GetContentResponsePayload[]> {
     try {
-      const encrypted = await this.authManager.getHeaders()
-        .then(headers => axios.get(`${this.config.serviceUrl}/content/${key}`, { headers }))
+      const encrypted = await this.authManager.get(`${this.config.serviceUrl}/content/${key}`)
         .then(res => res.status === 200 && res.data)
 
       return Promise.all(encrypted.map(({ id, content }) => this.encryptionManager.decrypt(content).then(decrypted => ({ id, content: decrypted }))))
@@ -35,8 +33,7 @@ class IPFSCpinnerClient {
   getKeys (): Promise<string[]> {
     const { serviceUrl } = this.config
 
-    return this.authManager.getHeaders()
-      .then(headers => axios.get(`${serviceUrl}/keys`, { headers }))
+    return this.authManager.get(`${serviceUrl}/keys`)
       .then(res => res.status === 200 && !!res.data && res.data.keys)
       .catch(this.errorHandler)
   }
@@ -44,8 +41,7 @@ class IPFSCpinnerClient {
   getStorageInformation (): Promise<StorageInformation> {
     const { serviceUrl } = this.config
 
-    return this.authManager.getHeaders()
-      .then(headers => axios.get(`${serviceUrl}/storage`, { headers }))
+    return this.authManager.get(`${serviceUrl}/storage`)
       .then(res => res.status === 200 && res.data)
       .catch(this.errorHandler)
   }
@@ -53,8 +49,7 @@ class IPFSCpinnerClient {
   getBackup (): Promise<Backup> {
     const { serviceUrl } = this.config
 
-    return this.authManager.getHeaders()
-      .then(headers => axios.get(`${serviceUrl}/backup`, { headers }))
+    return this.authManager.get(`${serviceUrl}/backup`)
       .then(res => res.status === 200 && res.data)
       .catch(this.errorHandler)
   }
@@ -63,12 +58,8 @@ class IPFSCpinnerClient {
     const { content, key } = payload
     const { serviceUrl } = this.config
 
-    return Promise.all([this.authManager.getHeaders(), this.encryptionManager.encrypt(content)])
-      .then(([headers, encrypted]) => axios.post(
-        `${serviceUrl}/content/${key}`,
-        { content: encrypted },
-        { headers })
-      )
+    return this.encryptionManager.encrypt(content)
+      .then(encrypted => this.authManager.post(`${serviceUrl}/content/${key}`, { content: encrypted }))
       .then(res => res.status === 201 && res.data)
       .catch(this.errorHandler)
   }
@@ -78,8 +69,7 @@ class IPFSCpinnerClient {
     const { serviceUrl } = this.config
     const path = id ? `${key}/${id}` : key
 
-    return this.authManager.getHeaders()
-      .then(headers => axios.delete(`${serviceUrl}/content/${path}`, { headers }))
+    return this.authManager.delete(`${serviceUrl}/content/${path}`)
       .then(res => res.status === 200)
       .catch(this.errorHandler)
   }
@@ -89,12 +79,8 @@ class IPFSCpinnerClient {
     const { serviceUrl } = this.config
 
     const path = id ? `${key}/${id}` : key
-    return Promise.all([this.authManager.getHeaders(), this.encryptionManager.encrypt(content)])
-      .then(([headers, encrypted]) => axios.put(
-        `${serviceUrl}/content/${path}`,
-        { content: encrypted },
-        { headers })
-      )
+    return this.encryptionManager.encrypt(content)
+      .then(encrypted => this.authManager.put(`${serviceUrl}/content/${path}`, { content: encrypted }))
       .then(res => res.status === 200 && res.data)
       .catch(this.errorHandler)
   }
