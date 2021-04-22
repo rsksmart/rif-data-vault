@@ -78,17 +78,38 @@ class AuthManager implements IAuthManager {
       throw e
     }))
 
-  post: typeof axios.post = () => {
-    throw new Error('Not implemented')
-  }
+  post: typeof axios.post = (...args) => this.getConfig().then(config => axios.post(args[0], args[1], config)
+    .then(r => r as any)
+    .catch(e => {
+      if (e.response.status === 401) {
+        return this.saveCsrf(e.response)
+          .then(() => this.refreshAccessToken())
+          .then(() => axios.post(args[0], args[1], config))
+      }
+      throw e
+    }))
 
-  delete: typeof axios.delete = () => {
-    throw new Error('Not implemented')
-  }
+  delete: typeof axios.delete = (...args) => this.getConfig().then(config => axios.delete(args[0], config)
+    .then(r => r as any)
+    .catch(e => {
+      if (e.response.status === 401) {
+        return this.saveCsrf(e.response)
+          .then(() => this.refreshAccessToken())
+          .then(() => axios.delete(args[0], config))
+      }
+      throw e
+    }))
 
-  put: typeof axios.put = () => {
-    throw new Error('Not implemented')
-  }
+  put: typeof axios.put = (...args) => this.getConfig().then(config => axios.put(args[0], args[1], config)
+    .then(r => r as any)
+    .catch(e => {
+      if (e.response.status === 401) {
+        return this.saveCsrf(e.response)
+          .then(() => this.refreshAccessToken())
+          .then(() => axios.put(args[0], args[1], config))
+      }
+      throw e
+    }))
 }
 
 export default AuthManager
