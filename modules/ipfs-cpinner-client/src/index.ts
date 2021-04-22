@@ -1,4 +1,5 @@
 import AuthManager from './auth-manager'
+import { IAuthManager } from './auth-manager/types'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   CreateContentPayload, CreateContentResponse,
@@ -11,7 +12,7 @@ import AsymmetricEncryptionManager from './encryption-manager/asymmetric'
 import SignerEncryptionManager from './encryption-manager/with-signer'
 
 class IPFSCpinnerClient {
-  private authManager: AuthManager
+  private authManager: IAuthManager
   private encryptionManager: IEncryptionManager
 
   constructor (private config: Config) {
