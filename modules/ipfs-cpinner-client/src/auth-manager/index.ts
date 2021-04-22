@@ -67,49 +67,24 @@ class AuthManager implements IAuthManager {
     }
   }
 
-  get: typeof axios.get = async (...args) => this.getConfig().then(config => axios.get(args[0], config)
-    .then(r => r as any)
-    .catch(e => {
-      if (e.response.status === 401) {
-        return this.saveCsrf(e.response)
-          .then(() => this.refreshAccessToken())
-          .then(() => axios.get(args[0], config))
-      }
-      throw e
-    }))
+  private request = (method: any) => async (...args) => {
+    const config = await this.getConfig()
+    return await method(config, ...args)
+      .then(r => r as any)
+      .catch(e => {
+        if (e.response.status === 401) {
+          return this.saveCsrf(e.response)
+            .then(() => this.refreshAccessToken())
+            .then(() => method(config, ...args))
+        }
+        throw e
+      })
+  }
 
-  post: typeof axios.post = (...args) => this.getConfig().then(config => axios.post(args[0], args[1], config)
-    .then(r => r as any)
-    .catch(e => {
-      if (e.response.status === 401) {
-        return this.saveCsrf(e.response)
-          .then(() => this.refreshAccessToken())
-          .then(() => axios.post(args[0], args[1], config))
-      }
-      throw e
-    }))
-
-  delete: typeof axios.delete = (...args) => this.getConfig().then(config => axios.delete(args[0], config)
-    .then(r => r as any)
-    .catch(e => {
-      if (e.response.status === 401) {
-        return this.saveCsrf(e.response)
-          .then(() => this.refreshAccessToken())
-          .then(() => axios.delete(args[0], config))
-      }
-      throw e
-    }))
-
-  put: typeof axios.put = (...args) => this.getConfig().then(config => axios.put(args[0], args[1], config)
-    .then(r => r as any)
-    .catch(e => {
-      if (e.response.status === 401) {
-        return this.saveCsrf(e.response)
-          .then(() => this.refreshAccessToken())
-          .then(() => axios.put(args[0], args[1], config))
-      }
-      throw e
-    }))
+  get: typeof axios.get = this.request((config, ...args) => axios.get(args[0], config))
+  post: typeof axios.post = this.request((config, ...args) => axios.post(args[0], args[1], config))
+  put: typeof axios.put = this.request((config, ...args) => axios.put(args[0], args[1], config))
+  delete: typeof axios.delete = this.request((config, ...args) => axios.delete(args[0], config))
 }
 
 export default AuthManager
