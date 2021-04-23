@@ -48,6 +48,7 @@ const app = express()
 
 app.use(bodyParser.json())
 
+// this enables cross-origin requests
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
   res.setHeader('Access-Control-Expose-Headers', 'x-csrf-token')
