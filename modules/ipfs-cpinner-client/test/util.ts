@@ -13,7 +13,7 @@ import { DecryptFn, GetEncryptionPublicKeyFn } from '../src/encryption-manager/t
 import { KeyValueStore } from '../src/auth-manager/types'
 import DataVaultWebClient from '../src'
 import { decrypt } from 'eth-sig-util'
-import AuthManager from '../src/auth-manager'
+import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
