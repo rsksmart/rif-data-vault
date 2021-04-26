@@ -45,8 +45,20 @@ const config: AuthConfig = {
 }
 
 const app = express()
+
 app.use(bodyParser.json())
-app.use(cors())
+
+// this enables cross-origin requests
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+  res.setHeader('Access-Control-Expose-Headers', 'x-csrf-token')
+  next()
+})
+
+app.use(cors({
+  origin: /http*/g,
+  credentials: true
+}))
 
 const ipfsApiUrl = `http://${env.ipfsHost}:${env.ipfsPort}`
 

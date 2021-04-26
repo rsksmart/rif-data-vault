@@ -13,7 +13,7 @@ import { DecryptFn, GetEncryptionPublicKeyFn } from '../src/encryption-manager/t
 import { KeyValueStore } from '../src/auth-manager/types'
 import DataVaultWebClient from '../src'
 import { decrypt } from 'eth-sig-util'
-import AuthManager from '../src/auth-manager'
+import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
@@ -96,7 +96,7 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const dbConnection = await createSqliteConnection(dbName)
   const ipfsApiUrl = 'http://localhost:5001'
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: testMaxStorage })
-  setupApi(app, ipfsPinnerProvider, config, mockedLogger)
+  setupApi(app, ipfsPinnerProvider as any, config, mockedLogger)
 
   const server = app.listen(port)
 

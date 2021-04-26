@@ -1,4 +1,4 @@
-import AuthManager from './auth-manager'
+import { IAuthManager } from './auth-manager/types'
 import { IEncryptionManager } from './encryption-manager/types'
 export type GetContentPayload = { key: string }
 export type GetContentResponsePayload = { id: string, content: string }
@@ -12,6 +12,6 @@ export type Backup = { key: string, id: string }[]
 
 export type Config = {
   serviceUrl: string
-  authManager?: AuthManager
+  authManager?: IAuthManager
   encryptionManager: IEncryptionManager
 }

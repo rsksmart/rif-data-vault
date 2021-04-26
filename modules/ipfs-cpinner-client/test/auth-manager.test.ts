@@ -3,7 +3,7 @@ import { deleteDatabase, startService, testTimestamp, customStorageFactory, rese
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import MockDate from 'mockdate'
-import AuthManager from '../src/auth-manager'
+import AuthManager from '../src/auth-manager/testing'
 import { Provider } from './web3-provider'
 
 jest.setTimeout(7000)
@@ -68,7 +68,7 @@ describe('login', function (this: {
     expect(refreshToken).toBeTruthy()
   })
 
-  test('should receive an access token and the subject must be the client did', async () => {
+  test('should receive an access token and the subject must be the client did and issued by the service', async () => {
     const authManager = await setupComplete()
 
     const accessToken = await authManager.getAccessToken()
@@ -78,17 +78,6 @@ describe('login', function (this: {
     const { payload } = decodeJWT(accessToken)
 
     expect(payload.sub).toEqual(this.did)
-  })
-
-  test('should receive an access token issued by the service did', async () => {
-    const authManager = await setupComplete()
-
-    const accessToken = await authManager.getAccessToken()
-
-    expect(accessToken).toBeTruthy()
-
-    const { payload } = decodeJWT(accessToken)
-
     expect(payload.iss).toEqual(this.serviceDid)
   })
 
