@@ -1,10 +1,12 @@
 import DataVaultWebClient from '../src'
-import { identityFactory } from './util'
+import { identityFactory, getEncryptionPublicKeyTestFn, decryptTestFn, customStorageFactory } from './util'
 import localStorageMockFactory from './localStorageMockFactory'
+import AuthManager from '../src/auth-manager/testing'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 jest.setTimeout(12000)
 
-// this are integration tests
+// these are integration tests
 
 describe.skip('sandbox environment', function (this: {
   did: string
@@ -12,13 +14,23 @@ describe.skip('sandbox environment', function (this: {
   const setup = async (): Promise<DataVaultWebClient> => {
     const clientIdentity = await identityFactory()
     this.did = clientIdentity.did
-    const rpcPersonalSign = clientIdentity.rpcPersonalSign
 
     // COMPLETE WITH YOUR SANDBOX ENVIRONMENT VALUES
-    const serviceDid = ''
     const serviceUrl = ''
 
-    return new DataVaultWebClient({ serviceUrl, did: this.did, rpcPersonalSign, serviceDid })
+    return new DataVaultWebClient({
+      serviceUrl,
+      authManager: new AuthManager({
+        did: this.did,
+        serviceUrl: serviceUrl,
+        personalSign: clientIdentity.personalSign,
+        store: customStorageFactory()
+      }),
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+        decrypt: decryptTestFn
+      })
+    })
   }
 
   beforeEach(() => { global.localStorage = localStorageMockFactory() })
@@ -47,6 +59,25 @@ describe.skip('sandbox environment', function (this: {
     expect(keys).toEqual([key])
   })
 
+  test('should get storage information', async () => {
+    const client = await setup()
+
+    const key = 'AKey'
+    const content = 'the content'
+
+    const storageBeforeCreate = await client.getStorageInformation()
+
+    expect(storageBeforeCreate.available).toEqual(1000000)
+    expect(storageBeforeCreate.used).toEqual(0)
+
+    await client.create({ key, content })
+
+    const storageAfterCreate = await client.getStorageInformation()
+
+    expect(storageAfterCreate.available).toBeLessThan(1000000)
+    expect(storageAfterCreate.used).toBeGreaterThan(0)
+  })
+
   test('should get a content', async () => {
     const client = await setup()
 
@@ -55,7 +86,7 @@ describe.skip('sandbox environment', function (this: {
 
     const { id } = await client.create({ key, content })
 
-    const values = await client.get({ did: this.did, key })
+    const values = await client.get({ key })
 
     expect(values).toEqual([{ id, content }])
   })

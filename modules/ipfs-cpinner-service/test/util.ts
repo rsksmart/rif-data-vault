@@ -26,7 +26,7 @@ export const deleteDatabase = (connection: Connection, database: string) => conn
 
 export const getRandomString = (): string => Math.random().toString(36).substring(3, 11)
 
-export const ipfsEndpoint = 'http://localhost:5001'
+export const ipfsApiUrl = 'http://localhost:5001'
 
 export const identityFactory = async () => {
   const mnemonic = generateMnemonic(12)
@@ -41,9 +41,10 @@ export const challengeResponseFactory = (
   challenge: string,
   did: string,
   issuerPrivateKey: string,
-  serviceUrl: string
+  serviceUrl: string,
+  loginMessageHeader: string
 ) => {
-  const message = `Login to ${serviceUrl}\nVerification code: ${challenge}`
+  const message = `${loginMessageHeader}\nURL: ${serviceUrl}\nVerification code: ${challenge}`
   const messageDigest = hashPersonalMessage(Buffer.from(message))
 
   const ecdsaSignature = ecsign(

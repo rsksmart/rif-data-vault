@@ -1,8 +1,10 @@
 import DataVaultWebClient from '../src'
 import { Connection } from 'typeorm'
 import { Server } from 'http'
-import { customStorageFactory, deleteDatabase, identityFactory, resetDatabase, startService, testTimestamp } from './util'
+import { customStorageFactory, decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, identityFactory, resetDatabase, startService, testTimestamp } from './util'
 import MockDate from 'mockdate'
+import AuthManager from '../src/auth-manager/testing'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 jest.setTimeout(12000)
 
@@ -15,13 +17,21 @@ describe('custom storage', function (this: {
   const dbName = 'custom-storage.sqlite'
 
   const setup = async (): Promise<DataVaultWebClient> => {
-    const clientIdentity = await identityFactory()
-    const did = clientIdentity.did
-    const rpcPersonalSign = clientIdentity.rpcPersonalSign
+    const { did, personalSign } = await identityFactory()
 
-    return new DataVaultWebClient(
-      { serviceUrl: this.serviceUrl, did, rpcPersonalSign, serviceDid: this.serviceDid, storage: customStorageFactory() }
-    )
+    return new DataVaultWebClient({
+      serviceUrl: this.serviceUrl,
+      authManager: new AuthManager({
+        did,
+        serviceUrl: this.serviceUrl,
+        personalSign,
+        store: customStorageFactory()
+      }),
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+        decrypt: decryptTestFn
+      })
+    })
   }
 
   beforeAll(async () => {

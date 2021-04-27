@@ -68,16 +68,28 @@ DELETE /content/:key/:id -> { }
 
 ### Accessing content
 
-Get all keys of a given `did` (needs authentication)
+Get all keys of a given `did`
 
 ```
 GET /keys/:did -> { keys: string[] }
 ```
 
-Get all files of a given `did` and `key`
+Get all files by `key` of the logged `did`
 
 ```
-GET /content/:did/:key -> [{ id: string, content: string }] (get files)
+GET /content//:key -> [{ id: string, content: string }] (get files)
+```
+
+Get storage availability information
+
+```
+GET /storage -> { used: number, available: number }
+```
+
+Get `key: cid` backup of the logged did (needs authentication)
+
+```
+GET /backup -> { key: string, id: string }[]
 ```
 
 ## Advanced usage
@@ -107,6 +119,8 @@ NETWORK_NAME=rsk:testnet or rsk
 IPFS_PORT= port of an http IPFS node api
 IPFS_HOST=host of an IPFS node api
 CHALLENGE_SECRET=secret used to create deterministic challenges
+MAX_STORAGE=max storage available by did
+LOGIN_MESSAGE_HEADER=custom login message header to be signed by the user in the login process
 ```
 
 Default values:
@@ -119,6 +133,8 @@ DB_FILE=./db/new-data-vault.sqlite
 NETWORK_NAME=rsk:testnet
 IPFS_HOST=localhost
 IPFS_PORT=5001
+MAX_STORAGE=1000000
+LOGIN_MESSAGE_HEADER=Are you sure you want to login to the RIF Data Vault?
 ```
 
 Example:
@@ -135,6 +151,7 @@ NETWORK_NAME=rsk:testnet
 IPFS_HOST=localhost
 IPFS_PORT=5001
 CHALLENGE_SECRET=aSecret
+LOGIN_MESSAGE_HEADER=Are you sure you want to login to the RIF Data Vault?
 ```
 
 ### Set up IPFS
@@ -173,7 +190,7 @@ It will create two containers: one for the service and another one with the IPFS
 Make sure that in your `.env` file you have set the IPFS references as the following:
 ```
 IPFS_HOST=rif-identity-data-vault-ipfs
-IPFS_PORT=5002
+IPFS_PORT=5001
 ```
 
 1. From the root of the project:
@@ -183,41 +200,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-2. Enable access to IPFS node container port 5002
-
-    ```
-    docker container ls
-    # copy the id of the container named rif-identity-data-vault-ipfs:latest
-    docker exec -it COPIED-ID bash # e.g. 967eb3ce4730
-    cd /root/.ipfs/
-    apt update
-    apt install vim
-    vim config
-    ```
-
-    Update `“Addresses” -> “API”` and open ip4 port. Set `“API”: “/ipv4/0.0.0.0/tcp/5001"`
-
-    Before the update
-    
-    <img src="./img/before_update_ipfs.png" height="200" />
-
-    After the update
-
-    <img src="./img/after_update_ipfs.png" height="200" />
-
-    Save the file and exit the container
-
-    ```
-    exit
-    ```
-
-    Now restart IPFS docker
-
-    ```
-    docker restart COPIED-ID
-    ```
-
-3. Perform a quick health check: submit a GET request to: `http://localhost:5107/request-auth/myDid` and it should respond an HTTP 200 with a `challenge`
+2. Perform a quick health check: submit a GET request to: `http://localhost:5107/request-auth/myDid` and it should respond an HTTP 200 with a `challenge`
 
 ## Test
 

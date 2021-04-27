@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import setupApp, { AuthConfig } from './setup'
@@ -18,7 +18,9 @@ const env = {
   rpcUrl: process.env.RPC_URL || 'https://did.testnet.rsk.co:4444',
   networkName: process.env.NETWORK_NAME || 'rsk:testnet',
   ipfsHost: process.env.IPFS_HOST || 'localhost',
-  ipfsPort: process.env.IPFS_PORT || 5001
+  ipfsPort: process.env.IPFS_PORT || 5001,
+  maxStorage: Number(process.env.MAX_STORAGE) || 1000000,
+  loginMessageHeader: process.env.LOGIN_MESSAGE_HEADER || 'Are you sure you want to login to the RIF Data Vault?'
 }
 
 const logger = loggerFactory({
@@ -38,23 +40,43 @@ const config: AuthConfig = {
   serviceUrl: env.serviceUrl,
   challengeSecret: env.challengeSecret,
   networkName: env.networkName,
-  rpcUrl: env.rpcUrl
+  rpcUrl: env.rpcUrl,
+  loginMessageHeader: env.loginMessageHeader
 }
 
 const app = express()
+
 app.use(bodyParser.json())
-app.use(cors())
+
+// this enables cross-origin requests
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+  res.setHeader('Access-Control-Expose-Headers', 'x-csrf-token')
+  next()
+})
+
+app.use(cors({
+  origin: /http*/g,
+  credentials: true
+}))
+
+const ipfsApiUrl = `http://${env.ipfsHost}:${env.ipfsPort}`
+
+app.get('/__health', (req: Request, res: Response) => {
+  res.status(200).end('OK')
+})
 
 createConnection({
   type: 'sqlite',
   database: env.database,
   entities: Entities,
   logging: false,
-  dropSchema: true,
+  dropSchema: false,
   synchronize: true
-}).then((dbConnection: Connection) => ipfsPinnerProviderFactory(dbConnection, `http://${env.ipfsHost}:${env.ipfsPort}`))
+}).then((dbConnection: Connection) => ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: env.maxStorage }))
   .then(ipfsPinnerProvider => setupApp(app, ipfsPinnerProvider, config, logger))
   .then(() => {
     const port = process.env.DATA_VAULT_PORT || 5107
     app.listen(port, () => logger.info(`Data vault service service started on port ${port}`))
   })
+  .catch(err => logger.error('Caught error when starting the service', err))

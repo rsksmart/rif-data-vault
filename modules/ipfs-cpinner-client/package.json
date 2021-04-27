@@ -1,11 +1,11 @@
 {
   "name": "@rsksmart/ipfs-cpinner-client",
-  "version": "0.1.1-beta.2",
+  "version": "0.1.1-beta.13",
   "description": "RIF Data Vault - IPFS centralized pinner client",
-  "main": "lib/index.js",
+  "main": "dist/bundle.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -18,14 +18,14 @@
     "ipfs"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/rsksmart/rif-data-vault/issues"
   },
   "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
   "devDependencies": {
-    "@rsksmart/ipfs-cpinner-provider": "0.1.1-beta.2",
-    "@rsksmart/ipfs-cpinner-service": "0.1.1-beta.2",
+    "@rsksmart/ipfs-cpinner-provider": "0.1.1",
+    "@rsksmart/ipfs-cpinner-service": "0.1.1",
     "@rsksmart/rif-id-ethr-did": "^0.1.0",
     "@rsksmart/rif-id-mnemonic": "^0.1.0",
     "@types/axios": "^0.14.0",
@@ -38,11 +38,17 @@
     "ipfs-only-hash": "^2.0.1",
     "mockdate": "^3.0.2",
     "sqlite3": "^5.0.0",
+    "ts-loader": "^8.0.12",
     "typeorm": "0.2.28",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.3.0",
     "winston": "^3.3.3"
   },
   "dependencies": {
-    "axios": "^0.21.0",
-    "did-jwt": "^4.6.2"
+    "axios": "^0.21.1",
+    "buffer": "^6.0.3",
+    "crypto-js": "^4.0.0",
+    "did-jwt": "^4.6.2",
+    "eth-sig-util": "^3.0.0"
   }
 }

@@ -21,29 +21,42 @@ A Web Client to simplify the way the services provided by the IPFS Centralized D
 
 - Stores the authentication credentials in the given storage 
 
+- Encrypts content using the user wallet prior to save it in the service - if `getEncryptionPublicKey` function provided
+
+- If retrieving an encrypted content, it decrypts it in the user wallet prior to return it - if proper `decrypt` function provided
+
 ## Quick Usage
 
 ```typescript
-import DataVaultWebClient, { ClientKeyValueStorage } from '@rsksmart/ipfs-cpinner-client'
+import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
 const serviceUrl = 'http://your-ipfs-cpinner-service.com'
-const storage: ClientKeyValueStorage = myCustomStorage
 
 // the following fields are required just to perform write operations
 const serviceDid = 'did:ethr:rsk:0x123456789....abc'
 const address = '0xabcdef....123' // user's address
 const did = `did:ethr:rsk:${address}`
-const rpcPersonalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [address, data] }) // this is an example with Metamask
 
-const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, storage })
+// these are examples with Metamask
+const personalSign = (data: string) => window.ethereum.request({ method: 'personal_sign', params: [data, address] })
+const decrypt = (hexCypher: string) => window.ethereum.request({ method: 'eth_decrypt', params: [hexCypher, address] })
+const getEncryptionPublicKey = () => window.ethereum.request.request({ method: 'eth_getEncryptionPublicKey', params: [address] })
+
+const client = new DataVaultWebClient({
+  serviceUrl,
+  authManager: new AuthManager({ did, serviceUrl, personalSign }),
+  encryptionManager: new EncryptionManager({ getEncryptionPublicKey, decrypt  })
+})
 ```
+
+> Note: this approach use the browser `localStorage` as the package store. Please refer to the [documentation](https://developers.rsk.co/rif/identity/data-vault/architecture/client/) to check custom storage options.
 
 ### Get
 
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl })
+const client = new DataVaultWebClient({ serviceUrl, decrypt, did, rpcPersonalSign })
 
 const key = 'EmailCredential'
 
@@ -60,12 +73,38 @@ const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, servic
 const keys = await client.getKeys()
 ```
 
-### Create
+### Get storage information
 
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
 const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
+
+const storage = await client.getStorageInformation()
+
+console.log(`Used: ${storage.used}`)
+console.log(`Available: ${storage.available}`)
+```
+
+### Get backup information
+
+```typescript
+import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
+
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
+
+const backup = await client.getBackup()
+
+console.log('This is the keys and cids you have stored in the DV')
+console.log(backup)
+```
+
+### Create
+
+```typescript
+import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
+
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, getEncryptionPublicKey })
 
 const key = 'MyKey'
 const content = 'this is my content'
@@ -78,7 +117,7 @@ const id = await client.create({ key, content })
 ```typescript
 import DataVaultWebClient from '@rsksmart/ipfs-cpinner-client'
 
-const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid })
+const client = new DataVaultWebClient({ serviceUrl, did, rpcPersonalSign, serviceDid, getEncryptionPublicKey })
 
 const key = 'MyKey'
 const content = 'this is my content'
@@ -100,7 +139,7 @@ await client.delete({ key })
 
 ## Advanced usage 
 
-See our [documentation](https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-client)
+See our [documentation](https://developers.rsk.co/rif/identity/data-vault/architecture/client/)
 
 ## Open work
 

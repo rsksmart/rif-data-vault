@@ -9,31 +9,37 @@ import bodyParser from 'body-parser'
 import setupApi from '@rsksmart/ipfs-cpinner-service/lib/setup'
 import { Server } from 'http'
 import { hashPersonalMessage, ecsign, toRpcSig } from 'ethereumjs-util'
-import { ClientKeyValueStorage } from '../src/types'
+import { DecryptFn, GetEncryptionPublicKeyFn } from '../src/encryption-manager/types'
+import { KeyValueStore } from '../src/auth-manager/types'
 import DataVaultWebClient from '../src'
-import authManagerFactory from '../src/auth-manager'
+import { decrypt } from 'eth-sig-util'
+import AuthManager from '../src/auth-manager/testing'
+import EncryptionManager from '../src/encryption-manager/asymmetric'
 
 export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
+
+export const createPersonalSign = (privateKey: Buffer) => (data: string) => {
+  const messageDigest = hashPersonalMessage(Buffer.from(data))
+
+  const ecdsaSignature = ecsign(
+    messageDigest,
+    privateKey
+  )
+
+  return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
+}
 
 export const identityFactory = async () => {
   const mnemonic = generateMnemonic(12)
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-  const privateKey = hdKey.derive(0).privateKey.toString('hex')
+  const privateKey = hdKey.derive(0).privateKey
 
   return {
-    did: rskDIDFromPrivateKey()(privateKey).did,
-    rpcPersonalSign: (data: string) => {
-      const messageDigest = hashPersonalMessage(Buffer.from(data))
-
-      const ecdsaSignature = ecsign(
-        messageDigest,
-        Buffer.from(privateKey, 'hex')
-      )
-
-      return Promise.resolve(toRpcSig(ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s))
-    }
+    did: rskDIDFromPrivateKey()(privateKey.toString('hex')).did,
+    privateKey,
+    personalSign: createPersonalSign(privateKey)
   }
 }
 
@@ -55,13 +61,15 @@ export const deleteDatabase = (connection: Connection, database: string) => conn
   if (fs.existsSync(database)) fs.unlinkSync(database)
 })
 
+export const testTimestamp = 1603300440000
+export const testMaxStorage = 1000
+
 export const startService = async (dbName: string, port?: number): Promise<{
   server: Server,
   serviceUrl: string,
   serviceDid: string,
   ipfsPinnerProvider: IpfsPinnerProvider,
   dbConnection: Connection,
-  dbConnectionPromise: Promise<Connection>
 }> => {
   if (!port) port = 4600
   const serviceUrl = `http://localhost:${port}`
@@ -81,23 +89,21 @@ export const startService = async (dbName: string, port?: number): Promise<{
     serviceUrl,
     challengeSecret: 'theSecret',
     serviceDid,
-    serviceSigner: serviceIdentity.signer
+    serviceSigner: serviceIdentity.signer,
+    loginMessageHeader: 'Are you sure you want to login to the RIF Data Vault?'
   }
 
-  const dbConnectionPromise = createSqliteConnection(dbName)
-  const dbConnection = await dbConnectionPromise
-  const ipfsEndpoint = 'http://localhost:5001'
-  const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsEndpoint)
-  setupApi(app, ipfsPinnerProvider, config, mockedLogger)
+  const dbConnection = await createSqliteConnection(dbName)
+  const ipfsApiUrl = 'http://localhost:5001'
+  const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: testMaxStorage })
+  setupApi(app, ipfsPinnerProvider as any, config, mockedLogger)
 
   const server = app.listen(port)
 
-  return { server, ipfsPinnerProvider, serviceUrl, dbConnection, dbConnectionPromise, serviceDid }
+  return { server, ipfsPinnerProvider, serviceUrl, dbConnection, serviceDid }
 }
 
-export const testTimestamp = 1603300440000
-
-export const customStorageFactory = (): ClientKeyValueStorage => {
+export const customStorageFactory = (): KeyValueStore => {
   const store: any = {}
   return {
     get: async (key: string) => {
@@ -109,26 +115,51 @@ export const customStorageFactory = (): ClientKeyValueStorage => {
   }
 }
 
-export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string): Promise<{ dataVaultClient: DataVaultWebClient, did: string }> => {
-  const { rpcPersonalSign, did } = await identityFactory()
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const setupDataVaultClient = async (serviceUrl: string, serviceDid: string) => {
+  const { personalSign, did } = await identityFactory()
 
   return {
-    dataVaultClient: new DataVaultWebClient({ serviceUrl, did: did, rpcPersonalSign, serviceDid }),
+    dataVaultClient: new DataVaultWebClient({
+      serviceUrl,
+      authManager: new AuthManager({
+        serviceUrl,
+        did,
+        personalSign,
+        store: customStorageFactory()
+      }),
+      encryptionManager: new EncryptionManager({
+        getEncryptionPublicKey: getEncryptionPublicKeyTestFn,
+        decrypt: decryptTestFn
+      })
+    }),
     did
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const setupAuthManager = async (serviceUrl: string, serviceDid: string) => {
-  const { rpcPersonalSign, did } = await identityFactory()
+  const { personalSign, did, privateKey } = await identityFactory()
 
-  const storage = customStorageFactory()
+  const store = customStorageFactory()
 
   return {
-    authManager: authManagerFactory(
-      { serviceUrl, did, rpcPersonalSign, serviceDid },
-      storage
+    authManager: new AuthManager(
+      { serviceUrl, did, personalSign, store }
     ),
     did,
-    storage
+    privateKey,
+    store
   }
+}
+
+const testEncPrivateKey = '1e38556769bb9a789ff84f4fb5b5336e0e8f1c5915fe382ec04ce913e2ed9893'
+const testEncPublicKey = 'tBteRrjwd8jW4HXP5z0EqOMyjNcY3rini6/mJaTEBWg='
+
+export const getEncryptionPublicKeyTestFn: GetEncryptionPublicKeyFn = (encPubKey?: string) => Promise.resolve(encPubKey || testEncPublicKey)
+
+export const decryptTestFn: DecryptFn = (hexa: string): Promise<string> => {
+  const cipher = JSON.parse(Buffer.from(hexa.substr(2), 'hex').toString('utf8'))
+
+  return Promise.resolve(decrypt(cipher, testEncPrivateKey))
 }

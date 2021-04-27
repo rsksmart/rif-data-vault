@@ -2,22 +2,23 @@ import IpfsHttpClient from 'ipfs-http-client'
 import { IpfsClient } from '../src'
 import { getRandomString } from './util'
 import ipfsHash from 'ipfs-only-hash'
+import { DEFAULT_IPFS_API } from '../src/constants'
 
-describe('ipfs client', () => {
-  let ipfsHttpClient
-  let ipfsClient: IpfsClient
-
+describe('ipfs client', function (this: {
+  ipfsHttpClient,
+  ipfsClient: IpfsClient
+}) {
   beforeAll(() => {
-    ipfsHttpClient = IpfsHttpClient({ url: 'http://localhost:5001' })
+    this.ipfsHttpClient = IpfsHttpClient({ url: DEFAULT_IPFS_API })
   })
 
   beforeEach(() => {
-    ipfsClient = new IpfsClient(ipfsHttpClient)
+    this.ipfsClient = new IpfsClient(this.ipfsHttpClient)
   })
 
   test('should put a new file', async () => {
     const content = getRandomString()
-    const cid = await ipfsClient.put(content)
+    const cid = await this.ipfsClient.put(content)
 
     expect(cid).toBeTruthy()
 
@@ -27,11 +28,11 @@ describe('ipfs client', () => {
 
   test('should get a file', async () => {
     const content = getRandomString()
-    const cid = await ipfsClient.put(content)
+    const cid = await this.ipfsClient.put(content)
 
     expect(cid).toBeTruthy()
 
-    const retrievedContent = await ipfsClient.get(cid)
+    const retrievedContent = await this.ipfsClient.get(cid)
     expect(retrievedContent).toEqual(content)
   })
 })

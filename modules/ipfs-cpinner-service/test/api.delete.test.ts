@@ -3,33 +3,32 @@ import express, { Express } from 'express'
 import { Connection } from 'typeorm'
 import request from 'supertest'
 import { IpfsPinnerProvider, ipfsPinnerProviderFactory } from '@rsksmart/ipfs-cpinner-provider'
-import { createSqliteConnection, deleteDatabase, ipfsEndpoint, mockedLogger } from './util'
+import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from './util'
 import bodyParser from 'body-parser'
 
 describe('PUT', function (this: {
   app: Express,
   did: string
-  middleware: (req, res, next) => any,
   dbConnection: Connection,
   dbName: string,
   provider: IpfsPinnerProvider
 }) {
   const setup = async () => {
     this.dbConnection = await createSqliteConnection(this.dbName)
-    this.provider = await ipfsPinnerProviderFactory(this.dbConnection, ipfsEndpoint)
+    this.provider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
 
     setupPermissionedApi(this.app, this.provider, mockedLogger)
   }
 
   beforeEach(() => {
     this.did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
-    this.middleware = (req, res, next) => {
+    const middleware = (req, res, next) => {
       req.user = { did: this.did }
       next()
     }
     this.app = express()
     this.app.use(bodyParser.json())
-    this.app.use(this.middleware)
+    this.app.use(middleware)
   })
 
   afterEach(() => deleteDatabase(this.dbConnection, this.dbName))

@@ -5,10 +5,10 @@ import { createSqliteConnection, resetDatabase, deleteDatabase } from './util'
 const database = './ipfs-pinner-provider.entities.test.sqlite'
 
 describe('entities', () => {
-  let dbConnection: Promise<Connection>
+  let dbConnection: Connection
 
-  beforeAll(() => {
-    dbConnection = createSqliteConnection(database)
+  beforeAll(async () => {
+    dbConnection = await createSqliteConnection(database)
   })
 
   beforeEach(async () => {
@@ -16,18 +16,18 @@ describe('entities', () => {
   })
 
   afterAll(async () => {
-    deleteDatabase(await dbConnection, database)
+    deleteDatabase(dbConnection, database)
   })
 
   test('save ipfs metadata to DB', async () => {
-    const connection = await dbConnection
-    const metadataRepository = connection.getRepository(IpfsMetadata)
+    const metadataRepository = dbConnection.getRepository(IpfsMetadata)
 
     const did = 'did:ethr:rsk:123456789'
     const key = 'my new content'
     const cid = 'the cid'
+    const contentSize = 1234
 
-    const metadata = new IpfsMetadata(did, key, cid)
+    const metadata = new IpfsMetadata(did, key, cid, contentSize)
     await metadataRepository.save(metadata)
 
     const metadataFromDb = await metadataRepository.findOne({ where: { did } })
@@ -35,6 +35,7 @@ describe('entities', () => {
     expect(metadataFromDb.did).toEqual(did)
     expect(metadataFromDb.cid).toEqual(cid)
     expect(metadataFromDb.key).toEqual(key)
+    expect(metadataFromDb.contentSize).toEqual(contentSize)
   })
 
   test('save ipfs pinned cid to DB', async () => {

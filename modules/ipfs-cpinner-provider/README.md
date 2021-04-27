@@ -28,7 +28,8 @@ Plug and play configuration
 import { ipfsPinnerProviderFactory, IpfsPinnedCid, IpfsMetadata } from '@rsksmart/ipfs-cpinner-provider'
 import { createConnection } from 'typeorm'
 
-const ipfsApi = 'http://localhost:5001'
+const ipfsApiUrl = 'http://localhost:5001'
+const maxStorage = 2000000 // 2 mb
 
 const database = 'my-ipfs-pinner-provider.sqlite'
 const Entities = [IpfsPinnedCid, IpfsMetadata]
@@ -42,8 +43,10 @@ const dbConnection = await createConnection({
   synchronize: true
 })
 
-const ipfsPinnerProvider = await ipfsPinnerProviderFactory(dbConnection, ipfsApi)
-// NOTE: ipfsApi is optional. Default value is: 'http://localhost:5001'
+const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage })
+// NOTE: ipfsApiUrl is optional. Default value is: 'http://localhost:5001'
+// NOTE: maxStorage is optional. Default value is: 1000000 // 1 mb
+
 ```
 
 ### Usage
@@ -66,6 +69,12 @@ const anotherCid: string = await ipfsPinnerProvider.swap(did, key, 'the new cont
 const deleted: boolean = await ipfsPinnerProvider.delete(did, key)
 
 const deleted: boolean = await ipfsPinnerProvider.delete(did, key, cid) // cid can be specified if there is more than one content associated to the given did and key
+
+const availableStorage: number = await ipfsPinnerProvider.getAvailableStorage(did) // return the amount of bytes available to store value associated to the given did
+
+const usedStorage: number = await ipfsPinnerProvider.getUsedStorage(did) // return the amount of bytes used to store value associated to the given did
+
+const didBackup: Backup = await ipfsPinnerProvider.getBackup(did) // return an array containing all the keys and cids created by the given did
 ```
 
 See our [documentation](https://developers.rsk.co/rif/identity/) for advanced usage.
