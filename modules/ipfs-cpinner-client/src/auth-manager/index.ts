@@ -69,7 +69,7 @@ class AuthManager implements IAuthManager {
         .then(() => this.getConfig())
         .then(config => method(config, ...args))
     }
-    if(error.response.status === 403) {
+    if (error.response.status === 403) {
       return this.get(`${this.serviceUrl}/refresh-csrf`)
         .then(res => this.store.set(XCsrfToken, res.data))
         .then(() => this.getConfig())
