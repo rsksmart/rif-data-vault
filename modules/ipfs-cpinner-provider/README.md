@@ -9,8 +9,8 @@
   <a href="https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-provider">
     <img src="https://img.shields.io/badge/-docs-brightgreen" alt="docs" />
   </a>
-  <a href="https://badge.fury.io/js/%40rsksmart%2Fipfs-pinner-provider">
-    <img src="https://badge.fury.io/js/%40rsksmart%2Fipfs-pinner-provider.svg" alt="npm" />
+  <a href="https://badge.fury.io/js/%40rsksmart%2Fipfs-cpinner-provider">
+    <img src="https://badge.fury.io/js/%40rsksmart%2Fipfs-cpinner-provider.svg" alt="npm" />
   </a>
 </p>
 

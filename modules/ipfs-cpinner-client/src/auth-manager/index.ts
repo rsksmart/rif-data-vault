@@ -1,8 +1,8 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { IAuthManager, DIDAuthConfig, KeyValueStore, PersonalSign } from './types'
 import { LocalStorage } from './store'
 
-const xCsrfToken = 'x-csrf-token'
+const XCsrfToken = 'x-csrf-token'
 
 class AuthManager implements IAuthManager {
   store: KeyValueStore
@@ -20,12 +20,8 @@ class AuthManager implements IAuthManager {
   }
 
   private saveCsrf = async (response) => {
-    const token = await this.store.get(xCsrfToken)
-
-    if (!token) {
-      await this.store.set(xCsrfToken, response.headers[xCsrfToken])
-    }
-
+    const xCsrfToken = await this.store.get(XCsrfToken)
+    if (!xCsrfToken && response.headers[XCsrfToken]) await this.store.set(XCsrfToken, response.headers[XCsrfToken])
     return response
   }
 
@@ -33,7 +29,7 @@ class AuthManager implements IAuthManager {
   private getChallenge = (): Promise<string> => axios.get(`${this.serviceUrl}/request-auth/${this.did}`)
     .catch(e => this.saveCsrf(e.response))
     .then(res => {
-      this.store.set(xCsrfToken, res.headers[xCsrfToken])
+      this.store.set(XCsrfToken, res.headers[XCsrfToken])
       return res.data.challenge
     })
     .then(this.saveCsrf)
@@ -42,19 +38,18 @@ class AuthManager implements IAuthManager {
     `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
   ).then(sig => ({ did: this.did, sig }))
 
-  private login = (): Promise<void> => this.store.get(xCsrfToken)
+  private login = (): Promise<void> => this.store.get(XCsrfToken)
     .then(token => this.getChallenge()
       .then(this.signChallenge)
       .then(signature => axios.post(`${this.serviceUrl}/auth`, { response: signature }, {
         headers: { 'x-csrf-token': token }
       })))
 
-  private getConfig = () => this.store.get(xCsrfToken).then(token => ({
-    headers: {
-      'x-csrf-token': token,
-      'x-logged-did': this.did
-    }
-  }))
+  private getConfig = () => this.store.get(XCsrfToken).then(xCsrfToken => {
+    const headers = { 'x-logged-did': this.did }
+    if (xCsrfToken) headers[XCsrfToken] = xCsrfToken
+    return { headers }
+  })
 
   private async refreshAccessToken (): Promise<void> {
     const config = await this.getConfig()
@@ -67,18 +62,29 @@ class AuthManager implements IAuthManager {
     }
   }
 
+  private handleRequestError = (method: any, ...args) => (error: AxiosError) => {
+    if (error.response.status === 401) {
+      return this.saveCsrf(error.response)
+        .then(() => this.refreshAccessToken())
+        .then(() => this.getConfig())
+        .then(config => method(config, ...args))
+    }
+    if (error.response.status === 403) {
+      return this.get(`${this.serviceUrl}/refresh-csrf`)
+        .then(res => this.store.set(XCsrfToken, res.data))
+        .then(() => this.getConfig())
+        .then(config => method(config, ...args))
+    }
+    throw error
+  }
+
   private request = (method: any) => async (...args) => {
     const config = await this.getConfig()
+    const handleRequestError = this.handleRequestError(method, ...args)
     return await method(config, ...args)
       .then(r => r as any)
-      .catch(e => {
-        if (e.response.status === 401) {
-          return this.saveCsrf(e.response)
-            .then(() => this.refreshAccessToken())
-            .then(() => method(config, ...args))
-        }
-        throw e
-      })
+      .catch(handleRequestError)
+      .catch(handleRequestError) // retries twice. reason: we can have 403 error followed by a 401 error
   }
 
   get: typeof axios.get = this.request((config, ...args) => axios.get(args[0], config))
