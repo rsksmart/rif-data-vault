@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "description": "RIF Data Vault - IPFS centralized pinner client",
   "main": "dist/bundle.js",
-  "types": "lib/index.d.ts",
+  "types": "types/index.d.ts",
   "scripts": {
     "build": "webpack"
   },

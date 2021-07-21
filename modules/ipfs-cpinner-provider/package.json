@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "description": "RIF Identity - IPFS Centralized Pinner Provider",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "lib/"
   ],
