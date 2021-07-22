@@ -2,6 +2,7 @@
   "files": [],
   "references": [
       { "path": "ipfs-cpinner-client" },
+      { "path": "ipfs-cpinner-client-types" },
       { "path": "ipfs-cpinner-provider" },
       { "path": "ipfs-cpinner-service" }
   ]

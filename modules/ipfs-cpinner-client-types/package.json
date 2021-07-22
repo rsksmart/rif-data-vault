@@ -1,5 +1,5 @@
 {
-  "name": "@rsksmart/ipfs-cpinner-provider",
+  "name": "@rsksmart/ipfs-cpinner-client-types",
   "version": "0.1.2",
   "description": "RIF Identity - IPFS Centralized Pinner Provider",
   "main": "lib/index.js",
@@ -28,12 +28,9 @@
   },
   "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "ipfs-http-client": "^47.0.1",
     "it-all": "^1.0.4",
     "typeorm": "0.2.28"
-  },
-  "devDependencies": {
-    "ipfs-only-hash": "^2.0.1",
-    "sqlite3": "^5.0.0"
   }
 }

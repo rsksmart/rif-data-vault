@@ -1,5 +1,5 @@
-import { PersonalSign } from '../src/auth-manager/types'
-import { Web3Provider } from '../src/web3provider/types'
+import { PersonalSign } from '@rsksmart/ipfs-cpinner-client-types/lib/auth-manager/types'
+import { Web3Provider } from '@rsksmart/ipfs-cpinner-client-types/lib/web3provider/types'
 import { createPersonalSign, getEncryptionPublicKeyTestFn, decryptTestFn } from './util'
 
 export class Provider implements Web3Provider {

@@ -1,6 +1,6 @@
-import { IEncryptionManager } from './types'
+import { IEncryptionManager } from '@rsksmart/ipfs-cpinner-client-types/lib/encryption-manager/types'
 import { encrypt, decrypt, generateKeyViaRPC } from './aes'
-import { Web3Provider } from '../web3provider/types'
+import { Web3Provider } from '@rsksmart/ipfs-cpinner-client-types/lib/web3provider/types'
 
 class EncryptionManager implements IEncryptionManager {
   private key: string

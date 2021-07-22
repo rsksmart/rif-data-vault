@@ -1,5 +1,7 @@
-import { IAuthManager } from './auth-manager/types'
-import { IEncryptionManager } from './encryption-manager/types'
+import { IAuthManager as IAuthManagerType } from './auth-manager/types'
+import { IEncryptionManager as IEncryptionManagerType } from './encryption-manager/types'
+export type IAuthManager = IAuthManagerType
+export type IEncryptionManager = IEncryptionManagerType
 export type GetContentPayload = { key: string }
 export type GetContentResponsePayload = { id: string, content: string }
 export type CreateContentPayload = { key: string, content: string }

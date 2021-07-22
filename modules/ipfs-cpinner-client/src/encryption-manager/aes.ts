@@ -5,7 +5,7 @@ import encUtf8 from 'crypto-js/enc-utf8'
 import encHex from 'crypto-js/enc-hex'
 import ModeCTR from 'crypto-js/mode-ctr'
 import WordArray from 'crypto-js/lib-typedarrays'
-import { Web3Provider } from '../web3provider/types'
+import { Web3Provider } from '@rsksmart/ipfs-cpinner-client-types/lib/web3provider/types'
 
 export const generateKeyViaRPC = (provider: Web3Provider, account: string) => provider.request({
   method: 'personal_sign', params: ['The website wants permission to access and manage your data vault', account]
