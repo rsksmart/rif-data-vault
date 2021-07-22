@@ -4,7 +4,6 @@
   "description": "RIF Identity - IPFS Centralized Pinner Service",
   "private": true,
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "build:prod": "tsc -p tsconfig.prod.json",
