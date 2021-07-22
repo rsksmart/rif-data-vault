@@ -32,3 +32,6 @@ export interface IAuthManager {
   delete: typeof axios.delete
   put: typeof axios.put
 }
+export interface IAuthManagerNewable extends IAuthManager {
+  new (c:DIDAuthConfig): IAuthManager;
+}

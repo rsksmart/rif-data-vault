@@ -2,8 +2,8 @@ import axios from 'axios'
 import { decodeJWT } from 'did-jwt'
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './constants'
 import { LocalStorage } from './store'
-import { IAuthManager, LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore, DIDAuthStoreConfig, DIDAuthServiceConfig } from './types'
-import { Web3Provider } from '../web3provider/types'
+import { IAuthManager, LoginResponse, DIDAuthConfig, PersonalSign, KeyValueStore, DIDAuthStoreConfig, DIDAuthServiceConfig } from '@rsksmart/ipfs-cpinner-client-types/lib/auth-manager/types'
+import { Web3Provider } from '@rsksmart/ipfs-cpinner-client-types/lib/web3provider/types'
 
 class AuthManager implements IAuthManager {
   store: KeyValueStore

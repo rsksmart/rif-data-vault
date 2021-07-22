@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/ipfs-cpinner-client",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "RIF Data Vault - IPFS centralized pinner client",
   "main": "dist/bundle.js",
   "types": "lib/index.d.ts",
@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
   "devDependencies": {
+    "@rsksmart/ipfs-cpinner-client-types": "0.1.3",
     "@rsksmart/ipfs-cpinner-provider": "0.1.2",
     "@rsksmart/ipfs-cpinner-service": "0.1.2",
     "@rsksmart/rif-id-ethr-did": "^0.1.0",

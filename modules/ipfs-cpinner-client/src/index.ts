@@ -1,13 +1,12 @@
 import AuthManager from './auth-manager'
-import { IAuthManager } from './auth-manager/types'
 import { AUTHENTICATION_ERROR, MAX_STORAGE_REACHED, SERVICE_MAX_STORAGE_REACHED, UNKNOWN_ERROR } from './constants'
 import {
   CreateContentPayload, CreateContentResponse,
   DeleteTokenPayload, GetContentPayload, Config,
-  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, Backup
-} from './types'
+  SwapContentPayload, SwapContentResponse, GetContentResponsePayload, StorageInformation, Backup,
+  IEncryptionManager, IAuthManager
+} from '@rsksmart/ipfs-cpinner-client-types'
 
-import { IEncryptionManager } from './encryption-manager/types'
 import AsymmetricEncryptionManager from './encryption-manager/asymmetric'
 import SignerEncryptionManager from './encryption-manager/with-signer'
 
