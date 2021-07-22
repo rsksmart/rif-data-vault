@@ -27,10 +27,7 @@
     "url": "https://github.com/rsksmart/rif-data-vault/issues"
   },
   "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
-  "dependencies": {
-    "axios": "^0.21.1",
-    "ipfs-http-client": "^47.0.1",
-    "it-all": "^1.0.4",
-    "typeorm": "0.2.28"
+  "devDependencies": {
+    "axios": "^0.21.1"
   }
 }
