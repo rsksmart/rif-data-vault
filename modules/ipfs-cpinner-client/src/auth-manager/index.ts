@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import { IAuthManager, DIDAuthConfig, KeyValueStore, PersonalSign } from './types'
+import { IAuthManager, DIDAuthConfig, KeyValueStore, PersonalSign } from '@rsksmart/ipfs-cpinner-client-types/lib/auth-manager/types'
 import { LocalStorage } from './store'
 
 const XCsrfToken = 'x-csrf-token'

@@ -1,6 +1,6 @@
 import { encrypt as ethEncrypt } from 'eth-sig-util'
-import { Web3Provider } from '../web3provider/types'
-import { DecryptFn, EncryptionManagerConfig, GetEncryptionPublicKeyFn, IEncryptionManager } from './types'
+import { Web3Provider } from '@rsksmart/ipfs-cpinner-client-types/lib/web3provider/types'
+import { DecryptFn, EncryptionManagerConfig, GetEncryptionPublicKeyFn, IEncryptionManager } from '@rsksmart/ipfs-cpinner-client-types/lib/encryption-manager/types'
 
 class EncryptionManager implements IEncryptionManager {
   getEncryptionPublicKey: GetEncryptionPublicKeyFn
