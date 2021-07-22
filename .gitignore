@@ -4,7 +4,6 @@ node_modules
 # ts
 tsconfig.tsbuildinfo
 lib
-types
 
 # webpack
 dist
