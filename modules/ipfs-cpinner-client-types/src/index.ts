@@ -1,9 +1,7 @@
-import { IAuthManager as IAuthManagerType, IAuthManagerNewable as IAuthManagerNewableType } from './auth-manager/types'
-import { IEncryptionManager as IEncryptionManagerType, IWeb3ProviderEncryptionManager as IWeb3ProviderEncryptionManagerType } from './encryption-manager/types'
-export type IAuthManager = IAuthManagerType
-export type IAuthManagerNewable = IAuthManagerNewableType
-export type IEncryptionManager = IEncryptionManagerType
-export type IWeb3ProviderEncryptionManager = IWeb3ProviderEncryptionManagerType
+import { IAuthManager } from './auth-manager/types'
+import { IEncryptionManager } from './encryption-manager/types'
+export * from './auth-manager/types'
+export * from './encryption-manager/types'
 export type GetContentPayload = { key: string }
 export type GetContentResponsePayload = { id: string, content: string }
 export type CreateContentPayload = { key: string, content: string }
