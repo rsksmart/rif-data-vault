@@ -9,6 +9,9 @@
   <a href="https://rsksmart.github.io/rif-identity-docs/data-vault/cpinner/cpinner-client">
     <img src="https://img.shields.io/badge/-docs-brightgreen" alt="docs" />
   </a>
+  <a href="https://badge.fury.io/js/%40rsksmart%2Fipfs-cpinner-client">
+    <img src="https://badge.fury.io/js/%40rsksmart%2Fipfs-cpinner-client.svg" alt="npm" />
+  </a>
 </p>
 
 A Web Client to simplify the way the services provided by the IPFS Centralized Data Vault Service are consumed.

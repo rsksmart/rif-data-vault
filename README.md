@@ -22,27 +22,54 @@
 
 The Data Vault is a user-centric cloud service. Allows any user with a digital wallet to connect to their own storage cloud, encrypting their information on the client side.
 
-The project consists of 3 modules:
-- [the provider](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-provider) of the data vault service. This module implements the business logic, storing and pining files on IPFS
-- [the service API](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service). It allows modifying the implementation of the provider's messages without modifying the API, keeping the SDK compatible
-- [the SDK](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-client). An npm package that allows you to connect to the Data Vault from the web browser using different web3 wallets
+## Quick start
 
-> The project has a known vulnerability that is being fixed right now. See [#74](https://github.com/rsksmart/rif-data-vault/pull/74).
+Connect to RIF Data Vault from your browser app!
 
-## Setup
+```ts
+import DataVaultWebClient, { AuthManager, AsymmetricEncryptionManager } from '@rsksmart/ipfs-cpinner-client'
 
-Install dependencies
+const serviceUrl = 'https://data-vault.identity.rifos.org'
 
+// using Metamask
+const address = await window.ethereum.request({ method: 'eth_accounts' }).then(accounts => accounts[0])
+const did = `did:ethr:rsk:${address}`
+
+const dataVault = new DataVaultWebClient({
+  serviceUrl,
+  authManager: new AuthManager({ did, serviceUrl, personalSign: (data: string) => window.ethereum.request({ method: 'personal_sign', params: [data, address] }) }),
+  encryptionManager: AsymmetricEncryptionManager.fromWeb3Provider(window.ethereum)
+})
+
+const key = 'MyKey'
+const content = 'this is my content'
+
+const id = await dataVault.create({ key, content })
+
+await dataVault.get({ did, key })
 ```
-npm i
-npm run setup
-```
 
-Install IPFS CLI. Find your option: https://docs.ipfs.io/how-to/command-line-quick-start/.
+[Read the docs](https://developers.rsk.co/rif/identity/data-vault/) and find out more!
 
-> To run an instance of the Data Vault refer to [Data Vault service configuration](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service#configure)
+## Modules
 
-## Test
+- [`@rsksmart/ipfs-cpinner-client`](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-client) - the web SDK. Enables users to log to their clouds with standard web3 wallets
+- [`@rsksmart/ipfs-cpinner-provider`](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-provider) - implements the storage layer: storing and pinning files on IPFS
+- [`@rsksmart/ipfs-cpinner-service`](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service) - API for the Data Vault. This abstraction allows to create different implementations for the storage layer
+- [`@rsksmart/ipfs-cpinner-client-types`](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-client-types) - types for the SDK
+
+## Run for development
+
+1. Install dependencies
+
+    ```
+    npm i
+    npm run setup
+    ```
+
+2. Install IPFS CLI. Find your option: https://docs.ipfs.io/how-to/command-line-quick-start/.
+
+### Test
 
 1. Init IPFS (once)
 
@@ -68,8 +95,20 @@ Install IPFS CLI. Find your option: https://docs.ipfs.io/how-to/command-line-qui
   test:watch
   ```
 
-## Lint
+### Lint
 
 ```
 npm run lint
 ```
+
+### Branching model
+
+- `master` has latest release. Do merge commits.
+- `develop` has latest approved PR. PRs need to pass `ci` and `LGTM`. Do squash & merge.
+- Use branches pointing to `develop` to add new PRs.
+- Do external PRs against latest commit in `develop`.
+
+## Deploy your Data Vault instance
+
+To run a **productive instance** of the Data Vault refer to [Data Vault service configuration](https://github.com/rsksmart/rif-data-vault/tree/develop/modules/ipfs-cpinner-service#configure)
+
