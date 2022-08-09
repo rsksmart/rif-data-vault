@@ -141,7 +141,7 @@ describe('ipfs pinner provider', function (this: {
   })
 
   test('update content specifying cid, should delete only one content', async () => {
-    const remainContent = 'this content will not be updateped'
+    const remainContent = 'this content will not be updated'
     const cidToupdate = await this.centralizedPinnerProvider.create(did, key, content)
     const anotherCid = await this.centralizedPinnerProvider.create(did, key, remainContent)
 

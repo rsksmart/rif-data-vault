@@ -1,6 +1,5 @@
 import { IpfsHttpClient } from 'ipfs-http-client'
 import { Content, CID, IpfsClient } from './types'
-import all from 'it-all'
 
 export default class implements IpfsClient {
   private ipfsHttpClient: IpfsHttpClient
@@ -9,9 +8,15 @@ export default class implements IpfsClient {
   }
 
   async get (cid: string): Promise<string> {
-    const buffer = await all(this.ipfsHttpClient.cat(cid))
+    const responses = await this.ipfsHttpClient.cat(cid)
+    const decoder = new TextDecoder()
+    let data = ''
 
-    return buffer.toString()
+    for await (const chunk of responses) {
+      data += decoder.decode(chunk, { stream: true })
+    }
+
+    return data
   }
 
   put (content: Content): Promise<CID> {

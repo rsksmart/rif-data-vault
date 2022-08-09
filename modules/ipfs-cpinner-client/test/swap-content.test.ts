@@ -176,6 +176,6 @@ describe('swap content', function (this: {
     const key = 'TheKey8'
     const content = '8'.repeat(testMaxStorage + 10)
 
-    expect(() => client.swap({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
+    await expect(() => client.swap({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
   })
 })

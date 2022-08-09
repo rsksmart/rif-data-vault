@@ -12,10 +12,10 @@ describe('get storage information', function (this: {
   serviceUrl: string,
   serviceDid: string
 }) {
-  const dbName = 'get-keys.sqlite'
+  const dbName = 'get-storage.sqlite'
 
   beforeAll(async () => {
-    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4608)
+    const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4609)
     this.server = server
     this.ipfsPinnerProvider = ipfsPinnerProvider
     this.dbConnection = dbConnection

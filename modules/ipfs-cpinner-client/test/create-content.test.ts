@@ -128,7 +128,7 @@ describe('create content', function (this: {
     const key = 'KeyTest6'
     const content = 'a'.repeat(testMaxStorage + 10)
 
-    expect(() => client.create({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
+    await expect(() => client.create({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
   })
 
   // TODO: Test that doing a login before reduces the execution time
