@@ -8,7 +8,7 @@ export default class implements IpfsClient {
   }
 
   async get (cid: string): Promise<string> {
-    const responses = await this.ipfsHttpClient.cat(cid)
+    const responses = this.ipfsHttpClient.cat(cid)
     const decoder = new TextDecoder()
     let data = ''
 
