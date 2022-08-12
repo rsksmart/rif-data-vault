@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  node: cimg/node:16.16
+  node: circleci/node@5.0.2
   codecov: codecov/codecov@1.0.2
 
 commands:
@@ -34,6 +34,8 @@ commands:
 jobs:
   build-test-lint:
     working_directory: ~/tmp
+    docker:
+      - image: cimg/node:16.16.0
     executor:
       name: node/default
     steps:
