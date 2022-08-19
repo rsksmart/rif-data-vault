@@ -51,7 +51,7 @@ describe('setup api with authentication', function (this: {
     this.dbConnection = await createSqliteConnection(this.dbName)
     const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
     this.clientDid = userIdentity.identity.did
-    setupApi(app, ipfsPinnerProvider, config, mockedLogger)
+    await setupApi(app, ipfsPinnerProvider, config, mockedLogger)
 
     this.agent = request.agent(app)
 
