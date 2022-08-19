@@ -18,11 +18,12 @@ describe('delete content', function (this: {
 }) {
   const dbName = 'delete.sqlite'
 
-  const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
-    .then(({ did, dataVaultClient }) => {
-      this.did = did
-      return dataVaultClient
-    })
+  const setup = async () => {
+    const { did, dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    this.did = did
+
+    return dataVaultClient
+  }
 
   const setupAndAddFile = async (key: string, file: string): Promise<DataVaultWebClient> => {
     const client = await setup()

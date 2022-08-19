@@ -21,11 +21,12 @@ describe('create content', function (this: {
 }) {
   const dbName = 'create.sqlite'
 
-  const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
-    .then(({ did, dataVaultClient }) => {
-      this.did = did
-      return dataVaultClient
-    })
+  const setup = async () => {
+    const { did, dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    this.did = did
+
+    return dataVaultClient
+  }
 
   beforeAll(async () => {
     const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4601)
