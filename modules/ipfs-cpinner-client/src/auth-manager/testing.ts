@@ -51,9 +51,8 @@ class AuthManager implements IAuthManager {
   }
 
   private signChallenge = async (challenge: string) => {
-    const sig = await this.personalSign(
-      `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
-    )
+    const message = `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
+    const sig = await this.personalSign(message)
 
     return { did: this.did, sig }
   }

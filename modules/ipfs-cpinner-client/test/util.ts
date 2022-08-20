@@ -96,7 +96,7 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const dbConnection = await createSqliteConnection(dbName)
   const ipfsApiUrl = 'http://localhost:5001'
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: testMaxStorage })
-  setupApi(app, ipfsPinnerProvider as any, config, mockedLogger)
+  await setupApi(app, ipfsPinnerProvider as any, config, mockedLogger)
 
   const server = app.listen(port)
 

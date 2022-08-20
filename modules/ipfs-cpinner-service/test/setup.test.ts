@@ -69,7 +69,9 @@ describe('setup api with authentication', function (this: {
     this.tokens = authResponse.headers['set-cookie']
   })
 
-  afterEach(() => deleteDatabase(this.dbConnection, this.dbName))
+  afterEach(async () => {
+    await deleteDatabase(this.dbConnection, this.dbName)
+  })
 
   const key = 'ThisIsTheKey'
   const content = 'This is a content'
