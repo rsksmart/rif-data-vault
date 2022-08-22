@@ -146,7 +146,7 @@ describe('login', function (this: {
     expect(accessToken).toBeTruthy()
   })
 
-  test('should allow to login with different dids using the same storage', async () => {
+  test.skip('should allow to login with different dids using the same storage', async () => {
     const identity1 = await identityFactory()
     const identity2 = await identityFactory()
 

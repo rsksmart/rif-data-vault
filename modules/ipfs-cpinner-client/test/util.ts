@@ -16,7 +16,7 @@ import { decrypt } from 'eth-sig-util'
 import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
 
-export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
+export const mockedLogger = { info: () => { }, error: () => { } } as unknown as Logger
 
 export const createPersonalSign = (privateKey: Buffer) => (data: string) => {
   const messageDigest = hashPersonalMessage(Buffer.from(data))
@@ -34,7 +34,10 @@ export const identityFactory = async () => {
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-  const privateKey = hdKey.derive(0).privateKey
+
+
+  const privateKey = Buffer.from("19fe1fe7a2e02285d5455140a2bd5d51c677ef95260bf4118d720c91bf0aefbe", 'hex')
+
 
   return {
     did: rskDIDFromPrivateKey()(privateKey.toString('hex')).did,
@@ -78,7 +81,7 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-  const privateKey = hdKey.derive(0).privateKey.toString('hex')
+  const privateKey = "b4df5c837d9802b841ef2cba0b0c235c57b14764151b8c17d9d54a68fb5627f7"
 
   const serviceIdentity = rskDIDFromPrivateKey()(privateKey)
   const serviceDid = serviceIdentity.did
