@@ -46,12 +46,10 @@ describe('swap content', function (this: {
   })
 
   beforeEach(() => {
-    //MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-   // MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 

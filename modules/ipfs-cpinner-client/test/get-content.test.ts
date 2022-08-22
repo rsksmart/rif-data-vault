@@ -1,6 +1,6 @@
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
 import DataVaultWebClient from '../src'
-import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, setupDataVaultClient, startService, testTimestamp } from './util'
+import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatabase, setupDataVaultClient, startService } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
@@ -45,12 +45,10 @@ describe('get', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 

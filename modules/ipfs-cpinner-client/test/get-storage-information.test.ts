@@ -1,8 +1,7 @@
 import { IpfsPinnerProvider } from '@rsksmart/ipfs-cpinner-provider'
-import { deleteDatabase, resetDatabase, setupDataVaultClient, startService, testMaxStorage, testTimestamp } from './util'
+import { deleteDatabase, resetDatabase, setupDataVaultClient, startService, testMaxStorage } from './util'
 import { Server } from 'http'
 import { Connection } from 'typeorm'
-import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
 
 describe('get storage information', function (this: {
@@ -29,12 +28,10 @@ describe('get storage information', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 

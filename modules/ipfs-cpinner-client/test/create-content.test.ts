@@ -48,12 +48,10 @@ describe('create content', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 
@@ -98,6 +96,7 @@ describe('create content', function (this: {
   })
 
   test('should refresh the access token if necessary', async () => {
+    MockDate.set(testTimestamp)
     const client = await setup()
 
     const key = 'KeyTest5'
@@ -121,6 +120,7 @@ describe('create content', function (this: {
     const decrypted2 = await this.encryptionManager.decrypt(actualContent2[0].content)
 
     expect(decrypted2).toEqual(content2)
+    MockDate.reset()
   })
 
   test('should throw an error if max storage reached', async () => {

@@ -43,12 +43,10 @@ describe('delete content', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 
@@ -151,6 +149,7 @@ describe('delete content', function (this: {
   })
 
   test('should refresh the access token if necessary', async () => {
+    MockDate.set(testTimestamp)
     const client = await setup()
 
     const key1 = 'SeventhKey'
@@ -169,5 +168,6 @@ describe('delete content', function (this: {
 
     const deleted2 = await client.delete({ key: key2 })
     expect(deleted2).toBe(true)
+    MockDate.reset()
   })
 })
