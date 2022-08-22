@@ -4,7 +4,6 @@ import { decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, resetDatab
 import { Server } from 'http'
 import { Connection } from 'typeorm'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
-import MockDate from 'mockdate'
 import localStorageMockFactory from './localStorageMockFactory'
 
 describe('get', function (this: {
