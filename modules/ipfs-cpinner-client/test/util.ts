@@ -15,6 +15,7 @@ import DataVaultWebClient from '../src'
 import { decrypt } from 'eth-sig-util'
 import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
+import privateKeyToAddress from 'ethereum-private-key-to-address'
 
 export const mockedLogger = { info: () => { }, error: () => { } } as unknown as Logger
 
@@ -34,13 +35,15 @@ export const identityFactory = async () => {
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-
-
-  const privateKey = Buffer.from("19fe1fe7a2e02285d5455140a2bd5d51c677ef95260bf4118d720c91bf0aefbe", 'hex')
-
+  const privateKey = hdKey.derive(0).privateKey
+  const accountAddress = privateKeyToAddress(privateKey.toString('hex'))
+  const identity = rskDIDFromPrivateKey()(privateKey.toString('hex'))
+  const didSplit = identity.did.split(':')
+  didSplit[3] = accountAddress.toLowerCase()
+  identity.did = didSplit.join(':')
 
   return {
-    did: rskDIDFromPrivateKey()(privateKey.toString('hex')).did,
+    did: identity.did,
     privateKey,
     personalSign: createPersonalSign(privateKey)
   }
