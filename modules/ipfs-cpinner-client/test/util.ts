@@ -84,9 +84,9 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-  const privateKey = "b4df5c837d9802b841ef2cba0b0c235c57b14764151b8c17d9d54a68fb5627f7"
+  const privateKey = hdKey.derive(0).privateKey
 
-  const serviceIdentity = rskDIDFromPrivateKey()(privateKey)
+  const serviceIdentity = rskDIDFromPrivateKey()(privateKey.toString('hex'))
   const serviceDid = serviceIdentity.did
   const app = express()
   app.use(bodyParser.json())
