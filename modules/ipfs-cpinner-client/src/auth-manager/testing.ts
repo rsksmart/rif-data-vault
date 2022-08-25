@@ -30,101 +30,132 @@ class AuthManager implements IAuthManager {
     return { accessToken, refreshToken }
   }
 
-  private getStoredAccessToken = () => this.store.get(`${ACCESS_TOKEN_KEY}-${this.did}`)
-  private getStoredRefreshToken = () => this.store.get(`${REFRESH_TOKEN_KEY}-${this.did}`)
+  private getStoredAccessToken = async () => {
+    return await this.store.get(`${ACCESS_TOKEN_KEY}-${this.did}`)
+  }
+
+  private getStoredRefreshToken = async () => {
+    return await this.store.get(`${REFRESH_TOKEN_KEY}-${this.did}`)
+  }
 
   // did auth challenge-response authentication
-  private getChallenge = (): Promise<string> => axios.get(`${this.serviceUrl}/request-auth/${this.did}`)
-    .then(res => {
-      if (!(res.status === 200 && !!res.data)) throw new Error('Invalid response')
+  private getChallenge = async (): Promise<string> => {
+    const res = await axios.get(`${this.serviceUrl}/request-auth/${this.did}`)
 
-      this.csrfHeader = res.headers['x-csrf-token']
-      this.cookies = res.headers['set-cookie'].map(cookie => cookie.split(';')[0])
+    if (!(res.status === 200 && !!res.data)) throw new Error('Invalid response')
 
-      return res.data.challenge
-    })
+    this.csrfHeader = res.headers['x-csrf-token']
+    this.cookies = res.headers['set-cookie'].map(cookie => cookie.split(';')[0])
 
-  private signChallenge = (challenge: string) => this.personalSign(
-    `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
-  ).then(sig => ({ did: this.did, sig }))
+    return res.data.challenge
+  }
 
-  private login = (): Promise<LoginResponse> => this.getChallenge()
-    .then(this.signChallenge)
-    .then(signature => axios.post(`${this.serviceUrl}/auth`, { response: signature }, {
+  private signChallenge = async (challenge: string) => {
+    const message = `Are you sure you want to login to the RIF Data Vault?\nURL: ${this.serviceUrl}\nVerification code: ${challenge}`
+    const sig = await this.personalSign(message)
+
+    return { did: this.did, sig }
+  }
+
+  private login = async (): Promise<LoginResponse> => {
+    const challenge = await this.getChallenge()
+    const signature = await this.signChallenge(challenge)
+
+    const res = await axios.post(`${this.serviceUrl}/auth`, { response: signature }, {
       headers: {
         'x-csrf-token': this.csrfHeader,
         cookie: this.cookies
       }
-    }))
-    .then(res => res.status === 200 && {
-      accessToken: res.headers['set-cookie'][0].split(';')[0].split('=')[1],
-      refreshToken: res.headers['set-cookie'][1].split(';')[0].split('=')[1]
     })
-    .then(this.storeTokens)
+
+    if (res.status === 200) {
+      return await this.storeTokens({
+        accessToken: res.headers['set-cookie'][0].split(';')[0].split('=')[1],
+        refreshToken: res.headers['set-cookie'][1].split(';')[0].split('=')[1]
+      })
+    }
+  }
 
   private async refreshAccessToken (): Promise<LoginResponse> {
     const refreshToken = await this.getStoredRefreshToken()
 
-    if (!refreshToken) return this.login()
+    if (!refreshToken) return await this.login()
 
-    return axios.post(`${this.serviceUrl}/refresh-token`, {}, {
-      headers: {
-        'x-csrf-token': this.csrfHeader,
-        cookie: `refresh-token-${this.did}=${refreshToken};${this.cookies[0]}`
-      }
-    })
-      .then(res => res.status === 200 && res.data)
-      .then(this.storeTokens)
-      .catch(err => {
-        if (err.response.status !== 401) throw err
-
-        // if it is expired, do another login
-        return this.login()
+    try {
+      const res = await axios.post(`${this.serviceUrl}/refresh-token`, {}, {
+        headers: {
+          'x-csrf-token': this.csrfHeader,
+          cookie: `refresh-token-${this.did}=${refreshToken};${this.cookies[0]}`
+        }
       })
+
+      if (res.status === 200) {
+        return await this.storeTokens(res.data)
+      }
+    } catch (err) {
+      if (err.response.status !== 401) throw err
+
+      return await this.login()
+    }
   }
 
   // api
   public async getAccessToken () {
     const accessToken = await this.getStoredAccessToken()
 
-    if (!accessToken) return this.login().then(tokens => tokens.accessToken)
+    if (!accessToken) {
+      const tokens = await this.login()
+      return tokens.accessToken
+    }
 
     // TODO: should we verify?
     const { payload } = decodeJWT(accessToken)
 
     if (payload.exp <= Math.floor(Date.now() / 1000)) {
-      return this.refreshAccessToken().then(tokens => tokens.accessToken)
+      const tokens = await this.refreshAccessToken()
+      return tokens.accessToken
     }
 
     return accessToken
   }
 
-  public storedTokens = () => Promise.all([
-    this.getStoredAccessToken(),
-    this.getStoredRefreshToken()
-  ]).then(([accessToken, refreshToken]) => ({
-    accessToken,
-    refreshToken
-  }))
+  public storedTokens = async () => {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.getStoredAccessToken(),
+      this.getStoredRefreshToken()
+    ])
 
-  public getHeaders = () => this.getAccessToken()
-    .then(accessToken => ({
+    return { accessToken, refreshToken }
+  }
+
+  public getHeaders = async () => {
+    const accessToken = await this.getAccessToken()
+    return {
       'x-logged-did': this.did,
       'x-csrf-token': this.csrfHeader,
       cookie: `authorization-${this.did}=${accessToken};${this.cookies[0]}`
-    }))
+    }
+  }
 
-  public get: typeof axios.get = (...args) => this.getHeaders()
-    .then(headers => axios.get(args[0], { headers }))
+  public get: typeof axios.get = async (...args) => {
+    const headers = await this.getHeaders()
+    return await axios.get(args[0], { headers })
+  }
 
-  public post: typeof axios.post = (...args) => this.getHeaders()
-    .then(headers => axios.post(args[0], args[1], { headers }))
+  public post: typeof axios.post = async (...args) => {
+    const headers = await this.getHeaders()
+    return await axios.post(args[0], args[1], { headers })
+  }
 
-  public delete: typeof axios.delete = (...args) => this.getHeaders()
-    .then(headers => axios.delete(args[0], { headers }))
+  public delete: typeof axios.delete = async (...args) => {
+    const headers = await this.getHeaders()
+    return await axios.delete(args[0], { headers })
+  }
 
-  public put: typeof axios.put = (...args) => this.getHeaders()
-    .then(headers => axios.put(args[0], args[1], { headers }))
+  public put: typeof axios.put = async (...args) => {
+    const headers = await this.getHeaders()
+    return await axios.put(args[0], args[1], { headers })
+  }
 
   static fromWeb3Provider (config: DIDAuthServiceConfig & DIDAuthStoreConfig, provider: Web3Provider) {
     return provider.request({

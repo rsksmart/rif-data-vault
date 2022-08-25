@@ -5,6 +5,7 @@ import { rskDIDFromPrivateKey } from '@rsksmart/rif-id-ethr-did'
 import { mnemonicToSeed, seedToRSKHDKey, generateMnemonic } from '@rsksmart/rif-id-mnemonic'
 import { Logger } from 'winston'
 import { toRpcSig, ecsign, hashPersonalMessage } from 'ethereumjs-util'
+import privateKeyToAddress from 'ethereum-private-key-to-address'
 
 export const createSqliteConnection = (database: string) => createConnection({
   type: 'sqlite',
@@ -34,7 +35,12 @@ export const identityFactory = async () => {
   const hdKey = seedToRSKHDKey(seed)
 
   const privateKey = hdKey.derive(0).privateKey.toString('hex')
-  return { identity: rskDIDFromPrivateKey()(privateKey), privateKey }
+  const accountAddress = privateKeyToAddress(privateKey)
+  const identity = rskDIDFromPrivateKey()(privateKey)
+  const didSplit = identity.did.split(':')
+  didSplit[3] = accountAddress.toLowerCase()
+  identity.did = didSplit.join(':')
+  return { identity, privateKey, accountAddress }
 }
 
 export const challengeResponseFactory = (

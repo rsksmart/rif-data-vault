@@ -15,9 +15,9 @@ export interface AuthConfig {
   noCsrfSecure?: boolean
 }
 
-export default function (app: Express, provider: IpfsPinnerProvider, config: AuthConfig, logger?: Logger) {
+export default async function (app: Express, provider: IpfsPinnerProvider, config: AuthConfig, logger?: Logger) {
   const { serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader, noCsrfSecure } = config
-  const authMiddleware = setupAuth({ serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader, useCookies: true, noCsrfSecure })(app)
+  const authMiddleware = await setupAuth({ serviceDid, serviceSigner, serviceUrl, challengeSecret, loginMessageHeader, useCookies: true, noCsrfSecure })(app)
 
   app.use(authMiddleware)
 

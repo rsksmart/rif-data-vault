@@ -1,8 +1,7 @@
 import DataVaultWebClient from '../src'
 import { Connection } from 'typeorm'
 import { Server } from 'http'
-import { customStorageFactory, decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, identityFactory, resetDatabase, startService, testTimestamp } from './util'
-import MockDate from 'mockdate'
+import { customStorageFactory, decryptTestFn, deleteDatabase, getEncryptionPublicKeyTestFn, identityFactory, resetDatabase, startService } from './util'
 import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
 
@@ -47,10 +46,7 @@ describe('custom storage', function (this: {
     await deleteDatabase(this.dbConnection, dbName)
   })
 
-  beforeEach(() => MockDate.set(testTimestamp))
-
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 

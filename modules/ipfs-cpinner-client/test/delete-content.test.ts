@@ -18,11 +18,12 @@ describe('delete content', function (this: {
 }) {
   const dbName = 'delete.sqlite'
 
-  const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
-    .then(({ did, dataVaultClient }) => {
-      this.did = did
-      return dataVaultClient
-    })
+  const setup = async () => {
+    const { did, dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    this.did = did
+
+    return dataVaultClient
+  }
 
   const setupAndAddFile = async (key: string, file: string): Promise<DataVaultWebClient> => {
     const client = await setup()
@@ -42,12 +43,10 @@ describe('delete content', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 
@@ -150,6 +149,7 @@ describe('delete content', function (this: {
   })
 
   test('should refresh the access token if necessary', async () => {
+    MockDate.set(testTimestamp)
     const client = await setup()
 
     const key1 = 'SeventhKey'
@@ -168,5 +168,6 @@ describe('delete content', function (this: {
 
     const deleted2 = await client.delete({ key: key2 })
     expect(deleted2).toBe(true)
+    MockDate.reset()
   })
 })

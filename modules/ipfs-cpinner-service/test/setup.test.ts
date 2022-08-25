@@ -51,7 +51,7 @@ describe('setup api with authentication', function (this: {
     this.dbConnection = await createSqliteConnection(this.dbName)
     const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection: this.dbConnection, ipfsApiUrl })
     this.clientDid = userIdentity.identity.did
-    setupApi(app, ipfsPinnerProvider, config, mockedLogger)
+    await setupApi(app, ipfsPinnerProvider, config, mockedLogger)
 
     this.agent = request.agent(app)
 
@@ -69,7 +69,9 @@ describe('setup api with authentication', function (this: {
     this.tokens = authResponse.headers['set-cookie']
   })
 
-  afterEach(() => deleteDatabase(this.dbConnection, this.dbName))
+  afterEach(async () => {
+    await deleteDatabase(this.dbConnection, this.dbName)
+  })
 
   const key = 'ThisIsTheKey'
   const content = 'This is a content'

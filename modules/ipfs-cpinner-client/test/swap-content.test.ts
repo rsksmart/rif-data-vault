@@ -46,12 +46,10 @@ describe('swap content', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 
@@ -147,6 +145,7 @@ describe('swap content', function (this: {
   })
 
   test('should refresh the token if necessary', async () => {
+    MockDate.set(testTimestamp)
     const client = await setup()
 
     const key = 'TheKey7'
@@ -168,6 +167,7 @@ describe('swap content', function (this: {
     const decrypted2 = await this.encryptionManager.decrypt(expected[1].content)
     expect(decrypted1).toEqual(newContent)
     expect(decrypted2).toEqual(newContent)
+    MockDate.reset()
   })
 
   test('should throw an error if max storage reached', async () => {
@@ -176,6 +176,6 @@ describe('swap content', function (this: {
     const key = 'TheKey8'
     const content = '8'.repeat(testMaxStorage + 10)
 
-    expect(() => client.swap({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
+    await expect(() => client.swap({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
   })
 })

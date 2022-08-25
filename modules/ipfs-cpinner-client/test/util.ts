@@ -15,8 +15,9 @@ import DataVaultWebClient from '../src'
 import { decrypt } from 'eth-sig-util'
 import AuthManager from '../src/auth-manager/testing'
 import EncryptionManager from '../src/encryption-manager/asymmetric'
+import privateKeyToAddress from 'ethereum-private-key-to-address'
 
-export const mockedLogger = { info: () => {}, error: () => {} } as unknown as Logger
+export const mockedLogger = { info: () => { }, error: () => { } } as unknown as Logger
 
 export const createPersonalSign = (privateKey: Buffer) => (data: string) => {
   const messageDigest = hashPersonalMessage(Buffer.from(data))
@@ -35,9 +36,14 @@ export const identityFactory = async () => {
   const hdKey = seedToRSKHDKey(seed)
 
   const privateKey = hdKey.derive(0).privateKey
+  const accountAddress = privateKeyToAddress(privateKey.toString('hex'))
+  const identity = rskDIDFromPrivateKey()(privateKey.toString('hex'))
+  const didSplit = identity.did.split(':')
+  didSplit[3] = accountAddress.toLowerCase()
+  identity.did = didSplit.join(':')
 
   return {
-    did: rskDIDFromPrivateKey()(privateKey.toString('hex')).did,
+    did: identity.did,
     privateKey,
     personalSign: createPersonalSign(privateKey)
   }
@@ -78,9 +84,9 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const seed = await mnemonicToSeed(mnemonic)
   const hdKey = seedToRSKHDKey(seed)
 
-  const privateKey = hdKey.derive(0).privateKey.toString('hex')
+  const privateKey = hdKey.derive(0).privateKey
 
-  const serviceIdentity = rskDIDFromPrivateKey()(privateKey)
+  const serviceIdentity = rskDIDFromPrivateKey()(privateKey.toString('hex'))
   const serviceDid = serviceIdentity.did
   const app = express()
   app.use(bodyParser.json())
@@ -96,7 +102,7 @@ export const startService = async (dbName: string, port?: number): Promise<{
   const dbConnection = await createSqliteConnection(dbName)
   const ipfsApiUrl = 'http://localhost:5001'
   const ipfsPinnerProvider = await ipfsPinnerProviderFactory({ dbConnection, ipfsApiUrl, maxStorage: testMaxStorage })
-  setupApi(app, ipfsPinnerProvider as any, config, mockedLogger)
+  await setupApi(app, ipfsPinnerProvider as any, config, mockedLogger)
 
   const server = app.listen(port)
 

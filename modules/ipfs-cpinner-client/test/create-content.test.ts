@@ -21,11 +21,12 @@ describe('create content', function (this: {
 }) {
   const dbName = 'create.sqlite'
 
-  const setup = () => setupDataVaultClient(this.serviceUrl, this.serviceDid)
-    .then(({ did, dataVaultClient }) => {
-      this.did = did
-      return dataVaultClient
-    })
+  const setup = async () => {
+    const { did, dataVaultClient } = await setupDataVaultClient(this.serviceUrl, this.serviceDid)
+    this.did = did
+
+    return dataVaultClient
+  }
 
   beforeAll(async () => {
     const { server, serviceUrl, ipfsPinnerProvider, dbConnection, serviceDid } = await startService(dbName, 4601)
@@ -47,12 +48,10 @@ describe('create content', function (this: {
   })
 
   beforeEach(() => {
-    MockDate.set(testTimestamp)
     global.localStorage = localStorageMockFactory()
   })
 
   afterEach(async () => {
-    MockDate.reset()
     await resetDatabase(this.dbConnection)
   })
 
@@ -97,6 +96,7 @@ describe('create content', function (this: {
   })
 
   test('should refresh the access token if necessary', async () => {
+    MockDate.set(testTimestamp)
     const client = await setup()
 
     const key = 'KeyTest5'
@@ -120,6 +120,7 @@ describe('create content', function (this: {
     const decrypted2 = await this.encryptionManager.decrypt(actualContent2[0].content)
 
     expect(decrypted2).toEqual(content2)
+    MockDate.reset()
   })
 
   test('should throw an error if max storage reached', async () => {
@@ -128,7 +129,7 @@ describe('create content', function (this: {
     const key = 'KeyTest6'
     const content = 'a'.repeat(testMaxStorage + 10)
 
-    expect(() => client.create({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
+    await expect(() => client.create({ key, content })).rejects.toThrow(MAX_STORAGE_REACHED)
   })
 
   // TODO: Test that doing a login before reduces the execution time

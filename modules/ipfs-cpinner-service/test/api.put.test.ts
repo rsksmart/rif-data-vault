@@ -7,7 +7,8 @@ import { createSqliteConnection, deleteDatabase, ipfsApiUrl, mockedLogger } from
 import bodyParser from 'body-parser'
 import { MAX_STORAGE_REACHED } from '../src/constants'
 
-const maxStorage = 1000
+const maxStorage = 1024 * 25 // 25 KB
+const BIG_FILE_ITERATIONS = 25
 
 describe('PUT', function (this: {
   app: Express,
@@ -31,7 +32,7 @@ describe('PUT', function (this: {
     return body
   }
 
-  beforeEach(() => {
+  const beforeEachFn = () => {
     this.did = 'did:ethr:rsk:testnet:0xce83da2a364f37e44ec1a17f7f453a5e24395c70'
     const middleware = (req, res, next) => {
       req.user = { did: this.did }
@@ -40,9 +41,11 @@ describe('PUT', function (this: {
     this.app = express()
     this.app.use(bodyParser.json())
     this.app.use(middleware)
-  })
+  }
+  beforeEach(beforeEachFn)
 
-  afterEach(() => deleteDatabase(this.dbConnection, this.dbName))
+  const afterEachFn = async () => await deleteDatabase(this.dbConnection, this.dbName)
+  afterEach(afterEachFn)
 
   describe('/:key', () => {
     describe('tdd', () => {
@@ -56,8 +59,26 @@ describe('PUT', function (this: {
       test('should save the new file in ipfs and respond with the cid', async () => {
         this.dbName = 'put-2.dv-service.sqlite'
         const body = await putAndGetResponseBody('ThisIsAKey', 'This is a content')
-
         expect(body.id).toEqual('QmcPCC6iCzJMUQyby8eR4Csx6X7e7Xjfi4cmZnvDTVGZvd')
+      })
+
+      test('should save the new big file in ipfs and respond with the actual content multiple times', async () => {
+        for (let i = 0; i < BIG_FILE_ITERATIONS; i++) {
+          if (i > 0) beforeEachFn()
+
+          this.dbName = `put-${i}-bf.dv-service.sqlite`
+          const key = `BigKeyForBigFile${i}`
+          const contentLength = Math.floor(1024 * 25)
+          const content = 'a'.repeat(contentLength)
+
+          const body = await putAndGetResponseBody(key, content)
+          expect(body.id).toEqual('QmZtTJjjG6aBHvD7HxrRcXc2FjhnVST3XZnQshwZoW9Mny')
+
+          const actualContent = await this.provider.get(this.did, key)
+          expect(actualContent[0].content).toEqual(content)
+
+          if (i < BIG_FILE_ITERATIONS - 1) await afterEachFn()
+        }
       })
 
       test('should save the new content associated to a key and did', async () => {
