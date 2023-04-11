@@ -29,7 +29,7 @@
   "homepage": "https://github.com/rsksmart/rif-data-vault#readme",
   "dependencies": {
     "ipfs-http-client": "^47.0.1",
-    "typeorm": "0.2.28"
+    "typeorm": "0.3.14"
   },
   "devDependencies": {
     "ipfs-only-hash": "^2.0.1",
